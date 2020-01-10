@@ -127,3 +127,24 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# exclude data/{raw,externa,interim} from source control by default
+# data/aux can be tracked by github as this will contain hand-written content
+# data/processed is not ignored as outputs should be tracked by DVC
+/data/raw/
+/data/external/
+/data/interim/
+/data
+
+*~
+#*
+*#
+*bin
+*npy
+*pickle
+
+# OSX
+.DS_Store
+
+# config
+/orion/core/config/
