@@ -1,0 +1,17 @@
+dist: xenial
+language: python
+python:
+  - '3.6'
+  - '3.7'
+# command to install dependencies
+install:
+  - pip install -r requirements.txt
+  - pip install -e .
+services:
+  - postgresql
+before_script:
+  - mkdir orion/core/config/
+  - echo -e "[postgresdb]\ntest_uri=postgres+psycopg2://postgres@localhost/postgres" > orion/core/config/orion_config.config
+# command to run tests
+script:
+  - pytest
