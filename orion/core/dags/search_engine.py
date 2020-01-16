@@ -12,7 +12,7 @@ default_args = {
     "retry_delay": timedelta(minutes=2),
 }
 
-DAG_ID = "mag_collection"
+DAG_ID = "search_engine"
 DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")["database_uri"]
 
 with DAG(dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(days=365)
