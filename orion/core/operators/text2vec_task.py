@@ -9,9 +9,10 @@ from sqlalchemy.sql import exists
 from sqlalchemy.orm import sessionmaker
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
-from orion.packages.nlp.text2vec import encode_text, feature_extraction, average_vectors
+from orion.packages.nlp.text2vec import Text2Vector
 from orion.core.orms.bioarxiv_orm import Article
 from orion.core.orms.mag_orm import Paper, DocVector
+from orion.packages.utils.s3_utils import store_on_s3
 
 
 class Text2VectorOperator(BaseOperator):
@@ -33,24 +34,23 @@ class Text2VectorOperator(BaseOperator):
         Session = sessionmaker(bind=engine)
         s = Session()
 
-        # Get the abstracts of bioRxiv papers the DOI of which has been matched with MAG.
-        abstracts = s.query(Article.doi, Article.abstract).filter(
+        # Get the abstracts of bioRxiv papers.
+        papers = s.query(Article.abstract, Paper.id, Paper.doi).join(Paper, Paper.doi == Article.doi).filter(
             and_(
-                exists().where(Paper.doi == Article.doi),
-                ~exists().where(Paper.doi == DocVector.doi),
+                ~exists().where(Paper.id == DocVector.id),
                 Article.doi.isnot(None),
                 Article.abstract.isnot(None),
             )
         )
-        logging.info(f"Number of documents to be vectorised: {abstracts.count()}")
-
-        abstracts = {tup[0]: tup[1] for tup in abstracts}
-
+        logging.info(f"Number of documents to be vectorised: {papers.count()}")
+        papers = papers[:10]
+        logging.info(f"Number of documents to be vectorised: {len(papers)}")
+        tv = Text2Vector()
         vectors = []
-        for doi, abstract in abstracts.items():
-            vec = average_vectors(feature_extraction(encode_text(abstract)))
-            vectors.append({"doi": doi, "vector": vec})
+        for (abstract, id_, doi) in papers:
+            vec = tv.average_vectors(tv.feature_extraction(tv.encode_text(abstract)))
+            vectors.append({"doi": doi, "vector": json.dumps(vec.tolist()), "id":id_})
         logging.info("Embedding documents - Done!")
 
-        s.bulk_insert_mapping(DocVector, vectors)
+        s.bulk_insert_mappings(DocVector, vectors)
         logging.info("Inserted to DB!")
