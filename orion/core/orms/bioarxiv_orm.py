@@ -25,7 +25,7 @@ class Article(Base):
     article_author = relationship("ArticleAuthor", back_populates="article_author")
     article_doi = relationship("ArticlePublication", back_populates="article_doi")
     article_traffic = relationship("ArticleTraffic", back_populates="traffic")
-    crossref_paper = relationship("CrossRef", back_populates="article")
+    # crossref_paper = relationship("CrossRef", back_populates="article")
     pub_date = relationship("PublicationDate", back_populates="articles")
 
 
@@ -49,7 +49,7 @@ class ArticlePublication(Base):
     doi = Column(VARCHAR(200))
     publication = Column(TEXT)
     article_doi = relationship("Article")
-    crossref_paper = relationship("CrossRef", back_populates="publication")
+    # crossref_paper = relationship("CrossRef", back_populates="publication")
 
 
 class ArticleTraffic(Base):
@@ -91,17 +91,17 @@ class Author(Base):
     article_author = relationship("ArticleAuthor", back_populates="authors")
 
 
-class CrossRef(Base):
-    """CrossRef information for article with DOI."""
+# class CrossRef(Base):
+#     """CrossRef information for article with DOI."""
 
-    __tablename__ = "crossref_daily"
-    id = Column(Integer, primary_key=True)
-    source_date = Column(Date)
-    doi = Column(TEXT)
-    count = Column(Integer)
-    crawled = Column(Date)
-    article = relationship("Article")
-    publication = relationship("ArticlePublication")
+#     __tablename__ = "crossref_daily"
+#     id = Column(Integer, primary_key=True)
+#     source_date = Column(Date)
+#     doi = Column(TEXT)
+#     count = Column(Integer)
+#     crawled = Column(Date)
+#     article = relationship("Article")
+#     publication = relationship("ArticlePublication")
 
 
 class PublicationDate(Base):
