@@ -3,15 +3,13 @@ import pytest
 import torch
 import numpy as np
 
-from orion.packages.nlp.text2vec import encode_text
-from orion.packages.nlp.text2vec import feature_extraction
-from orion.packages.nlp.text2vec import average_vectors
+from orion.packages.nlp.text2vec import Text2Vector
 
 
 def test_text_encoder():
     text = "Hello world. foo bar!"
-
-    result = encode_text(text)
+    tv = Text2Vector()
+    result = tv.encode_text(text)
 
     expected_shape = torch.Size([1, 9])
     expected_values = torch.tensor([[2, 10975, 126, 9, 4310, 111, 748, 187, 3]])
@@ -26,7 +24,8 @@ def test_text_encoder():
 def test_feature_extraction():
     input_ids = torch.tensor([[2, 10975, 126, 9, 4310, 111, 748, 187, 3]])
 
-    result = feature_extraction(input_ids)
+    tv = Text2Vector()
+    result = tv.feature_extraction(input_ids)
     expected_shape = torch.Size([1, 9, 768])
 
     assert result.shape == expected_shape
@@ -35,7 +34,8 @@ def test_feature_extraction():
 def test_average_vectors():
     vectors = torch.tensor([[[2, 3, 4], [7, 8, 9]]])
 
-    result = average_vectors(vectors)
+    tv = Text2Vector()
+    result = tv.average_vectors(vectors)
     expected_result = np.array([4.5, 5.5, 6.5])
 
     assert all(result == expected_result)
