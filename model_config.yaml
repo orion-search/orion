@@ -1,0 +1,5 @@
+umap:
+    n_neighbors: 10
+    n_components: 2
+    metric: 'cosine'
+    min_dist: .1
