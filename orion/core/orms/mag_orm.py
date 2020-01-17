@@ -139,6 +139,15 @@ class AffiliationLocation(Base):
     geocoded_affiliation = relationship("Affiliation", back_populates="aff_location")
 
 
+class DocVector(Base):
+    """Abstract vector of a paper."""
+    __tablename__ = "doc_vectors"
+
+    id = Column(BIGINT, ForeignKey("mag_papers.id"), primary_key=True, autoincrement=False)
+    doi = Column(VARCHAR(200))
+    vector = Column(TEXT)
+
+
 if __name__ == "__main__":
     from orion.core.airflow_utils import misctools
     from sqlalchemy import create_engine
