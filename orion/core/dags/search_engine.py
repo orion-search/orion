@@ -14,6 +14,9 @@ default_args = {
 
 DAG_ID = "search_engine"
 DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")["database_uri"]
+bucket='document-vectors'
+prefix='doc_vectors'
+
 
 with DAG(dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(days=365)
 ) as dag:
@@ -22,7 +25,9 @@ with DAG(dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(d
 
     text2vector = Text2VectorOperator(
         task_id="text2vector",
-        db_config=DB_CONFIG
+        db_config=DB_CONFIG,
+        bucket='document-vectors',
+        prefix='doc_vectors'
     )
 
     dummy_task >> text2vector
