@@ -12,7 +12,7 @@ default_args = {
     "retry_delay": timedelta(minutes=2),
 }
 
-DAG_ID = "search_engine"
+DAG_ID = "text_embeddings"
 DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")["database_uri"]
 bucket = "document-vectors"
 prefix = "doc_vectors"
