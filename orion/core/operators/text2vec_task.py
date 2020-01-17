@@ -49,14 +49,14 @@ class Text2VectorOperator(BaseOperator):
             )
         )
         logging.info(f"Number of documents to be vectorised: {papers.count()}")
-        # papers = papers[:1000]
-        # logging.info(f"Number of documents to be vectorised: {len(papers)}")
+        papers = papers[:1000]
+        logging.info(f"Number of documents to be vectorised: {len(papers)}")
         tv = Text2Vector()
         vectors = []
         for i, (abstract, id_, doi) in enumerate(papers):
-            logging.info(f'{i}/{len(papers)}: {doi}')
+            logging.info(f'{i}: {doi}')
             vec = tv.average_vectors(tv.feature_extraction(tv.encode_text(abstract)))
-            vectors.append({"doi": doi, "vector": vec, "id": id_})
+            vectors.append([doi, vec, id_])
         logging.info("Embedding documents - Done!")
 
         store_on_s3(vectors, self.bucket, self.prefix)
