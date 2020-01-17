@@ -17,7 +17,6 @@ class Text2Vector:
         self.pretrained_weights = pretrained_weights
         self.tokenizer = self.tokenizer_model.from_pretrained(self.pretrained_weights)
         self.model = self.transformer.from_pretrained(self.pretrained_weights)
-        
 
     def encode_text(self, text):
         """Tokenizes text and finds its indices.
@@ -32,7 +31,7 @@ class Text2Vector:
             (torch.Tensor) Indices of input sequence tokens in the vocabulary of the transformer.
 
         """
-        
+
         # max_length is equal to 512 because that's the longest input sequence the model takes.
         return torch.tensor(
             [self.tokenizer.encode(text, add_special_tokens=True, max_length=512)]

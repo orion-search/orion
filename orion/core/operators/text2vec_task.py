@@ -37,11 +37,15 @@ class Text2VectorOperator(BaseOperator):
         s = Session()
 
         # Get the abstracts of bioRxiv papers.
-        papers = s.query(Article.abstract, Paper.id, Paper.doi).join(Paper, Paper.doi == Article.doi).filter(
-            and_(
-                ~exists().where(Paper.id == DocVector.id),
-                Article.doi.isnot(None),
-                Article.abstract.isnot(None),
+        papers = (
+            s.query(Article.abstract, Paper.id, Paper.doi)
+            .join(Paper, Paper.doi == Article.doi)
+            .filter(
+                and_(
+                    ~exists().where(Paper.id == DocVector.id),
+                    Article.doi.isnot(None),
+                    Article.abstract.isnot(None),
+                )
             )
         )
         logging.info(f"Number of documents to be vectorised: {papers.count()}")
@@ -51,7 +55,7 @@ class Text2VectorOperator(BaseOperator):
         vectors = []
         for (abstract, id_, doi) in papers:
             vec = tv.average_vectors(tv.feature_extraction(tv.encode_text(abstract)))
-            vectors.append({"doi":doi, "vector":vec, "id":id_})
+            vectors.append({"doi": doi, "vector": vec, "id": id_})
         logging.info("Embedding documents - Done!")
 
         store_on_s3(vectors, self.bucket, self.prefix)
