@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, TSVECTOR
+from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, TSVECTOR, ARRAY
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Integer, Date, Boolean, Float, BIGINT
@@ -145,7 +145,7 @@ class DocVector(Base):
 
     id = Column(BIGINT, ForeignKey("mag_papers.id"), primary_key=True, autoincrement=False)
     doi = Column(VARCHAR(200))
-    vector = Column(TEXT)
+    vector = Column(ARRAY(Float, dimensions=2))
 
 
 if __name__ == "__main__":
