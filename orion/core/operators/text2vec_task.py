@@ -24,9 +24,11 @@ class Text2VectorOperator(BaseOperator):
     """
 
     # template_fields = ['']
-    def __init__(self, db_config, *args, **kwargs):
+    def __init__(self, db_config, bucket, prefix, *args, **kwargs):
         super().__init__(**kwargs)
         self.db_config = db_config
+        self.bucket = bucket
+        self.prefix = prefix
 
     def execute(self, context):
         # Connect to postgresql
@@ -49,8 +51,9 @@ class Text2VectorOperator(BaseOperator):
         vectors = []
         for (abstract, id_, doi) in papers:
             vec = tv.average_vectors(tv.feature_extraction(tv.encode_text(abstract)))
-            vectors.append({"doi": doi, "vector": json.dumps(vec.tolist()), "id":id_})
+            vectors.append({"doi":doi, "vector":vec, "id":id_})
         logging.info("Embedding documents - Done!")
 
-        s.bulk_insert_mappings(DocVector, vectors)
-        logging.info("Inserted to DB!")
+        store_on_s3(vectors, self.bucket, self.prefix)
+        # s.bulk_insert_mappings(DocVector, vectors)
+        logging.info("Stored to S3!")
