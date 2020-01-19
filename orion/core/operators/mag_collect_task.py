@@ -1,14 +1,18 @@
 """
-Get expressions (ie processed paper titles) from S3 and query MAG API. The API will return matches to these titles which will be stored in a PostgreSQL DB.
+MagCollectionOperator: Get expressions (ie processed paper titles) from S3 and query MAG API. The API will return matches to these titles which will be stored in a PostgreSQL DB.
+
+MagFosCollectionOperator: Get the IDs from the FieldOfStudy table and collect their level in the hierarchy, child and parent nodes (only if they're in tje FieldOfStudy table).
 """
 import logging
 from sqlalchemy import create_engine
+from sqlalchemy.sql import exists
+from itertools import repeat
 from sqlalchemy.orm import sessionmaker
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
-from orion.core.orms.mag_orm import Paper
+from orion.core.orms.mag_orm import Paper, FieldOfStudy, FosChild, FosLevel, FosParent
 from orion.core.orms.bioarxiv_orm import Article
-from orion.packages.mag.query_mag_api import query_mag_api
+from orion.packages.mag.query_mag_api import query_mag_api, query_fields_of_study
 from orion.packages.utils.s3_utils import store_on_s3, load_from_s3
 
 metadata = [
@@ -91,3 +95,61 @@ class MagCollectionOperator(BaseOperator):
             logging.info(f"File on s3: {filename}")
 
             store_on_s3(results, self.output_bucket, filename)
+
+
+class MagFosCollectionOperator(BaseOperator):
+    """Queries MAG API with Fields of Study to collect their level 
+    in hierarchy, child and parent nodes."""
+
+    @apply_defaults
+    def __init__(self, db_config, subscription_key, *args, **kwargs):
+        super().__init__(**kwargs)
+        self.db_config = db_config
+        self.subscription_key = subscription_key
+
+    def execute(self, context):
+        # Connect to PostgreSQL DB
+        engine = create_engine(self.db_config)
+        Session = sessionmaker(bind=engine)
+        s = Session()
+
+        # Fetch FoS IDs
+        all_fos_ids = set([id_[0] for id_ in s.query(FieldOfStudy.id)])
+        # Keep the FoS IDs that haven't been collected yet
+        fields_of_study_ids = [
+            id_[0]
+            for id_ in s.query(FieldOfStudy.id).filter(
+                ~exists().where(FieldOfStudy.id == FosLevel.id)
+            )
+        ]
+        logging.info(f"Fields of study left: {len(fields_of_study_ids)}")
+
+        # Collect FoS metadata
+        fos = query_fields_of_study(self.subscription_key, ids=fields_of_study_ids)
+
+        # Parse api response
+        for response in fos:
+            s.add(FosLevel(id=response["id"], level=response["level"]))
+            # Keep only the child and parent IDs that exist in our DB
+            if "child_ids" in response.keys():
+                unique_child_ids = set(response["child_ids"]) & all_fos_ids
+                children = [
+                    {"id": id_, "child_id": child_id}
+                    for id_, child_id in zip(repeat(response["id"]), unique_child_ids)
+                ]
+                s.bulk_insert_mappings(FosChild, children)
+                logging.info(
+                    f'Number of children for {response["id"]}: {len(children)}'
+                )
+
+            if "parent_ids" in response.keys():
+                unique_parent_ids = set(response["parent_ids"]) & all_fos_ids
+                parents = [
+                    {"id": id_, "parent_id": parent_id}
+                    for id_, parent_id in zip(repeat(response["id"]), unique_parent_ids)
+                ]
+                s.bulk_insert_mappings(FosParent, parents)
+                logging.info(f'Number of parents for {response["id"]}: {len(parents)}')
+
+            # Commit all additions
+            s.commit()
