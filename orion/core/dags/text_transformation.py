@@ -21,12 +21,12 @@ bucket = "document-vectors"
 prefix = "doc_vectors"
 
 # task 2
-config = orion.config['umap']
+config = orion.config["umap"]
 # umap hyperparameters
-n_neighbors = config['n_neighbors']
-n_components = config['n_components']
-metric = config['metric']
-min_dist = config['min_dist']
+n_neighbors = config["n_neighbors"]
+n_components = config["n_components"]
+metric = config["metric"]
+min_dist = config["min_dist"]
 
 with DAG(
     dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(days=365)
@@ -35,12 +35,18 @@ with DAG(
     dummy_task = DummyOperator(task_id="start")
 
     text2vector = Text2VectorOperator(
-        task_id="text2vector",
+        task_id="text2vector", db_config=DB_CONFIG, bucket=bucket, prefix=prefix,
+    )
+
+    dim_reduction = DimReductionOperator(
+        task_id="dim_reduction",
         db_config=DB_CONFIG,
         bucket=bucket,
         prefix=prefix,
+        n_neighbors=n_neighbors,
+        min_dist=min_dist,
+        n_components=n_components,
+        metric=metric,
     )
-
-    dim_reduction = DimReductionOperator(task_id='dim_reduction', db_config=db_config, bucket=bucket, prefix=prefix,n_neighbors=n_neighbors, min_dist=min_dist, n_components=n_components, metric=metric)
 
     dummy_task >> text2vector >> dim_reduction
