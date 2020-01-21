@@ -5,7 +5,7 @@ from orion.core.airflow_utils import misctools
 from orion.packages.utils.batches import split_batches
 from orion.core.operators.mag_parse_task import MagParserOperator
 from orion.core.operators.mag_process_titles_task import ProcessTitlesOperator
-from orion.core.operators.mag_collect_task import MagCollectionOperator
+from orion.core.operators.mag_collect_task import MagCollectionOperator, MagFosCollectionOperator
 from orion.core.operators.mag_geocode_task import GeocodingOperator
 from orion.packages.utils.s3_utils import load_from_s3, s3_bucket_obj
 
@@ -32,6 +32,9 @@ parallel_tasks = 4
 
 # task 3
 google_key = misctools.get_config("orion_config.config", "google")["google_key"]
+
+# task 4
+
 
 with DAG(
     dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(days=365)
@@ -69,5 +72,7 @@ with DAG(
     )
 
     geocode_places = GeocodingOperator(task_id='geocode_places', db_config=DB_CONFIG, subscription_key=google_key)
+
+    collect_fos = MagFosCollectionOperator(task_id='collect_fos_metadata', db_config=DB_CONFIG, subscription_key=MAG_API_KEY)
     
-    dummy_task >> process_titles >> batch_task >> parse_mag >> geocode_places
+    dummy_task >> process_titles >> batch_task >> parse_mag >> geocode_places >> collect_fos
