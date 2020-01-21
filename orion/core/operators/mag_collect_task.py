@@ -10,7 +10,9 @@ from itertools import repeat
 from sqlalchemy.orm import sessionmaker
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
-from orion.core.orms.mag_orm import Paper, FieldOfStudy, FosChild, FosLevel, FosParent
+from orion.core.orms.mag_orm import Paper, FieldOfStudy, FosHierarchy, FosLevel
+
+# FosChild, FosLevel, FosParent
 from orion.core.orms.bioarxiv_orm import Article
 from orion.packages.mag.query_mag_api import query_mag_api, query_fields_of_study
 from orion.packages.utils.s3_utils import store_on_s3, load_from_s3
@@ -130,26 +132,25 @@ class MagFosCollectionOperator(BaseOperator):
         # Parse api response
         for response in fos:
             s.add(FosLevel(id=response["id"], level=response["level"]))
+
             # Keep only the child and parent IDs that exist in our DB
             if "child_ids" in response.keys():
-                unique_child_ids = set(response["child_ids"]) & all_fos_ids
-                children = [
-                    {"id": id_, "child_id": child_id}
-                    for id_, child_id in zip(repeat(response["id"]), unique_child_ids)
-                ]
-                s.bulk_insert_mappings(FosChild, children)
-                logging.info(
-                    f'Number of children for {response["id"]}: {len(children)}'
-                )
+                unique_child_ids = list(set(response["child_ids"]) & all_fos_ids)
+            else:
+                unique_child_ids = None
 
             if "parent_ids" in response.keys():
-                unique_parent_ids = set(response["parent_ids"]) & all_fos_ids
-                parents = [
-                    {"id": id_, "parent_id": parent_id}
-                    for id_, parent_id in zip(repeat(response["id"]), unique_parent_ids)
-                ]
-                s.bulk_insert_mappings(FosParent, parents)
-                logging.info(f'Number of parents for {response["id"]}: {len(parents)}')
+                unique_parent_ids = list(set(response["parent_ids"]) & all_fos_ids)
+            else:
+                unique_parent_ids = None
+
+            s.add(
+                FosHierarchy(
+                    id=response["id"],
+                    child_id=unique_child_ids,
+                    parent_id=unique_parent_ids,
+                )
+            )
 
             # Commit all additions
             s.commit()
