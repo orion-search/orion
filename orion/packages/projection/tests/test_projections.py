@@ -3,6 +3,8 @@ import numpy as np
 
 from orion.packages.projection.dim_reduction import umap_embeddings
 
+np.random.seed(42)
+
 
 def test_umap_embeddings():
     arr = np.array(
@@ -28,4 +30,5 @@ def test_umap_embeddings():
         ]
     )
 
+    print(result)
     np.testing.assert_allclose(result, expected_result)
