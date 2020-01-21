@@ -33,14 +33,11 @@ parallel_tasks = 4
 # task 3
 google_key = misctools.get_config("orion_config.config", "google")["google_key"]
 
-# task 4
-
-
 with DAG(
     dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(days=365)
 ) as dag:
 
-    dummy_task = DummyOperator(task_id="dummy_task")
+    dummy_task = DummyOperator(task_id="start")
 
     process_titles = ProcessTitlesOperator(
         task_id="process_titles",
@@ -75,4 +72,5 @@ with DAG(
 
     collect_fos = MagFosCollectionOperator(task_id='collect_fos_metadata', db_config=DB_CONFIG, subscription_key=MAG_API_KEY)
     
-    dummy_task >> process_titles >> batch_task >> parse_mag >> geocode_places >> collect_fos
+    dummy_task >> process_titles >> batch_task >> parse_mag >> geocode_places
+    parse_mag >> collect_fos
