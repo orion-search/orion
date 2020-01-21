@@ -10,3 +10,4 @@ alphabet_detector==0.0.7
 requests==2.22.0
 pytest==5.2.2
 psycopg2==2.8.3
+umap-learn==0.3.10
