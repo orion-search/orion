@@ -157,30 +157,20 @@ class DocVector(Base):
     vector = Column(ARRAY(Float, dimensions=2))
 
 
-class FosParent(Base):
-    """Parent nodes of a Field of Study."""
+class FosHierarchy(Base):
+    """Parent and child nodes of a FoS."""
 
-    __tablename__ = "mag_field_of_study_parent"
+    __tablename__ = "mag_field_of_study_hierarchy"
+
     id = Column(
         BIGINT,
         ForeignKey("mag_fields_of_study.id"),
         primary_key=True,
         autoincrement=False,
     )
-    parent_id = Column(BIGINT, primary_key=True)
 
-
-class FosChild(Base):
-    """Child nodes of a Field of Study."""
-
-    __tablename__ = "mag_field_of_study_child"
-    id = Column(
-        BIGINT,
-        ForeignKey("mag_fields_of_study.id"),
-        primary_key=True,
-        autoincrement=False,
-    )
-    child_id = Column(BIGINT, primary_key=True)
+    parent_id = Column(ARRAY(BIGINT))
+    child_id = Column(ARRAY(BIGINT))
 
 
 class FosLevel(Base):
@@ -200,9 +190,7 @@ if __name__ == "__main__":
     from orion.core.airflow_utils import misctools
     from sqlalchemy import create_engine
 
-    db_config = misctools.get_config("orion_config.config", "postgresdb")[
-        "database_uri"
-    ]
+    db_config = misctools.get_config("orion_config.config", "postgresdb")["rds"]
     engine = create_engine(db_config)
     # Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
