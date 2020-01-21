@@ -2,7 +2,9 @@ import umap
 import numpy as np
 
 
-def umap_embeddings(data, n_neighbors, min_dist, n_components, metric):
+def umap_embeddings(
+    data, n_neighbors=15, min_dist=0.1, n_components=2, metric="cosine"
+):
     """Finds a low dimensional representation of the input embeddings.
     More info: https://umap-learn.readthedocs.io/en/latest/api.html#umap
 
