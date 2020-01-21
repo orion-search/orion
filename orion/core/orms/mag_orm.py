@@ -190,7 +190,7 @@ if __name__ == "__main__":
     from orion.core.airflow_utils import misctools
     from sqlalchemy import create_engine
 
-    db_config = misctools.get_config("orion_config.config", "postgresdb")["rds"]
+    db_config = misctools.get_config("orion_config.config", "postgresdb")["database_uri"]
     engine = create_engine(db_config)
     # Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
