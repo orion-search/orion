@@ -173,10 +173,10 @@ class FosHierarchy(Base):
     child_id = Column(ARRAY(BIGINT))
 
 
-class FosLevel(Base):
-    """Level in the hierarchy of a Field of Study."""
+class FosMetadata(Base):
+    """Level in the hierarchy and the frequency of a Field of Study."""
 
-    __tablename__ = "mag_field_of_study_level"
+    __tablename__ = "mag_field_of_study_metadata"
     id = Column(
         BIGINT,
         ForeignKey("mag_fields_of_study.id"),
@@ -184,6 +184,7 @@ class FosLevel(Base):
         autoincrement=False,
     )
     level = Column(Integer)
+    frequency = Column(Integer)
 
 
 if __name__ == "__main__":
