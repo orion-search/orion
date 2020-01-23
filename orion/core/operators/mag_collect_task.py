@@ -4,15 +4,14 @@ MagCollectionOperator: Get expressions (ie processed paper titles) from S3 and q
 MagFosCollectionOperator: Get the IDs from the FieldOfStudy table and collect their level in the hierarchy, child and parent nodes (only if they're in tje FieldOfStudy table).
 """
 import logging
+import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.sql import exists
 from itertools import repeat
 from sqlalchemy.orm import sessionmaker
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
-from orion.core.orms.mag_orm import Paper, FieldOfStudy, FosHierarchy, FosLevel
-
-# FosChild, FosLevel, FosParent
+from orion.core.orms.mag_orm import Paper, FieldOfStudy, PaperFieldsOfStudy, FosHierarchy, FosMetadata
 from orion.core.orms.bioarxiv_orm import Article
 from orion.packages.mag.query_mag_api import query_mag_api, query_fields_of_study
 from orion.packages.utils.s3_utils import store_on_s3, load_from_s3
@@ -121,7 +120,7 @@ class MagFosCollectionOperator(BaseOperator):
         fields_of_study_ids = [
             id_[0]
             for id_ in s.query(FieldOfStudy.id).filter(
-                ~exists().where(FieldOfStudy.id == FosLevel.id)
+                ~exists().where(FieldOfStudy.id == FosMetadata.id)
             )
         ]
         logging.info(f"Fields of study left: {len(fields_of_study_ids)}")
@@ -131,7 +130,7 @@ class MagFosCollectionOperator(BaseOperator):
 
         # Parse api response
         for response in fos:
-            s.add(FosLevel(id=response["id"], level=response["level"]))
+            s.add(FosMetadata(id=response["id"], level=response["level"], frequency=None))
 
             # Keep only the child and parent IDs that exist in our DB
             if "child_ids" in response.keys():

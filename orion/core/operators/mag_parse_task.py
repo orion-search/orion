@@ -1,6 +1,7 @@
 import glob
 import logging
-from sqlalchemy import create_engine
+from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
@@ -27,6 +28,7 @@ from orion.core.orms.mag_orm import (
     PaperAuthor,
     PaperFieldsOfStudy,
     FieldOfStudy,
+    FosMetadata
 )
 
 
@@ -122,3 +124,33 @@ class MagParserOperator(BaseOperator):
 
         s.commit()
         logging.info("Committed to DB")
+
+
+class FosFrequencyOperator(BaseOperator):
+    """Find the frequency of the Field of Studies."""
+    @apply_defaults
+    def __init__(self, db_config, *args, **kwargs):
+        super().__init__(**kwargs)
+        self.db_config = db_config
+
+    def execute(self, context):
+        # Connect to PostgreSQL DB
+        engine = create_engine(self.db_config)
+        Session = sessionmaker(bind=engine)
+        s = Session()
+
+        # Get a count of field of study
+        fos_freq = s.query(PaperFieldsOfStudy.field_of_study_id, func.count(PaperFieldsOfStudy.field_of_study_id)).group_by(PaperFieldsOfStudy.field_of_study_id).all()
+
+        # Transform it to a dictionary - This step can actually be skipped
+        fos_freq = {tup[0]:tup[1] for tup in fos_freq}
+
+        for k,v in fos_freq.items():
+            logging.info(f'FIELD_OF_STUDY: {k}')
+            # Update the frequency column. Skip if the field_of_study id is not found
+            try:
+                fos = s.query(FosMetadata).filter(FosMetadata.id == k).one()
+                fos.frequency = v
+                s.commit()
+            except NoResultFound:
+                continue

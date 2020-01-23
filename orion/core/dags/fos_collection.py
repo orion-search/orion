@@ -3,6 +3,7 @@ from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from orion.core.airflow_utils import misctools
 from orion.core.operators.mag_collect_task import MagFosCollectionOperator
+from orion.core.operators.mag_parse_task import FosFrequencyOperator
 
 default_args = {
     "owner": "Kostas St",
@@ -21,4 +22,6 @@ with DAG(dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(d
 
     collect_fos = MagFosCollectionOperator(task_id='collect_fos_metadata', db_config=DB_CONFIG, subscription_key=MAG_API_KEY)
 
-    dummy_task >> collect_fos
+    fos_frequency = FosFrequencyOperator(task_id='fos_frequency', db_config=DB_CONFIG)
+
+    dummy_task >> collect_fos >> fos_frequency
