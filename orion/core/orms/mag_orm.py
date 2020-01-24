@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, TSVECTOR, ARRAY
+from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, TSVECTOR, ARRAY, FLOAT
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Integer, Date, Boolean, Float, BIGINT
@@ -154,8 +154,7 @@ class DocVector(Base):
         BIGINT, ForeignKey("mag_papers.id"), primary_key=True, autoincrement=False
     )
     doi = Column(VARCHAR(200))
-    vector = Column(ARRAY(Float, dimensions=2))
-
+    vector = Column(ARRAY(FLOAT))
 
 class FosHierarchy(Base):
     """Parent and child nodes of a FoS."""
