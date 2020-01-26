@@ -156,6 +156,7 @@ class DocVector(Base):
     doi = Column(VARCHAR(200))
     vector = Column(ARRAY(FLOAT))
 
+
 class FosHierarchy(Base):
     """Parent and child nodes of a FoS."""
 
@@ -186,11 +187,26 @@ class FosMetadata(Base):
     frequency = Column(Integer)
 
 
+class AuthorGender(Base):
+    """Gender of an author."""
+
+    __tablename__ = "author_gender"
+
+    id = Column(
+        BIGINT, ForeignKey("mag_authors.id"), primary_key=True, autoincrement=False
+    )
+    full_name = Column(VARCHAR(100))
+    first_name = Column(VARCHAR(100))
+    gender = Column(TEXT)
+    samples = Column(Integer)
+    probability = Column(Integer)
+
+
 if __name__ == "__main__":
     from orion.core.airflow_utils import misctools
     from sqlalchemy import create_engine
 
-    db_config = misctools.get_config("orion_config.config", "postgresdb")["database_uri"]
+    db_config = misctools.get_config("orion_config.config", "postgresdb")["rds"]
     engine = create_engine(db_config)
     # Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
