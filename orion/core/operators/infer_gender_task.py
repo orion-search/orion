@@ -13,7 +13,7 @@ from orion.packages.utils.batches import split_batches, put_s3_batch
 from orion.packages.utils.s3_utils import load_from_s3
 from orion.packages.gender.query_gender_api import query_gender_api, parse_response
 from orion.core.orms.mag_orm import Author, AuthorGender
-from orion.packages.nlp.nlp_utils import clean_name
+from orion.packages.utils.nlp_utils import clean_name
 
 
 class NamesBatchesOperator(BaseOperator):
