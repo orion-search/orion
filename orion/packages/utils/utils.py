@@ -38,3 +38,30 @@ def flatten_lists(lst):
     
     """
     return list(chain(*lst))
+
+
+def dict2psql_format(d):
+    """Transform a dictionary with pandas Series to a list of dictionaries 
+    in order to add it in PostgreSQL.
+
+    Args:
+        d (dict): Dictionary with pandas Series, usually containing RCA measurement.
+
+    Returns:
+        (:obj:`list` of :obj:`dict`)
+    
+    """
+    return flatten_lists(
+        [
+            [
+                {
+                    "entity": idx[0],
+                    "year": idx[1],
+                    "rca_sum": elem,
+                    "field_of_study_id": int(fos),
+                }
+                for idx, elem in series.iteritems()
+            ]
+            for fos, series in d.items()
+        ]
+    )

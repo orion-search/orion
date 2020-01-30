@@ -187,6 +187,30 @@ class FosMetadata(Base):
     frequency = Column(Integer)
 
 
+class MetricCountryRCA(Base):
+    """Revealed comparative advantage of a country."""
+
+    __tablename__ = "rca_country"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    rca_sum = Column(Float)
+    year = Column(TEXT)
+    entity = Column(TEXT)
+    field_of_study_id = Column(BIGINT, ForeignKey("mag_fields_of_study.id"))
+
+
+class MetricAffiliationRCA(Base):
+    """Revealed comparative advantage of an institution."""
+
+    __tablename__ = "rca_affiliation"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    rca_sum = Column(Float)
+    year = Column(TEXT)
+    entity = Column(BIGINT)
+    field_of_study_id = Column(BIGINT, ForeignKey("mag_fields_of_study.id"))
+
+
 class AuthorGender(Base):
     """Gender of an author."""
 
@@ -206,7 +230,9 @@ if __name__ == "__main__":
     from orion.core.airflow_utils import misctools
     from sqlalchemy import create_engine
 
-    db_config = misctools.get_config("orion_config.config", "postgresdb")["rds"]
+    db_config = misctools.get_config("orion_config.config", "postgresdb")[
+        "database_uri"
+    ]
     engine = create_engine(db_config)
     # Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
