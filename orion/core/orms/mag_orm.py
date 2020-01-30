@@ -211,6 +211,21 @@ class MetricAffiliationRCA(Base):
     field_of_study_id = Column(BIGINT, ForeignKey("mag_fields_of_study.id"))
 
 
+class AuthorGender(Base):
+    """Gender of an author."""
+
+    __tablename__ = "author_gender"
+
+    id = Column(
+        BIGINT, ForeignKey("mag_authors.id"), primary_key=True, autoincrement=False
+    )
+    full_name = Column(VARCHAR(100))
+    first_name = Column(VARCHAR(100))
+    gender = Column(TEXT)
+    samples = Column(Integer)
+    probability = Column(Integer)
+
+
 if __name__ == "__main__":
     from orion.core.airflow_utils import misctools
     from sqlalchemy import create_engine
