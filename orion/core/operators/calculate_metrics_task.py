@@ -4,22 +4,20 @@ Calculate all the metrics (RCA, research diversity, gender diversity).
 import logging
 import pandas as pd
 from sqlalchemy import create_engine
-from sqlalchemy.sql import exists
 from sqlalchemy.orm import sessionmaker
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
-from orion.packages.metrics.metrics import calculate_rca_by_sum, calculate_rca_by_count
+from orion.packages.metrics.metrics import calculate_rca_by_sum
 from orion.core.orms.mag_orm import (
     Paper,
     PaperAuthor,
-    Affiliation,
     AuthorAffiliation,
     AffiliationLocation,
     PaperFieldsOfStudy,
     MetricAffiliationRCA,
     MetricCountryRCA,
 )
-from orion.packages.utils.utils import flatten_lists, dict2psql_format
+from orion.packages.utils.utils import dict2psql_format
 
 
 class RCAOperator(BaseOperator):
