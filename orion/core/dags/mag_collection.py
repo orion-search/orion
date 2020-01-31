@@ -53,7 +53,6 @@ with DAG(
         batch_task.append(
             MagCollectionOperator(
                 task_id=task_id,
-                db_config=DB_CONFIG,
                 input_bucket=S3_BUCKET,
                 output_bucket=MAG_OUTPUT_BUCKET,
                 prefix=f"{PREFIX}-{parallel_task}",

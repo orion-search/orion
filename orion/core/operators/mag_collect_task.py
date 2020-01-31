@@ -44,7 +44,6 @@ class MagCollectionOperator(BaseOperator):
     @apply_defaults
     def __init__(
         self,
-        db_config,
         input_bucket,
         output_bucket,
         prefix,
@@ -55,7 +54,6 @@ class MagCollectionOperator(BaseOperator):
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.db_config = db_config
         self.metadata = metadata
         self.subscription_key = subscription_key
         self.batch_process = batch_process
@@ -64,11 +62,6 @@ class MagCollectionOperator(BaseOperator):
         self.prefix = prefix
 
     def execute(self, context):
-        # Connect to PostgreSQL DB
-        engine = create_engine(self.db_config)
-        Session = sessionmaker(bind=engine)
-        s = Session()
-
         # Load processed queries from S3
         queries = load_from_s3(self.input_bucket, self.prefix)
         logging.info(f"Total number of queries: {len(queries)}")
