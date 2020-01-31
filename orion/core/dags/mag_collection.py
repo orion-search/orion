@@ -2,12 +2,10 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from orion.core.airflow_utils import misctools
-from orion.packages.utils.batches import split_batches
 from orion.core.operators.mag_parse_task import MagParserOperator
 from orion.core.operators.mag_process_titles_task import ProcessTitlesOperator
 from orion.core.operators.mag_collect_task import MagCollectionOperator, MagFosCollectionOperator
 from orion.core.operators.mag_geocode_task import GeocodingOperator
-from orion.packages.utils.s3_utils import load_from_s3, s3_bucket_obj
 
 default_args = {
     "owner": "Kostas St",

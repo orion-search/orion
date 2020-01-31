@@ -24,6 +24,7 @@ class Text2VectorOperator(BaseOperator):
     """
 
     # template_fields = ['']
+    @apply_defaults
     def __init__(self, db_config, bucket, prefix, *args, **kwargs):
         super().__init__(**kwargs)
         self.db_config = db_config

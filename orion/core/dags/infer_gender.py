@@ -2,12 +2,10 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from orion.core.airflow_utils import misctools
-from orion.packages.utils.batches import split_batches
 from orion.core.operators.infer_gender_task import (
     NamesBatchesOperator,
     GenderInferenceOperator,
 )
-from orion.packages.utils.s3_utils import load_from_s3, s3_bucket_obj
 
 default_args = {
     "owner": "Kostas St",

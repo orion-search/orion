@@ -1,11 +1,13 @@
-import glob
+"""
+MagParserOperator fetches MAG responses which were stored in S3 as pickle files, parses them and stores them in a PostgreSQL database.
+FosFrequencyOperator fetches all the Fields of Study from one table, calculates their frequency and stores them in another.
+"""
 import logging
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
-from orion.core.orms.bioarxiv_orm import Article
 from orion.packages.utils.s3_utils import load_from_s3, s3_bucket_obj
 from orion.packages.utils.utils import (
     unique_dicts,
