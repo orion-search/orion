@@ -1,8 +1,8 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, TSVECTOR, ARRAY, FLOAT
+from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, ARRAY, FLOAT
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.orm import relationship
-from sqlalchemy.types import Integer, Date, Boolean, Float, BIGINT
+from sqlalchemy.types import Integer, Float, BIGINT
 
 Base = declarative_base()
 

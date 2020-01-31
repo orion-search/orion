@@ -4,15 +4,12 @@ MagCollectionOperator: Get expressions (ie processed paper titles) from S3 and q
 MagFosCollectionOperator: Get the IDs from the FieldOfStudy table and collect their level in the hierarchy, child and parent nodes (only if they're in tje FieldOfStudy table).
 """
 import logging
-import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.sql import exists
-from itertools import repeat
 from sqlalchemy.orm import sessionmaker
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
-from orion.core.orms.mag_orm import Paper, FieldOfStudy, PaperFieldsOfStudy, FosHierarchy, FosMetadata
-from orion.core.orms.bioarxiv_orm import Article
+from orion.core.orms.mag_orm import FieldOfStudy, FosHierarchy, FosMetadata
 from orion.packages.mag.query_mag_api import query_mag_api, query_fields_of_study
 from orion.packages.utils.s3_utils import store_on_s3, load_from_s3
 
@@ -47,7 +44,6 @@ class MagCollectionOperator(BaseOperator):
     @apply_defaults
     def __init__(
         self,
-        db_config,
         input_bucket,
         output_bucket,
         prefix,
@@ -58,7 +54,6 @@ class MagCollectionOperator(BaseOperator):
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.db_config = db_config
         self.metadata = metadata
         self.subscription_key = subscription_key
         self.batch_process = batch_process
@@ -67,11 +62,6 @@ class MagCollectionOperator(BaseOperator):
         self.prefix = prefix
 
     def execute(self, context):
-        # Connect to PostgreSQL DB
-        engine = create_engine(self.db_config)
-        Session = sessionmaker(bind=engine)
-        s = Session()
-
         # Load processed queries from S3
         queries = load_from_s3(self.input_bucket, self.prefix)
         logging.info(f"Total number of queries: {len(queries)}")

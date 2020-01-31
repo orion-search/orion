@@ -1,4 +1,3 @@
-import time
 import pickle
 import boto3
 

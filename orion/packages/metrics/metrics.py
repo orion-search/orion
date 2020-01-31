@@ -1,6 +1,3 @@
-import pandas as pd
-
-
 def _rca_division(val1, val2, val3, val4):
     """Multi-step division."""
     return (val1 / val2) / (val3 / val4)

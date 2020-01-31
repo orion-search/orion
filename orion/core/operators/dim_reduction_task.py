@@ -1,5 +1,4 @@
 import logging
-import json
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from airflow.models import BaseOperator
@@ -11,6 +10,7 @@ from orion.packages.utils.s3_utils import load_from_s3
 
 class DimReductionOperator(BaseOperator):
     """Transforms a high dimensional array to 2D or 3D."""
+    @apply_defaults
     def __init__(self, db_config, bucket, prefix, n_neighbors, min_dist, n_components, metric, *args, **kwargs):
         super().__init__(**kwargs)
         self.db_config = db_config

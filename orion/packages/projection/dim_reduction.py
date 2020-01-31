@@ -1,5 +1,4 @@
 import umap
-import numpy as np
 
 
 def umap_embeddings(

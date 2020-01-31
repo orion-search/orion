@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from airflow import DAG
-import orion
 from airflow.operators.dummy_operator import DummyOperator
 from orion.core.airflow_utils import misctools
 from orion.core.operators.calculate_metrics_task import RCAOperator
