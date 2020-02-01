@@ -4,7 +4,10 @@ from airflow.operators.dummy_operator import DummyOperator
 from orion.core.airflow_utils import misctools
 from orion.core.operators.mag_parse_task import MagParserOperator, FosFrequencyOperator
 from orion.core.operators.mag_geocode_task import GeocodingOperator
-from orion.core.operators.mag_collect_task import MagCollectionOperator, MagFosCollectionOperator
+from orion.core.operators.mag_collect_task import (
+    MagCollectionOperator,
+    MagFosCollectionOperator,
+)
 import orion
 from orion.core.operators.infer_gender_task import (
     NamesBatchesOperator,
@@ -28,7 +31,7 @@ DB_CONFIG_AWS = misctools.get_config("orion_config.config", "postgresdb")["rds"]
 MAG_API_KEY = misctools.get_config("orion_config.config", "mag")["mag_api_key"]
 mag_config = orion.config["data"]["mag"]
 
-# task 1: 
+# task 1:
 MAG_OUTPUT_BUCKET = "mag-data-dump"
 query_values = mag_config["query_values"]
 entity_name = mag_config["entity_name"]
@@ -78,11 +81,17 @@ with DAG(
         task_id="parse_mag", s3_bucket=MAG_OUTPUT_BUCKET, db_config=DB_CONFIG
     )
 
-    geocode_places = GeocodingOperator(task_id='geocode_places', db_config=DB_CONFIG, subscription_key=google_key)
+    geocode_places = GeocodingOperator(
+        task_id="geocode_places", db_config=DB_CONFIG, subscription_key=google_key
+    )
 
-    collect_fos = MagFosCollectionOperator(task_id='collect_fos_metadata', db_config=DB_CONFIG, subscription_key=MAG_API_KEY)
+    collect_fos = MagFosCollectionOperator(
+        task_id="collect_fos_metadata",
+        db_config=DB_CONFIG,
+        subscription_key=MAG_API_KEY,
+    )
 
-    fos_frequency = FosFrequencyOperator(task_id='fos_frequency', db_config=DB_CONFIG)
+    fos_frequency = FosFrequencyOperator(task_id="fos_frequency", db_config=DB_CONFIG)
 
     batch_names = NamesBatchesOperator(
         task_id="batch_names",
@@ -108,7 +117,10 @@ with DAG(
     rca = RCAOperator(task_id="rca_measurement", db_config=DB_CONFIG)
 
     text2vector = Text2VectorOperator(
-        task_id="text2vector", db_config=DB_CONFIG, bucket=text_vectors_bucket, prefix=text_vectors_prefix,
+        task_id="text2vector",
+        db_config=DB_CONFIG,
+        bucket=text_vectors_bucket,
+        prefix=text_vectors_prefix,
     )
 
     dim_reduction = DimReductionOperator(
@@ -123,6 +135,6 @@ with DAG(
     )
 
     dummy_task >> query_mag >> parse_mag >> geocode_places >> rca
-    parse_mag >> collect_fos >>  fos_frequency
+    parse_mag >> collect_fos >> fos_frequency
     parse_mag >> batch_names >> batch_task_gender
     parse_mag >> text2vector >> dim_reduction
