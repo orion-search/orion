@@ -1,0 +1,9 @@
+schema:
+    id:
+        type: integer
+    parent_id:
+        type: integer[]
+        description: Parent IDs of a FoS.
+    child_id:
+        type: integer[]
+        description: Child IDs of a FoS.

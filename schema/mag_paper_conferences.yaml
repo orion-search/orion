@@ -1,0 +1,11 @@
+API: Academic Knowledge API
+endpoint: https://api.labs.cognitive.microsoft.com/academic/v1.0/evaluate
+schema:
+    id:
+        type: integer
+        description: Counference ID.
+    paper_id:
+        type: integer
+    conference_name:
+        type: string
+        description: Conference name.

@@ -1,0 +1,8 @@
+schema:
+    id:
+        type: integer
+    level:
+        type: integer
+    frequency:
+        type: integer
+        description: Raw frequency of a field of study.

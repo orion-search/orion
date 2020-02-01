@@ -1,0 +1,38 @@
+API: Google Places API
+endpoint: https://maps.googleapis.com/maps/api/place/details/json?
+schema:
+    id:
+        type: string
+        description: Unique ID. Google Places API calls this Place ID
+    affiliation_id:
+        type: integer
+    lat:
+        type: float
+        description: Latitude.
+    lng:
+        type: float
+        description: Longitude.
+    address:
+        type: string
+        description: Formatted (full) address of a place.
+    name:
+        type: string
+        description: Place name. 
+    types:
+        type: string[]
+        description: Type of the place. You can find all the possible types here: https://developers.google.com/places/web-service/details#PlaceDetailsResults
+    website:
+        type: string
+        description: Website URL of the place.
+    postal_town:
+        type: string
+        description: Town of the place. For example, London. Do not use this. ~80% of it is missing.
+    administrative_area_level_2:
+        type: string
+        description: City of the place. For example, Greater London.
+    administrative_area_level_1:
+        type: string
+        description: Region of the place. For example, England.
+    country:
+        type: string
+        description: Country of the place.

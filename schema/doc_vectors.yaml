@@ -1,0 +1,8 @@
+schema:
+    id:
+        type: integer
+    doi:
+        type: string
+    vector:
+        type: float[]
+        description: 2D vector representation of an abstract.

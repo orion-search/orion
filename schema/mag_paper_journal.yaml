@@ -1,0 +1,11 @@
+API: Academic Knowledge API
+endpoint: https://api.labs.cognitive.microsoft.com/academic/v1.0/evaluate
+schema:
+    id:
+        type: integer
+        description: Journal ID.
+    paper_id:
+        type: integer
+    journal_name:
+        type: string
+        description: Journal name.
