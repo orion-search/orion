@@ -34,14 +34,12 @@ class GeocodingOperator(BaseOperator):
         logging.info(f"Number of queries: {queries.count()}")
 
         for id, name in queries:
-            logging.info(name)
-            try:
-                r = place_by_name(name, self.subscription_key)
-            except IndexError as e:
-                logging.info(e)
+            r = place_by_name(name, self.subscription_key)
+            if r is not None:
+                response = place_by_id(r, self.subscription_key)
+                place_details = parse_response(response)
+                place_details.update({"affiliation_id": id})
+                s.add(AffiliationLocation(**place_details))
+                s.commit()
+            else:
                 continue
-            response = place_by_id(r, self.subscription_key)
-            place_details = parse_response(response)
-            place_details.update({"affiliation_id": id})
-            s.add(AffiliationLocation(**place_details))
-            s.commit()
