@@ -51,4 +51,4 @@ def s3_bucket_obj(bucket):
     
     """
     s3 = boto3.resource("s3")
-    return s3.Bucket(bucket).objects.all()
+    return list(s3.Bucket(bucket).objects.all())

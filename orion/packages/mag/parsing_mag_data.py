@@ -28,6 +28,11 @@ def parse_papers(response):
         logging.info(f"{response['Id']}: {e}")
         d["bibtex_doc_type"] = np.nan
     try:
+        d["inverted_abstract"] = json.dumps(response["IA"])
+    except KeyError as e:
+        logging.info(f"{response['Id']}: {e}")
+        d["inverted_abstract"] = np.nan
+    try:
         d["references"] = json.dumps(response["RId"])
     except KeyError as e:
         logging.info(f"{response['Id']}: {e}")
@@ -55,6 +60,24 @@ def parse_journal(response, paper_id):
     return {
         "id": response["J"]["JId"],
         "journal_name": response["J"]["JN"],
+        "paper_id": paper_id,
+    }
+
+
+def parse_conference(response, paper_id):
+    """Parse conference information from a MAG API response.
+    
+    Args:
+        response (json): Response from MAG API in JSON format. Contains all paper information.
+        paper_id (int): Paper ID.
+
+    Returns:
+        d (dict): Conference details.
+
+    """
+    return {
+        "id": response["C"]["CId"],
+        "conference_name": response["C"]["CN"],
         "paper_id": paper_id,
     }
 

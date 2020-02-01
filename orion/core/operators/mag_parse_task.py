@@ -20,6 +20,7 @@ from orion.packages.mag.parsing_mag_data import (
     parse_fos,
     parse_journal,
     parse_papers,
+    parse_conference,
 )
 from orion.core.orms.mag_orm import (
     Paper,
@@ -30,7 +31,8 @@ from orion.core.orms.mag_orm import (
     PaperAuthor,
     PaperFieldsOfStudy,
     FieldOfStudy,
-    FosMetadata
+    FosMetadata,
+    Conference,
 )
 
 
@@ -68,14 +70,22 @@ class MagParserOperator(BaseOperator):
         logging.info(f"Number of unique  papers not existing in DB: {len(data)}")
 
         papers = [parse_papers(response) for response in data]
-        # logging.info(f'Completed parsing papers: {len(papers)}')
+        logging.info(f"Completed parsing papers: {len(papers)}")
 
         journals = [
             parse_journal(response, response["Id"])
             for response in data
             if "J" in response.keys()
         ]
-        # logging.info(f'Completed parsing journals: {len(journals)}')
+        logging.info(f"Completed parsing journals: {len(journals)}")
+
+        conferences = [
+            parse_conference(response, response["Id"])
+            for response in data
+            if "C" in response.keys()
+        ]
+        logging.info(f"Completed parsing conferences: {len(conferences)}")
+
         # Parse author information
         items = [parse_authors(response, response["Id"]) for response in data]
         authors = [
@@ -85,7 +95,12 @@ class MagParserOperator(BaseOperator):
             )
             if d["id"] not in author_ids
         ]
+
         paper_with_authors = unique_dicts(flatten_lists([item[1] for item in items]))
+        logging.info(f"Completed parsing authors: {len(authors)}")
+        logging.info(
+            f"Completed parsing papers_with_authors: {len(paper_with_authors)}"
+        )
 
         # Parse Fields of Study
         items = [
@@ -99,6 +114,8 @@ class MagParserOperator(BaseOperator):
             for d in unique_dicts(flatten_lists([item[1] for item in items]))
             if d["id"] not in fos_ids
         ]
+        logging.info(f"Completed parsing fields_of_study: {len(fields_of_study)}")
+        logging.info(f"Completed parsing paper_with_fos: {len(paper_with_fos)}")
 
         # Parse affiliations
         items = [parse_affiliations(response) for response in data]
@@ -112,11 +129,15 @@ class MagParserOperator(BaseOperator):
             for d in unique_dicts(flatten_lists([item[1] for item in items]))
             if d["author_id"] not in author_ids
         ]
+        logging.info(f"Completed parsing affiliations: {len(affiliations)}")
+        logging.info(f"Completed parsing author_with_aff: {len(author_with_aff)}")
+
         logging.info(f"Parsing completed!")
 
         # Insert dicts into postgresql
         s.bulk_insert_mappings(Paper, papers)
         s.bulk_insert_mappings(Journal, journals)
+        s.bulk_insert_mappings(Conference, conferences)
         s.bulk_insert_mappings(Author, authors)
         s.bulk_insert_mappings(PaperAuthor, paper_with_authors)
         s.bulk_insert_mappings(FieldOfStudy, fields_of_study)
@@ -130,6 +151,7 @@ class MagParserOperator(BaseOperator):
 
 class FosFrequencyOperator(BaseOperator):
     """Find the frequency of the Field of Studies."""
+
     @apply_defaults
     def __init__(self, db_config, *args, **kwargs):
         super().__init__(**kwargs)
@@ -142,13 +164,20 @@ class FosFrequencyOperator(BaseOperator):
         s = Session()
 
         # Get a count of field of study
-        fos_freq = s.query(PaperFieldsOfStudy.field_of_study_id, func.count(PaperFieldsOfStudy.field_of_study_id)).group_by(PaperFieldsOfStudy.field_of_study_id).all()
+        fos_freq = (
+            s.query(
+                PaperFieldsOfStudy.field_of_study_id,
+                func.count(PaperFieldsOfStudy.field_of_study_id),
+            )
+            .group_by(PaperFieldsOfStudy.field_of_study_id)
+            .all()
+        )
 
         # Transform it to a dictionary - This step can actually be skipped
-        fos_freq = {tup[0]:tup[1] for tup in fos_freq}
+        fos_freq = {tup[0]: tup[1] for tup in fos_freq}
 
-        for k,v in fos_freq.items():
-            logging.info(f'FIELD_OF_STUDY: {k}')
+        for k, v in fos_freq.items():
+            logging.info(f"FIELD_OF_STUDY: {k}")
             # Update the frequency column. Skip if the field_of_study id is not found
             try:
                 fos = s.query(FosMetadata).filter(FosMetadata.id == k).one()

@@ -1,7 +1,7 @@
 """
 MagCollectionOperator: Get expressions (ie processed paper titles) from S3 and query MAG API. The API will return matches to these titles which will be stored in a PostgreSQL DB.
 
-MagFosCollectionOperator: Get the IDs from the FieldOfStudy table and collect their level in the hierarchy, child and parent nodes (only if they're in tje FieldOfStudy table).
+MagFosCollectionOperator: Get the IDs from the FieldOfStudy table and collect their level in the hierarchy, child and parent nodes (only if they're in the FieldOfStudy table).
 """
 import logging
 from sqlalchemy import create_engine
@@ -10,30 +10,12 @@ from sqlalchemy.orm import sessionmaker
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 from orion.core.orms.mag_orm import FieldOfStudy, FosHierarchy, FosMetadata
-from orion.packages.mag.query_mag_api import query_mag_api, query_fields_of_study
-from orion.packages.utils.s3_utils import store_on_s3, load_from_s3
-
-metadata = [
-    "Id",
-    "Ti",
-    "AA.AfId",
-    "AA.AfN",
-    "AA.AuId",
-    "AA.DAuN",
-    "AA.S",
-    "CC",
-    "D",
-    "F.DFN",
-    "F.FId",
-    "J.JId",
-    "J.JN",
-    "Pt",
-    "RId",
-    "Y",
-    "DOI",
-    "PB",
-    "BT",
-]
+from orion.packages.mag.query_mag_api import (
+    query_mag_api,
+    query_fields_of_study,
+    build_composite_expr,
+)
+from orion.packages.utils.s3_utils import store_on_s3
 
 
 class MagCollectionOperator(BaseOperator):
@@ -44,48 +26,53 @@ class MagCollectionOperator(BaseOperator):
     @apply_defaults
     def __init__(
         self,
-        input_bucket,
-        output_bucket,
-        prefix,
-        batch_process,
         subscription_key,
-        metadata=metadata,
+        output_bucket,
+        query_values,
+        entity_name,
+        metadata,
         *args,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.metadata = metadata
+        self.query_values = query_values
+        self.entity_name = entity_name
         self.subscription_key = subscription_key
-        self.batch_process = batch_process
-        self.input_bucket = input_bucket
         self.output_bucket = output_bucket
-        self.prefix = prefix
 
     def execute(self, context):
-        # Load processed queries from S3
-        queries = load_from_s3(self.input_bucket, self.prefix)
-        logging.info(f"Total number of queries: {len(queries)}")
+        expression = build_composite_expr(self.query_values, self.entity_name)
+        logging.info(f"{expression}")
 
-        for i, query in enumerate(queries):
-            logging.info(f"Query length: {len(query)}")
-            data = query_mag_api(query, self.metadata, self.subscription_key)
-            logging.info(f'Results: {len(data["entities"])}')
+        has_content = True
+        i = 1
+        offset = 0
+        query_count = 1000
+        # Request the API as long as we receive non-empty responses
+        while has_content:
+            logging.info(f"Query {i} - Offset {offset}...")
 
-            # Keep only results with a DOI
-            results = [ents for ents in data["entities"] if "DOI" in ents.keys()]
-            logging.info(f"Results with DOI: {len(results)}")
-            filename = "-".join(
-                [
-                    self.output_bucket,
-                    "process",
-                    self.prefix.split("-")[-1],
-                    "batch",
-                    str(i),
-                ]
+            data = query_mag_api(
+                expression,
+                self.metadata,
+                self.subscription_key,
+                query_count=query_count,
+                offset=offset,
             )
+            results = [ents for ents in data["entities"] if "DOI" in ents.keys()]
+
+            filename = "-".join([self.output_bucket, str(i),])
             logging.info(f"File on s3: {filename}")
 
             store_on_s3(results, self.output_bucket, filename)
+            logging.info(f"Number of stored results from query {i}: {len(results)}")
+
+            i += 1
+            offset += query_count
+
+            if len(results) == 0:
+                has_content = False
 
 
 class MagFosCollectionOperator(BaseOperator):
@@ -120,7 +107,9 @@ class MagFosCollectionOperator(BaseOperator):
 
         # Parse api response
         for response in fos:
-            s.add(FosMetadata(id=response["id"], level=response["level"], frequency=None))
+            s.add(
+                FosMetadata(id=response["id"], level=response["level"], frequency=None)
+            )
 
             # Keep only the child and parent IDs that exist in our DB
             if "child_ids" in response.keys():
