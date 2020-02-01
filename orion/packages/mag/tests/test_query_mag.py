@@ -5,6 +5,7 @@ from orion.packages.mag.query_mag_api import prepare_title
 from orion.packages.mag.query_mag_api import build_expr
 from orion.packages.mag.query_mag_api import query_mag_api
 from orion.packages.mag.query_mag_api import dedupe_entities
+from orion.packages.mag.query_mag_api import build_composite_expr
 
 
 class TestPrepareTitle:
@@ -63,3 +64,9 @@ def test_dedupe_entities_picks_highest_for_each_title():
     ]
 
     assert dedupe_entities(entities) == {1, 4}
+
+def test_build_composite_queries_correctly():
+    assert (
+        build_composite_expr(["biorxiv", "foo"], "C.CN")
+        == "expr=OR(Composite(C.CN='biorxiv'), Composite(C.CN='foo'))"
+    )
