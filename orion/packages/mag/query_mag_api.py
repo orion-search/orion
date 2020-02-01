@@ -212,3 +212,21 @@ def query_fields_of_study(
 
             if results_limit is not None and offset >= results_limit:
                 break
+
+
+def build_composite_expr(query_values, entity_name):
+    """Builds a composite expression with ANDs in OR to be used as MAG query.
+
+    Args:
+        query_values (:obj:`list` of str): Phrases to query MAG with. 
+        entity_name (str): MAG attribute that will be used in query.
+    Returns:
+        (str) MAG expression.
+    
+    """
+    query_prefix_format = "expr=OR({})"
+    and_queries = [
+        "".join([f"Composite({entity_name}='{query_value}')"])
+        for query_value in query_values
+    ]
+    return query_prefix_format.format(", ".join(and_queries))

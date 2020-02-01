@@ -8,7 +8,7 @@ Base = declarative_base()
 
 
 class Paper(Base):
-    """MAG paper. Collected by matching its title with a title from BioarXiv."""
+    """MAG paper. Collected by matching its title with a title from BioRxiv."""
 
     __tablename__ = "mag_papers"
 
@@ -25,6 +25,7 @@ class Paper(Base):
     doi = Column(VARCHAR(200))
     publisher = Column(TEXT)
     bibtex_doc_type = Column(TEXT)
+    inverted_abstract = Column(TEXT)
     journals = relationship("Journal", back_populates="paper")
     fields_of_study = relationship("PaperFieldsOfStudy", back_populates="paper")
     authors = relationship("PaperAuthor", back_populates="paper")
@@ -42,6 +43,17 @@ class Journal(Base):
     )
     paper = relationship("Paper")
 
+class Conference(Base):
+    """Conference where a paper was published."""
+
+    __tablename__ = "mag_paper_conferences"
+
+    id = Column(BIGINT)
+    conference_name = Column(TEXT)
+    paper_id = Column(
+        BIGINT, ForeignKey("mag_papers.id"), primary_key=True, autoincrement=False
+    )
+    paper = relationship("Paper")
 
 class PaperAuthor(Base):
     """Authors of a paper."""
@@ -227,12 +239,28 @@ class AuthorGender(Base):
 
 
 if __name__ == "__main__":
+    import logging
+    import psycopg2
     from orion.core.airflow_utils import misctools
-    from sqlalchemy import create_engine
+    from sqlalchemy import create_engine, exc
 
-    db_config = misctools.get_config("orion_config.config", "postgresdb")[
-        "database_uri"
-    ]
+
+
+    # Try to create the database if it doesn't already exist.
+    try:
+        db_config = misctools.get_config("orion_config.config", "postgresdb")["test_uri"]
+        engine = create_engine(db_config) 
+        conn = engine.connect()
+        conn.execute("commit") 
+        conn.execute("create database orion") 
+        conn.close()
+    except exc.DBAPIError as e:
+        if isinstance(e.orig, psycopg2.errors.DuplicateDatabase):
+            logging.info(e)
+        else:
+            logging.error(e)
+            raise
+
+    db_config = misctools.get_config("orion_config.config", "postgresdb")["orion"]
     engine = create_engine(db_config)
-    # Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)

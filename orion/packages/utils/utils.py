@@ -1,4 +1,7 @@
 from itertools import chain
+import json
+from collections import OrderedDict
+import numpy as np
 
 
 def unique_dicts(d):
@@ -65,3 +68,29 @@ def dict2psql_format(d):
             for fos, series in d.items()
         ]
     )
+
+
+def inverted2abstract(obj):
+    """Transforms an inverted abstract to abstract.
+    
+    Args:
+        obj (str): JSON Inverted Abstract stored as string.
+
+    Returns:
+        (str): Formatted abstract.
+    
+    """
+    if isinstance(obj, str):
+        inverted_index = json.loads(obj)['InvertedIndex']
+        d = {}
+
+        for k, v in inverted_index.items():
+            if len(v)==1:
+                d[v[0]] = k
+            else:
+                for idx in v:
+                    d[idx] = k
+        
+        return ' '.join([v for _, v in OrderedDict(sorted(d.items())).items()])
+    else:
+        return np.nan

@@ -17,9 +17,13 @@ DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")["database_
 
 google_key = misctools.get_config("orion_config.config", "google")["google_key"]
 
-with DAG(dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(days=365)) as dag:
-    dummy_task = DummyOperator(task_id='dummy_task')
+with DAG(
+    dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(days=365)
+) as dag:
+    dummy_task = DummyOperator(task_id="dummy_task")
 
-    geocode_places = GeocodingOperator(task_id='geocoding_places', db_config=DB_CONFIG, subscription_key=google_key)
+    geocode_places = GeocodingOperator(
+        task_id="geocoding_places", db_config=DB_CONFIG, subscription_key=google_key
+    )
 
     dummy_task >> geocode_places

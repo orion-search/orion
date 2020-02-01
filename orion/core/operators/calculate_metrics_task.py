@@ -21,7 +21,9 @@ from orion.packages.utils.utils import dict2psql_format
 
 
 class RCAOperator(BaseOperator):
-    """Calculate RCA for institutions and countries."""
+    """Calculate RCA for institutions and countries.
+
+    TODO: Choose the which FoS to use and compute RCA for."""
 
     @apply_defaults
     def __init__(self, db_config, *args, **kwargs):

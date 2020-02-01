@@ -5,6 +5,7 @@ from orion.packages.mag.parsing_mag_data import parse_affiliations
 from orion.packages.mag.parsing_mag_data import parse_authors
 from orion.packages.mag.parsing_mag_data import parse_fos
 from orion.packages.mag.parsing_mag_data import parse_journal
+from orion.packages.mag.parsing_mag_data import parse_conference
 
 test_example = {
     "logprob": -17.825,
@@ -34,6 +35,18 @@ test_example = {
         {"DFN": "Oligonucleotide", "FId": 129312508},
     ],
     "J": {"JN": "science", "JId": 3880285},
+    "C": {"CN": "foo bar", "CId": 3880285},
+    "IA": {
+        "IndexLength": 111,
+        "InvertedIndex": {
+            "In": [0],
+            "comparative": [1],
+            "high-throughput": [2],
+            "sequencing": [3],
+            "assays,": [4],
+            "a": [5, 44, 51, 78],
+        },
+    },
 }
 
 
@@ -50,6 +63,7 @@ def test_parse_papers():
         "bibtex_doc_type": "a",
         "references": "[2293000460, 2296125569]",
         "publisher": "American Association for the Advancement of Science",
+        "inverted_abstract": '{"IndexLength": 111, "InvertedIndex": {"In": [0], "comparative": [1], "high-throughput": [2], "sequencing": [3], "assays,": [4], "a": [5, 44, 51, 78]}}',
     }
     result = parse_papers(test_example)
 
@@ -59,6 +73,17 @@ def test_parse_papers():
 def test_parse_journal():
     expected_result = {"id": 3880285, "journal_name": "science", "paper_id": 2592122940}
     result = parse_journal(test_example, 2592122940)
+
+    assert result == expected_result
+
+
+def test_parse_conference():
+    expected_result = {
+        "id": 3880285,
+        "conference_name": "foo bar",
+        "paper_id": 2592122940,
+    }
+    result = parse_conference(test_example, 2592122940)
 
     assert result == expected_result
 
