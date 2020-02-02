@@ -1,0 +1,11 @@
+schema:
+    id:
+        type: integer
+    rca_sum:
+        type: float
+    entity:
+        type: integer
+    year:
+        type: string
+    field_of_study_id:
+        type: integer

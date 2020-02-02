@@ -1,0 +1,13 @@
+schema:
+    id:
+        type: integer
+    full_name:
+        type: float
+    first_name:
+        type: string
+    gender:
+        type: string
+    samples:
+        type: integer
+    probability:
+        type: float

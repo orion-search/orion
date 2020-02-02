@@ -1,0 +1,38 @@
+API: Academic Knowledge API
+endpoint: https://api.labs.cognitive.microsoft.com/academic/v1.0/evaluate
+schema:
+    id:
+        type: integer
+    prob:
+        type: float
+        description: Probability of this being the right response for a given query. Not being used.
+    title:
+        type: string
+        description: Paper title.
+    publication_type:
+        type: string
+        description: Publication type. It can be one of the following: (0:Unknown, 1:Journal article, 2:Patent, 3:Conference paper, 4:Book chapter, 5:Book, 6:Book reference entry, 7:Dataset, 8:Repository)
+    year:
+        type: string
+        description: Publication year of the paper.
+    date:
+        type: string # YYYY-MM-DD
+        description: Publication date.
+    citations:
+        type: integer
+        description: Number of paper citations.
+    references:
+        type: integer[]
+        description: List of references in the paper.
+    doi:
+        type: string
+        description: Paper DOI (this is a unique identifier).
+    publisher:
+        type: string
+        description: Publisher name.
+    bibtext_doc_type:
+        type: string
+        description: BibTex document type. It can be one of the following: ('a':Journal article, 'b':Book, 'c':Book chapter, 'p':Conference paper)
+    inverted_abstract:
+        type: string
+        description: Inverted abstract.

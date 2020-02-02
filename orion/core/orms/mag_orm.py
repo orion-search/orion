@@ -235,7 +235,7 @@ class AuthorGender(Base):
     first_name = Column(VARCHAR(100))
     gender = Column(TEXT)
     samples = Column(Integer)
-    probability = Column(Integer)
+    probability = Column(Float)
 
 
 if __name__ == "__main__":

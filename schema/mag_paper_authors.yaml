@@ -1,0 +1,10 @@
+API: Academic Knowledge API
+endpoint: https://api.labs.cognitive.microsoft.com/academic/v1.0/evaluate
+schema:
+    author_id:
+        type: integer
+    paper_id:
+        type: integer
+    order:
+        type: integer
+        description: Order of the authors in a paper.
