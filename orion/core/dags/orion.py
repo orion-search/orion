@@ -19,15 +19,14 @@ from orion.core.operators.dim_reduction_task import DimReductionOperator
 
 default_args = {
     "owner": "Kostas St",
-    "start_date": datetime(2019, 11, 22),
+    "start_date": datetime(2020, 2, 2),
     "depends_on_past": False,
     "retries": 0,
-    "retry_delay": timedelta(minutes=2),
 }
 
-DAG_ID = "mag_collection"
-DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")["orion"]
-DB_CONFIG_AWS = misctools.get_config("orion_config.config", "postgresdb")["rds"]
+DAG_ID = "orion"
+DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")["orion_dev"]
+# DB_CONFIG_AWS = misctools.get_config("orion_config.config", "postgresdb")["rds"]
 MAG_API_KEY = misctools.get_config("orion_config.config", "mag")["mag_api_key"]
 mag_config = orion.config["data"]["mag"]
 
@@ -36,6 +35,7 @@ MAG_OUTPUT_BUCKET = "mag-data-dump"
 query_values = mag_config["query_values"]
 entity_name = mag_config["entity_name"]
 metadata = mag_config["metadata"]
+prod = orion.config["data"]["prod"]
 
 # task 3: geocode places
 google_key = misctools.get_config("orion_config.config", "google")["google_key"]
@@ -75,6 +75,7 @@ with DAG(
         query_values=query_values,
         entity_name=entity_name,
         metadata=metadata,
+        prod=prod
     )
 
     parse_mag = MagParserOperator(
@@ -107,7 +108,7 @@ with DAG(
         batch_task_gender.append(
             GenderInferenceOperator(
                 task_id=task_id,
-                db_config=DB_CONFIG_AWS,
+                db_config=DB_CONFIG,
                 s3_bucket=S3_BUCKET,
                 prefix=f"{PREFIX}_{parallel_task}",
                 auth_token=auth_token,
