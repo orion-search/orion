@@ -244,15 +244,13 @@ if __name__ == "__main__":
     from orion.core.airflow_utils import misctools
     from sqlalchemy import create_engine, exc
 
-
-
     # Try to create the database if it doesn't already exist.
     try:
-        db_config = misctools.get_config("orion_config.config", "postgresdb")["test_uri"]
+        db_config = misctools.get_config("orion_config.config", "postgresdb")["orion_test"]
         engine = create_engine(db_config) 
         conn = engine.connect()
         conn.execute("commit") 
-        conn.execute("create database orion") 
+        conn.execute("create database orion_dev") 
         conn.close()
     except exc.DBAPIError as e:
         if isinstance(e.orig, psycopg2.errors.DuplicateDatabase):
@@ -261,6 +259,6 @@ if __name__ == "__main__":
             logging.error(e)
             raise
 
-    db_config = misctools.get_config("orion_config.config", "postgresdb")["orion"]
+    db_config = misctools.get_config("orion_config.config", "postgresdb")["orion_dev"]
     engine = create_engine(db_config)
     Base.metadata.create_all(engine)
