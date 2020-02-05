@@ -14,7 +14,7 @@ from orion.core.operators.infer_gender_task import (
     GenderInferenceOperator,
 )
 from orion.core.operators.calculate_metrics_task import RCAOperator
-from orion.core.operators.text2vec_task import Text2VectorOperator
+from orion.core.operators.text2vec_task import Text2VectorOperator, Text2TfidfOperator
 from orion.core.operators.dim_reduction_task import DimReductionOperator
 
 default_args = {
@@ -25,8 +25,7 @@ default_args = {
 }
 
 DAG_ID = "orion"
-DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")["orion_dev"]
-# DB_CONFIG_AWS = misctools.get_config("orion_config.config", "postgresdb")["rds"]
+DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")["orion_prod"]
 MAG_API_KEY = misctools.get_config("orion_config.config", "mag")["mag_api_key"]
 mag_config = orion.config["data"]["mag"]
 
@@ -35,13 +34,13 @@ MAG_OUTPUT_BUCKET = "mag-data-dump"
 query_values = mag_config["query_values"]
 entity_name = mag_config["entity_name"]
 metadata = mag_config["metadata"]
-prod = orion.config["data"]["prod"]
-
+# prod = orion.config["data"]["prod"]
+prod = True
 # task 3: geocode places
 google_key = misctools.get_config("orion_config.config", "google")["google_key"]
 
 # task 6: batch names
-BATCH_SIZE = 20000
+BATCH_SIZE = 80000
 S3_BUCKET = "names-batches"
 PREFIX = "batched_names"
 
@@ -117,11 +116,11 @@ with DAG(
 
     rca = RCAOperator(task_id="rca_measurement", db_config=DB_CONFIG)
 
-    text2vector = Text2VectorOperator(
+    text2vector = Text2TfidfOperator(
         task_id="text2vector",
         db_config=DB_CONFIG,
         bucket=text_vectors_bucket,
-        prefix=text_vectors_prefix,
+        prefix=text_vectors_prefix
     )
 
     dim_reduction = DimReductionOperator(
@@ -135,7 +134,8 @@ with DAG(
         metric=metric,
     )
 
-    dummy_task >> query_mag >> parse_mag >> geocode_places >> rca
+    dummy_task >> query_mag >> parse_mag
+    parse_mag >> geocode_places >> rca
     parse_mag >> collect_fos >> fos_frequency
     parse_mag >> batch_names >> batch_task_gender
     parse_mag >> text2vector >> dim_reduction
