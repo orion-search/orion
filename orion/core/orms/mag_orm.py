@@ -43,6 +43,7 @@ class Journal(Base):
     )
     paper = relationship("Paper")
 
+
 class Conference(Base):
     """Conference where a paper was published."""
 
@@ -54,6 +55,7 @@ class Conference(Base):
         BIGINT, ForeignKey("mag_papers.id"), primary_key=True, autoincrement=False
     )
     paper = relationship("Paper")
+
 
 class PaperAuthor(Base):
     """Authors of a paper."""
@@ -166,7 +168,8 @@ class DocVector(Base):
         BIGINT, ForeignKey("mag_papers.id"), primary_key=True, autoincrement=False
     )
     doi = Column(VARCHAR(200))
-    vector = Column(ARRAY(FLOAT))
+    vector_2d = Column(ARRAY(FLOAT))
+    vector_3d = Column(ARRAY(FLOAT))
 
 
 class FosHierarchy(Base):
@@ -246,11 +249,13 @@ if __name__ == "__main__":
 
     # Try to create the database if it doesn't already exist.
     try:
-        db_config = misctools.get_config("orion_config.config", "postgresdb")["orion_test"]
-        engine = create_engine(db_config) 
+        db_config = misctools.get_config("orion_config.config", "postgresdb")[
+            "orion_test"
+        ]
+        engine = create_engine(db_config)
         conn = engine.connect()
-        conn.execute("commit") 
-        conn.execute("create database orion_dev") 
+        conn.execute("commit")
+        conn.execute("create database orion_prod")
         conn.close()
     except exc.DBAPIError as e:
         if isinstance(e.orig, psycopg2.errors.DuplicateDatabase):
@@ -259,6 +264,6 @@ if __name__ == "__main__":
             logging.error(e)
             raise
 
-    db_config = misctools.get_config("orion_config.config", "postgresdb")["orion_dev"]
+    db_config = misctools.get_config("orion_config.config", "postgresdb")["orion_prod"]
     engine = create_engine(db_config)
     Base.metadata.create_all(engine)
