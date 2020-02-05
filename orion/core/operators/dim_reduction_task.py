@@ -26,12 +26,17 @@ class DimReductionOperator(BaseOperator):
         doi, vectors, ids = zip(*load_from_s3(self.bucket, self.prefix))
         
         # Reduce dimensionality to 2D with umap
-        embeddings = umap_embeddings(vectors, self.n_neighbors, self.min_dist, self.n_components, self.metric)
+        embeddings_2d = umap_embeddings(vectors, self.n_neighbors, self.min_dist, self.n_components, self.metric)
+        logging.info(f'UMAP embeddings: {embeddings_2d.shape}')
         
-        logging.info(f'UMAP embeddings: {embeddings.shape}')
+        # Reduce dimensionality to 3D with umap
+        embeddings_3d = umap_embeddings(vectors, self.n_neighbors, self.min_dist, self.n_components+1, self.metric)
+        
+        logging.info(f'UMAP embeddings: {embeddings_3d.shape}')
 
-        doc_vectors = [{"id": id_, "doi": doi_, "vector":embedding.tolist()} for doi_, embedding, id_ in zip(doi, embeddings, ids)]
-        logging.info(f'Constructed document vector triplets.')
+        # Construct DB insertions
+        doc_vectors = [{"id": id_, "doi": doi_, "vector_2d":embed_2d.tolist(), "vector_3d":embed_3d.tolist()} for doi_, embed_2d, embed_3d, id_ in zip(doi, embeddings_2d, embeddings_3d, ids)]
+        logging.info(f'Constructed DocVector input')
 
         # Store document vectors in PostgreSQL
         engine = create_engine(self.db_config)
