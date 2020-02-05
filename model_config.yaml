@@ -1,3 +1,5 @@
+seed: 42
+
 data:
     prod: False
     mag:
@@ -10,3 +12,6 @@ umap:
     n_components: 2
     metric: 'cosine'
     min_dist: .1
+
+svd:
+    n_components: 500
