@@ -78,7 +78,7 @@ class Text2TfidfOperator(BaseOperator):
         Session = sessionmaker(bind=engine)
         s = Session()
 
-        # Get the abstracts of bioRxiv papers.
+        # Get the paper abstracts.
         papers = (
             s.query(Paper.inverted_abstract, Paper.id, Paper.doi)
             .filter(
@@ -96,14 +96,14 @@ class Text2TfidfOperator(BaseOperator):
         abstracts = [inverted2abstract(abstract) for abstract in inverted_abstracts]
 
         # Get tfidf vectors
-        vectorizer = TfidfVectorizer(stop_words='english', analyzer='word', max_features=100000)
+        vectorizer = TfidfVectorizer(stop_words='english', analyzer='word', max_features=120000)
         X = vectorizer.fit_transform(abstracts)
         logging.info("Embedding documents - Done!")
         
         # Reduce dimensionality with SVD to speed up UMAP computation
-        svd = TruncatedSVD(n_components=500)
+        svd = TruncatedSVD(n_components=500, random_state=42)
         features = svd.fit_transform(X)
-        logging.info("SVD dimensionality reduction - Done!")
+        logging.info(f"SVD dimensionality reduction shape: {features.shape}")
         
         vectors = [[doi, vec, id_] for doi, vec, id_ in zip(doi, features, ids)]
         logging.info(f"Embedding triplets: {len(vectors)}")
