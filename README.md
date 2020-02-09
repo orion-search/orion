@@ -1,7 +1,11 @@
 # orion
 [![Build Status](https://travis-ci.org/orion-search/orion.svg?branch=dev)](https://travis-ci.org/kstathou/orion) [![Total alerts](https://img.shields.io/lgtm/alerts/g/orion-search/orion.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/orion-search/orion/alerts/) [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/orion-search/orion.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/orion-search/orion/context:python)
 
-Public information is fragmented across databases, making it difficult to spot gaps and opportunities in the life sciences research, track emerging topics and find collaborators. The goal of this project is to develop an open-source data collection, enrichment and analysis system that will enable users to identify relevant publications and track progress in the life sciences.
+Knowledge and meta-knowledge are fragmented across databases, making it difficult to spot gaps and opportunities in research, track emerging topics and find collaborators. Orion depends on a flexible data collection, enrichment, and analysis system that enables users to create and explore research databases.
+
+Read more on Orion [here](https://medium.com/@kstathou/orion-an-open-source-tool-for-the-science-of-science-4259935f91d4).
+
+Orion is an open-source tool. If you want to use our work or parts of it, be a good citizen of the Internet and drop us an acknowledgement. We would also love to know what you are developing so get in touch! 
 
 ## Data ##
 We are currently collecting data from the following sources:
