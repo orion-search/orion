@@ -3,6 +3,9 @@ from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from orion.core.airflow_utils import misctools
 from orion.core.operators.mag_parse_task import MagParserOperator, FosFrequencyOperator
+from orion.core.operators.draw_collaboration_graph_task import (
+    CountryCollaborationOperator,
+)
 from orion.core.operators.mag_geocode_task import GeocodingOperator
 from orion.core.operators.mag_collect_task import (
     MagCollectionOperator,
@@ -27,15 +30,16 @@ default_args = {
 DAG_ID = "orion"
 DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")["orion_prod"]
 MAG_API_KEY = misctools.get_config("orion_config.config", "mag")["mag_api_key"]
-mag_config = orion.config["data"]["mag"]
 
 # task 1:
 MAG_OUTPUT_BUCKET = "mag-data-dump"
+mag_config = orion.config["data"]["mag"]
 query_values = mag_config["query_values"]
 entity_name = mag_config["entity_name"]
 metadata = mag_config["metadata"]
 # prod = orion.config["data"]["prod"]
 prod = True
+
 # task 3: geocode places
 google_key = misctools.get_config("orion_config.config", "google")["google_key"]
 
@@ -74,7 +78,7 @@ with DAG(
         query_values=query_values,
         entity_name=entity_name,
         metadata=metadata,
-        prod=prod
+        prod=prod,
     )
 
     parse_mag = MagParserOperator(
@@ -120,7 +124,7 @@ with DAG(
         task_id="text2vector",
         db_config=DB_CONFIG,
         bucket=text_vectors_bucket,
-        prefix=text_vectors_prefix
+        prefix=text_vectors_prefix,
     )
 
     dim_reduction = DimReductionOperator(
@@ -134,8 +138,13 @@ with DAG(
         metric=metric,
     )
 
+    country_collaboration_graph = CountryCollaborationOperator(
+        task_id="country_collaboration", db_config=DB_CONFIG
+    )
+
     dummy_task >> query_mag >> parse_mag
     parse_mag >> geocode_places >> rca
+    parse_mag >> geocode_places >> country_collaboration_graph
     parse_mag >> collect_fos >> fos_frequency
     parse_mag >> batch_names >> batch_task_gender
     parse_mag >> text2vector >> dim_reduction
