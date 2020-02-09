@@ -1,6 +1,6 @@
-from itertools import chain
+from itertools import chain, combinations
 import json
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 import numpy as np
 
 
@@ -94,3 +94,18 @@ def inverted2abstract(obj):
         return ' '.join([v for _, v in OrderedDict(sorted(d.items())).items()])
     else:
         return np.nan
+
+
+def cooccurrence_graph(elements):
+    # Get all of the unique entries you have
+    varnames = tuple(sorted(set(chain(*elements))))
+
+    # Get a list of all of the combinations you have
+    expanded = [tuple(combinations(d, 2)) for d in elements]
+    expanded = chain(*expanded)
+
+    # Sort the combinations so that A,B and B,A are treated the same
+    expanded = [tuple(sorted(d)) for d in expanded]
+
+    # count the combinations
+    return Counter(expanded)
