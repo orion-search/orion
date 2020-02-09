@@ -1,4 +1,7 @@
+seed: 42
+
 data:
+    prod: False
     mag:
         query_values: ['biorxiv']
         entity_name: 'J.JN'
@@ -9,3 +12,6 @@ umap:
     n_components: 2
     metric: 'cosine'
     min_dist: .1
+
+svd:
+    n_components: 500

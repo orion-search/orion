@@ -31,6 +31,7 @@ class MagCollectionOperator(BaseOperator):
         query_values,
         entity_name,
         metadata,
+        prod,
         *args,
         **kwargs,
     ):
@@ -40,6 +41,7 @@ class MagCollectionOperator(BaseOperator):
         self.entity_name = entity_name
         self.subscription_key = subscription_key
         self.output_bucket = output_bucket
+        self.prod = prod
 
     def execute(self, context):
         expression = build_composite_expr(self.query_values, self.entity_name)
@@ -72,6 +74,11 @@ class MagCollectionOperator(BaseOperator):
             offset += query_count
 
             if len(results) == 0:
+                has_content = False
+
+            if not self.prod:
+                logging.info(f"Working in dev mode. {i}: {len(results[:10])}")
+                store_on_s3(results[:10], self.output_bucket, filename)
                 has_content = False
 
 
