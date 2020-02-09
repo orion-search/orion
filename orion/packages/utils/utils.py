@@ -81,22 +81,31 @@ def inverted2abstract(obj):
     
     """
     if isinstance(obj, str):
-        inverted_index = json.loads(obj)['InvertedIndex']
+        inverted_index = json.loads(obj)["InvertedIndex"]
         d = {}
 
         for k, v in inverted_index.items():
-            if len(v)==1:
+            if len(v) == 1:
                 d[v[0]] = k
             else:
                 for idx in v:
                     d[idx] = k
-        
-        return ' '.join([v for _, v in OrderedDict(sorted(d.items())).items()])
+
+        return " ".join([v for _, v in OrderedDict(sorted(d.items())).items()])
     else:
         return np.nan
 
 
 def cooccurrence_graph(elements):
+    """Creates a cooccurrence table from a nested list.
+
+    Args:
+        elements (:obj:`list` of :obj:`list`): Nested list.
+
+    Returns:
+        (`collections.Counter`) of the form Counter({('country_a, country_b), weight})
+
+    """
     # Get all of the unique entries you have
     varnames = tuple(sorted(set(chain(*elements))))
 
