@@ -81,9 +81,9 @@ with DAG(
         task_id="parse_mag", s3_bucket=MAG_OUTPUT_BUCKET, db_config=DB_CONFIG
     )
 
-    # geocode_places = GeocodingOperator(
-    #     task_id="geocode_places", db_config=DB_CONFIG, subscription_key=google_key
-    # )
+    geocode_places = GeocodingOperator(
+        task_id="geocode_places", db_config=DB_CONFIG, subscription_key=google_key
+    )
 
     collect_fos = MagFosCollectionOperator(
         task_id="collect_fos_metadata",
@@ -93,28 +93,28 @@ with DAG(
 
     fos_frequency = FosFrequencyOperator(task_id="fos_frequency", db_config=DB_CONFIG)
 
-    # batch_names = NamesBatchesOperator(
-    #     task_id="batch_names",
-    #     db_config=DB_CONFIG,
-    #     s3_bucket=S3_BUCKET,
-    #     prefix=PREFIX,
-    #     batch_size=BATCH_SIZE,
-    # )
+    batch_names = NamesBatchesOperator(
+        task_id="batch_names",
+        db_config=DB_CONFIG,
+        s3_bucket=S3_BUCKET,
+        prefix=PREFIX,
+        batch_size=BATCH_SIZE,
+    )
 
-    # batch_task_gender = []
-    # for parallel_task in range(parallel_tasks):
-    #     task_id = f"gender_inference_{parallel_task}"
-    #     batch_task_gender.append(
-    #         GenderInferenceOperator(
-    #             task_id=task_id,
-    #             db_config=DB_CONFIG,
-    #             s3_bucket=S3_BUCKET,
-    #             prefix=f"{PREFIX}_{parallel_task}",
-    #             auth_token=auth_token,
-    #         )
-    #     )
+    batch_task_gender = []
+    for parallel_task in range(parallel_tasks):
+        task_id = f"gender_inference_{parallel_task}"
+        batch_task_gender.append(
+            GenderInferenceOperator(
+                task_id=task_id,
+                db_config=DB_CONFIG,
+                s3_bucket=S3_BUCKET,
+                prefix=f"{PREFIX}_{parallel_task}",
+                auth_token=auth_token,
+            )
+        )
 
-    # rca = RCAOperator(task_id="rca_measurement", db_config=DB_CONFIG)
+    rca = RCAOperator(task_id="rca_measurement", db_config=DB_CONFIG)
 
     text2vector = Text2TfidfOperator(
         task_id="text2vector",
@@ -135,7 +135,7 @@ with DAG(
     )
 
     dummy_task >> query_mag >> parse_mag
-    # parse_mag >> geocode_places >> rca
+    parse_mag >> geocode_places >> rca
     parse_mag >> collect_fos >> fos_frequency
-    # parse_mag >> batch_names >> batch_task_gender
+    parse_mag >> batch_names >> batch_task_gender
     parse_mag >> text2vector >> dim_reduction
