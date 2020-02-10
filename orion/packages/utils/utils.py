@@ -106,9 +106,6 @@ def cooccurrence_graph(elements):
         (`collections.Counter`) of the form Counter({('country_a, country_b), weight})
 
     """
-    # Get all of the unique entries you have
-    varnames = tuple(sorted(set(chain(*elements))))
-
     # Get a list of all of the combinations you have
     expanded = [tuple(combinations(d, 2)) for d in elements]
     expanded = chain(*expanded)
