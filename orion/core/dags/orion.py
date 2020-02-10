@@ -17,7 +17,7 @@ from orion.core.operators.infer_gender_task import (
     GenderInferenceOperator,
 )
 from orion.core.operators.calculate_metrics_task import RCAOperator
-from orion.core.operators.text2vec_task import Text2VectorOperator, Text2TfidfOperator
+from orion.core.operators.text2vec_task import Text2TfidfOperator
 from orion.core.operators.dim_reduction_task import DimReductionOperator
 
 default_args = {
