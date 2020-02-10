@@ -241,6 +241,18 @@ class AuthorGender(Base):
     probability = Column(Float)
 
 
+class CountryCollaboration(Base):
+    """Collaborators of a country and their number of shared papers."""
+
+    __tablename__ = "country_collaboration"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    country_a = Column(TEXT)
+    country_b = Column(TEXT)
+    weight = Column(Integer)
+    
+
+
 if __name__ == "__main__":
     import logging
     import psycopg2

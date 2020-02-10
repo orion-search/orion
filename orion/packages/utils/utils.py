@@ -1,6 +1,6 @@
-from itertools import chain
+from itertools import chain, combinations
 import json
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 import numpy as np
 
 
@@ -81,16 +81,37 @@ def inverted2abstract(obj):
     
     """
     if isinstance(obj, str):
-        inverted_index = json.loads(obj)['InvertedIndex']
+        inverted_index = json.loads(obj)["InvertedIndex"]
         d = {}
 
         for k, v in inverted_index.items():
-            if len(v)==1:
+            if len(v) == 1:
                 d[v[0]] = k
             else:
                 for idx in v:
                     d[idx] = k
-        
-        return ' '.join([v for _, v in OrderedDict(sorted(d.items())).items()])
+
+        return " ".join([v for _, v in OrderedDict(sorted(d.items())).items()])
     else:
         return np.nan
+
+
+def cooccurrence_graph(elements):
+    """Creates a cooccurrence table from a nested list.
+
+    Args:
+        elements (:obj:`list` of :obj:`list`): Nested list.
+
+    Returns:
+        (`collections.Counter`) of the form Counter({('country_a, country_b), weight})
+
+    """
+    # Get a list of all of the combinations you have
+    expanded = [tuple(combinations(d, 2)) for d in elements]
+    expanded = chain(*expanded)
+
+    # Sort the combinations so that A,B and B,A are treated the same
+    expanded = [tuple(sorted(d)) for d in expanded]
+
+    # count the combinations
+    return Counter(expanded)
