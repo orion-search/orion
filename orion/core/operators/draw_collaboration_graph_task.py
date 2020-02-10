@@ -13,7 +13,7 @@ from orion.core.orms.mag_orm import (
     PaperAuthor,
     AuthorAffiliation,
     AffiliationLocation,
-    CountryCollaboration
+    CountryCollaboration,
 )
 
 
@@ -32,7 +32,6 @@ class CountryCollaborationOperator(BaseOperator):
         s = Session()
 
         # Load all the tables needed for the collaboration graph.
-        papers = pd.read_sql(s.query(Paper).statement, s.bind)
         aff_location = pd.read_sql(s.query(AffiliationLocation).statement, s.bind)
         author_aff = pd.read_sql(s.query(AuthorAffiliation).statement, s.bind)
         paper_author = pd.read_sql(s.query(PaperAuthor).statement, s.bind)
@@ -49,15 +48,24 @@ class CountryCollaborationOperator(BaseOperator):
         )
 
         # Group countries by paper, remove duplicates and missing entries.
-        grouped_df = df[df.country != ''][['country', 'paper_id']].dropna().groupby('paper_id')['country'].apply(set)
+        grouped_df = (
+            df[df.country != ""][["country", "paper_id"]]
+            .dropna()
+            .groupby("paper_id")["country"]
+            .apply(set)
+        )
         logging.info(f"Grouped DF shape: {grouped_df.shape}")
-        
+
         # Create the cooccurrence graph
         graph = cooccurrence_graph(grouped_df)
 
         # Commit pairs in DB
         for k, v in graph.items():
-            s.add(CountryCollaboration(**{'country_a':k[0], 'country_b':k[1], 'weight':v}))
+            s.add(
+                CountryCollaboration(
+                    **{"country_a": k[0], "country_b": k[1], "weight": v}
+                )
+            )
             s.commit()
 
-        logging.info('Done :)')
+        logging.info("Done :)")
