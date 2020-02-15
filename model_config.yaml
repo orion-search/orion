@@ -1,7 +1,7 @@
 seed: 42
 
 data:
-    prod: False
+    prod: True
     mag:
         query_values: ['biorxiv']
         entity_name: 'J.JN'
@@ -15,3 +15,8 @@ umap:
 
 svd:
     n_components: 500
+
+topic_filter:
+    levels: [1]
+    percentiles: [75]
+
