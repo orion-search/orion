@@ -34,6 +34,7 @@ class FilterTopicsByDistributionOperator(BaseOperator):
 
         # Fetch tables
         metadata = pd.read_sql(s.query(FosMetadata).statement, s.bind)
+        logging.info(f'Number of FoS: {metadata.id.shape[0]}')
 
         d = {}
         for lvl, perc in zip(self.levels, self.percentiles):
@@ -43,4 +44,6 @@ class FilterTopicsByDistributionOperator(BaseOperator):
             num = int(np.percentile(frame.frequency, perc))
             d[lvl] = list(frame[frame.frequency > num]["id"].values)
 
+        # Store pickle on s3
         store_on_s3(d, self.s3_bucket, self.prefix)
+        logging.info('Done :)')
