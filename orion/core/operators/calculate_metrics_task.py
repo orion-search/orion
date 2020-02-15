@@ -36,7 +36,7 @@ class RCAOperator(BaseOperator):
     def execute(self, context):
         # Load topics
         topics = flatten_lists(list(load_from_s3(self.s3_bucket, self.prefix).values()))
-        logging.info(f'Number of topics: {len(topics)}')
+        logging.info(f"Number of topics: {len(topics)}")
 
         # Connect to postgresql db
         engine = create_engine(self.db_config)
