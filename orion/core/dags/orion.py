@@ -19,6 +19,7 @@ from orion.core.operators.infer_gender_task import (
 from orion.core.operators.calculate_metrics_task import RCAOperator
 from orion.core.operators.text2vec_task import Text2TfidfOperator
 from orion.core.operators.dim_reduction_task import DimReductionOperator
+from orion.core.operators.topic_filtering_task import FilterTopicsByDistributionOperator
 
 default_args = {
     "owner": "Kostas St",
@@ -37,8 +38,7 @@ mag_config = orion.config["data"]["mag"]
 query_values = mag_config["query_values"]
 entity_name = mag_config["entity_name"]
 metadata = mag_config["metadata"]
-# prod = orion.config["data"]["prod"]
-prod = True
+prod = orion.config["data"]["prod"]
 
 # task 3: geocode places
 google_key = misctools.get_config("orion_config.config", "google")["google_key"]
@@ -57,13 +57,19 @@ text_vectors_prefix = "doc_vectors"
 text_vectors_bucket = "document-vectors"
 
 # task 9: dimensionality reduction
-config = orion.config["umap"]
+umap_config = orion.config["umap"]
 # umap hyperparameters
-n_neighbors = config["n_neighbors"]
-n_components = config["n_components"]
-metric = config["metric"]
-min_dist = config["min_dist"]
+n_neighbors = umap_config["n_neighbors"]
+n_components = umap_config["n_components"]
+metric = umap_config["metric"]
+min_dist = umap_config["min_dist"]
 
+# task 10
+topic_bucket = "mag-topics"
+topic_prefix = "filtered_topics"
+topic_config = orion.config["topic_filter"]
+levels = topic_config["levels"]
+percentiles = topic_config["percentiles"]
 
 with DAG(
     dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(days=365)
@@ -142,9 +148,19 @@ with DAG(
         task_id="country_collaboration", db_config=DB_CONFIG
     )
 
+    topic_filtering = FilterTopicsByDistributionOperator(
+        task_id="filter_topics",
+        db_config=DB_CONFIG,
+        s3_bucket=topic_bucket,
+        prefix=topic_prefix,
+        levels=levels,
+        percentiles=percentiles,
+    )
+
     dummy_task >> query_mag >> parse_mag
     parse_mag >> geocode_places >> rca
     parse_mag >> geocode_places >> country_collaboration_graph
-    parse_mag >> collect_fos >> fos_frequency
+    parse_mag >> collect_fos >> fos_frequency >> topic_filtering
+    topic_filtering >> rca
     parse_mag >> batch_names >> batch_task_gender
     parse_mag >> text2vector >> dim_reduction
