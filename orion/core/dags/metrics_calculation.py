@@ -16,6 +16,9 @@ DAG_ID = "mag_metrics"
 DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")["database_uri"]
 # rds_config = misctools.get_config("orion_config.config", "postgresdb")["rds"]
 
+# task 10
+topic_bucket = "mag-topics"
+topic_prefix = "filtered_topics"
 
 with DAG(
     dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(days=365)
@@ -23,6 +26,6 @@ with DAG(
 
     dummy_task = DummyOperator(task_id="start")
 
-    rca = RCAOperator(task_id="rca_measurement", db_config=DB_CONFIG)
+    rca = RCAOperator(task_id="rca_measurement", db_config=DB_CONFIG, s3_bucket=topic_bucket, prefix=topic_prefix,)
 
     dummy_task >> rca
