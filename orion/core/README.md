@@ -121,11 +121,75 @@ export AIRFLOW_HOME=`pwd`/core
 Assuming that everything has worked out well so far, running a DAG is straightforward. In two separate of the command line, do:
 
 ``` bash
-airflow webserver
+$ airflow webserver
 ```
 to activate the webserver (Airflow's UI) and 
 
 ``` bash
-airflow scheduler
+$ airflow scheduler
 ```
 to turn on the scheduler. You should now be able to click on the DAG and **Trigger** its execution.
+
+### What's in the DAG ###
+There is a set of tasks and the DAG shows how they depend on each other. In Orion, every task fetches data from a source, usually a PostgreSQL DB or AWS S3, applies a set of transformations and stores them in a PostgreSQL DB or AWS S3. Here I will briefly explain what every operator does:
+
+#### `query_mag` ####
+* Source: Microsoft Academic Graph API.
+* Action: For a given query (conference, journal or Field of Study name), retrieve all of the papers.
+* Target: AWS S3
+
+#### `parse_mag` ####
+* Source: AWS S3
+* Action: Parse the response from MAG.
+* Target: PostgreSQL DB
+
+#### `geocode_places` ####
+* Source: PostgreSQL DB, Google Places API
+* Action: Geocode affiliations using Google Places API.
+* Target: PostgreSQL DB
+
+#### `collect_fos_metadata` ####
+* Source: Microsoft Academic Graph API, PostgreSQL DB
+* Action: Retrieve metadata (child nodes, parent nodes, level in hierarchy) for every queried Field of Study.
+* Target: PostgreSQL DB
+
+#### `fos_frequency` ####
+* Source: PostgreSQL DB
+* Action: Find the frequency of Fields of Study.
+* Target: PostgreSQL DB
+
+#### `batch_names` ####
+* Source: PostgreSQL DB
+* Action: Fetch author names and split them into batches.
+* Target: AWS S3
+
+#### `gender_inference_NUM` ####
+* Source: AWS S3, GenderAPI
+* Action: Fetch author names and query them on GenderAPI to infer their gender.
+* Target: PostgreSQL DB
+
+#### `text2vector` ####
+* Source: PostgreSQL DB
+* Action: Transform text to vector.
+* Target: AWS S3
+
+#### `dim_reduction` ####
+* Source: AWS S3 
+* Action: Transform a set of high dimensional vectors to 2D and 3D.
+* Target: PostgreSQL DB
+
+#### `country_collaboration` ####
+* Source: PostgreSQL DB
+* Action: Create a cooccurrence network of countries based on paper co-authorship.
+* Target: PostgreSQL DB
+
+#### `topic_filtering` ####
+* Source: PostgreSQL DB
+* Action: Filter Fields of Study based on their level and frequency.
+* Target: AWS S3
+
+#### `rca` ####
+* Source: AWS S3, PostgreSQL DB
+* Action: Calculate the comparative advantage of every topic for each country and year.
+* Target: PostgreSQL DB
+
