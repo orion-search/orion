@@ -124,7 +124,12 @@ with DAG(
             )
         )
 
-    rca = RCAOperator(task_id="rca_measurement", db_config=DB_CONFIG)
+    rca = RCAOperator(
+        task_id="rca_measurement",
+        db_config=DB_CONFIG,
+        s3_bucket=topic_bucket,
+        prefix=topic_prefix,
+    )
 
     text2vector = Text2TfidfOperator(
         task_id="text2vector",

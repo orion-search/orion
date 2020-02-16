@@ -17,7 +17,8 @@ from orion.core.orms.mag_orm import (
     MetricAffiliationRCA,
     MetricCountryRCA,
 )
-from orion.packages.utils.utils import dict2psql_format
+from orion.packages.utils.utils import dict2psql_format, flatten_lists
+from orion.packages.utils.s3_utils import load_from_s3
 
 
 class RCAOperator(BaseOperator):
@@ -26,11 +27,17 @@ class RCAOperator(BaseOperator):
     TODO: Choose the which FoS to use and compute RCA for."""
 
     @apply_defaults
-    def __init__(self, db_config, *args, **kwargs):
+    def __init__(self, db_config, s3_bucket, prefix, *args, **kwargs):
         super().__init__(**kwargs)
         self.db_config = db_config
+        self.s3_bucket = s3_bucket
+        self.prefix = prefix
 
     def execute(self, context):
+        # Load topics
+        topics = flatten_lists(list(load_from_s3(self.s3_bucket, self.prefix).values()))
+        logging.info(f"Number of topics: {len(topics)}")
+
         # Connect to postgresql db
         engine = create_engine(self.db_config)
         Session = sessionmaker(engine)
@@ -45,7 +52,7 @@ class RCAOperator(BaseOperator):
 
         # Merge tables
         df = (
-            aff_location[["affiliation_id", "country"]]
+            aff_location[aff_location.country != ""][["affiliation_id", "country"]]
             .merge(author_aff, left_on="affiliation_id", right_on="affiliation_id")
             .merge(
                 paper_author[["paper_id", "author_id"]],
@@ -55,7 +62,11 @@ class RCAOperator(BaseOperator):
             .merge(
                 papers[["id", "year", "citations"]], left_on="paper_id", right_on="id"
             )
-            .merge(paper_fos, left_on="paper_id", right_on="paper_id")[
+            .merge(
+                paper_fos[paper_fos["field_of_study_id"].isin(topics)],
+                left_on="paper_id",
+                right_on="paper_id",
+            )[
                 [
                     "affiliation_id",
                     "field_of_study_id",
@@ -75,7 +86,7 @@ class RCAOperator(BaseOperator):
         logging.info(f"DF country_level shape: {country_level.shape}")
 
         d = {}
-        for fos in country_level.field_of_study_id.unique()[:10]:
+        for fos in country_level.field_of_study_id.unique():
             d[fos] = calculate_rca_by_sum(
                 country_level, entity_column="country", commodity=fos, value="citations"
             )
