@@ -16,7 +16,10 @@ from orion.core.operators.infer_gender_task import (
     NamesBatchesOperator,
     GenderInferenceOperator,
 )
-from orion.core.operators.calculate_metrics_task import RCAOperator
+from orion.core.operators.calculate_metrics_task import (
+    RCAOperator,
+    ResearchDiversityOperator,
+)
 from orion.core.operators.text2vec_task import Text2TfidfOperator
 from orion.core.operators.dim_reduction_task import DimReductionOperator
 from orion.core.operators.topic_filtering_task import FilterTopicsByDistributionOperator
@@ -162,10 +165,19 @@ with DAG(
         percentiles=percentiles,
     )
 
+    research_diversity = ResearchDiversityOperator(
+        task_id="research_diversity",
+        db_config=DB_CONFIG,
+        s3_bucket=topic_bucket,
+        prefix=topic_prefix,
+    )
+
     dummy_task >> query_mag >> parse_mag
     parse_mag >> geocode_places >> rca
     parse_mag >> geocode_places >> country_collaboration_graph
     parse_mag >> collect_fos >> fos_frequency >> topic_filtering
     topic_filtering >> rca
+    topic_filtering >> research_diversity
+    geocode_places >> research_diversity
     parse_mag >> batch_names >> batch_task_gender
     parse_mag >> text2vector >> dim_reduction
