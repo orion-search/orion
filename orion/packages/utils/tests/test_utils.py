@@ -115,7 +115,7 @@ def test_get_all_children():
         }
     )
 
-    expected_result = [2909274368, 190796033, 196033, 114009990, 178809742]
+    expected_result = [2909274368, 190796033, 196033, 114009990, 178809742, 165864922]
     result = list(set(get_all_children(data, 165864922)))
 
     assert result == expected_result
