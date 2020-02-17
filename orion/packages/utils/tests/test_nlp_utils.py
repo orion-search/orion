@@ -41,8 +41,8 @@ def test_clean_name():
 
 
 def test_identity_tokenizer():
-    data = [1,2,3]
-    expected_result = [1,2,3]
+    data = [1, 2, 3]
+    expected_result = [1, 2, 3]
     result = identity_tokenizer(data)
 
     assert result == expected_result
