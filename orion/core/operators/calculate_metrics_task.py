@@ -17,7 +17,6 @@ from orion.core.orms.mag_orm import (
     MetricAffiliationRCA,
     MetricCountryRCA,
     FosHierarchy,
-    # FieldOfStudy,
     ResearchDiversityCountry,
 )
 from orion.packages.utils.utils import dict2psql_format, flatten_lists, get_all_children
@@ -145,8 +144,6 @@ class ResearchDiversityOperator(BaseOperator):
         author_aff = pd.read_sql(s.query(AuthorAffiliation).statement, s.bind)
         paper_author = pd.read_sql(s.query(PaperAuthor).statement, s.bind)
         paper_fos = pd.read_sql(s.query(PaperFieldsOfStudy).statement, s.bind)
-        # fos = pd.read_sql(s.query(FieldOfStudy).statement, s.bind)
-        # metadata = pd.read_sql(s.query(FosMetadata).statement, s.bind)
         hierarchy = pd.read_sql(s.query(FosHierarchy).statement, s.bind)
 
         # Traverse the FoS hierarchy tree and get all children
