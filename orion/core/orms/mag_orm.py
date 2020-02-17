@@ -250,6 +250,20 @@ class CountryCollaboration(Base):
     country_a = Column(TEXT)
     country_b = Column(TEXT)
     weight = Column(Integer)
+
+
+class ResearchDiversityCountry(Base):
+    """Research diversity metrics for a country."""
+
+    __tablename__ = 'research_diversity_country'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    shannon_diversity = Column(Float)
+    simpson_e_diversity = Column(Float)
+    simpson_diversity = Column(Float)
+    year = Column(TEXT)
+    entity = Column(TEXT)
+    field_of_study_id = Column(BIGINT, ForeignKey("mag_fields_of_study.id"))
     
 
 
