@@ -9,6 +9,7 @@ from orion.packages.utils.utils import unique_dicts_by_value
 from orion.packages.utils.utils import dict2psql_format
 from orion.packages.utils.utils import inverted2abstract
 from orion.packages.utils.utils import cooccurrence_graph
+from orion.packages.utils.utils import get_all_children
 
 example_list_dict = [
     {"DFN": "Biology", "FId": 86803240},
@@ -95,5 +96,26 @@ def test_cooccurrence_graph():
 
     expected_result = Counter({("a", "b"): 2, ("a", "c"): 1, ("b", "c"): 1})
     result = cooccurrence_graph(data)
+
+    assert result == expected_result
+
+
+def test_get_all_children():
+    data = pd.DataFrame(
+        {
+            "id": [165864922, 114009990, 178809742, 2909274368, 196033, 190796033],
+            "child_id": [
+                [190796033, 114009990, 178809742],
+                [2909274368, 196033],
+                [],
+                [],
+                [114009990, 2909274368],
+                [190796033],
+            ],
+        }
+    )
+
+    expected_result = [2909274368, 190796033, 196033, 114009990, 178809742]
+    result = list(set(get_all_children(data, 165864922)))
 
     assert result == expected_result

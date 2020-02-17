@@ -115,3 +115,41 @@ def cooccurrence_graph(elements):
 
     # count the combinations
     return Counter(expanded)
+
+
+def get_all_children(df, topics, lvl=1):
+    """Traverses the Fields of Study tree to collect all the children FoS. For example,
+    given a level 1 FoS, it will fetch all the level 2 children (A), the children of A,
+    the children of the children of A ... till it reaches the lowest level.
+
+    Args:
+        df (`pd.DataFrame`): Table with FoS IDs and their children.
+        topics (:obj:`list` of int | int): Initially, it receives a single FoS. Then a list.
+        lvl (int): Level of the initial FoS.
+
+    Returns:
+        t (:obj:`list` of int)
+
+    """
+    # For the first pass of the recursion, put the topic in a list
+    if not isinstance(topics, list):
+        topics = [topics]
+
+    t = []
+    t.extend(topics)
+    t.extend(
+        flatten_lists(
+            [
+                df[df.id == id_]["child_id"].values[0]
+                for id_ in topics
+                if df[df.id == id_]["child_id"].values[0] is not None
+                and df[df.id == id_]["child_id"].values[0]
+            ]
+        )
+    )
+
+    if lvl == 5:
+        t.remove(t[0])
+        return t
+    else:
+        return get_all_children(df, t, lvl + 1)
