@@ -255,7 +255,7 @@ class CountryCollaboration(Base):
 class ResearchDiversityCountry(Base):
     """Research diversity metrics for a country."""
 
-    __tablename__ = 'research_diversity_country'
+    __tablename__ = "research_diversity_country"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     shannon_diversity = Column(Float)
@@ -264,7 +264,18 @@ class ResearchDiversityCountry(Base):
     year = Column(TEXT)
     entity = Column(TEXT)
     field_of_study_id = Column(BIGINT, ForeignKey("mag_fields_of_study.id"))
-    
+
+
+class GenderDiversityCountry(Base):
+    """Average number of female co-authors for a country."""
+
+    __tablename__ = "gender_diversity_country"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    female_share = Column(Float)
+    year = Column(TEXT)
+    entity = Column(TEXT)
+    field_of_study_id = Column(BIGINT, ForeignKey("mag_fields_of_study.id"))
 
 
 if __name__ == "__main__":
