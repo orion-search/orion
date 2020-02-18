@@ -19,7 +19,7 @@ from orion.core.operators.infer_gender_task import (
 from orion.core.operators.calculate_metrics_task import (
     RCAOperator,
     ResearchDiversityOperator,
-    GenderDiversityOperator
+    GenderDiversityOperator,
 )
 from orion.core.operators.text2vec_task import Text2TfidfOperator
 from orion.core.operators.dim_reduction_task import DimReductionOperator
@@ -178,7 +178,13 @@ with DAG(
         prefix=topic_prefix,
     )
 
-    gender_diversity = GenderDiversityOperator(task_id='gender_diversity', db_config=DB_CONFIG, s3_bucket=topic_bucket, prefix=topic_prefix, thresh=thresh)
+    gender_diversity = GenderDiversityOperator(
+        task_id="gender_diversity",
+        db_config=DB_CONFIG,
+        s3_bucket=topic_bucket,
+        prefix=topic_prefix,
+        thresh=thresh,
+    )
 
     dummy_task >> query_mag >> parse_mag
     parse_mag >> geocode_places >> rca
