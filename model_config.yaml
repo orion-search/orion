@@ -20,3 +20,6 @@ topic_filter:
     levels: [1]
     percentiles: [75]
 
+gender_diversity:
+    threshold: .75
+
