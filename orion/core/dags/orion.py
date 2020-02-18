@@ -19,6 +19,7 @@ from orion.core.operators.infer_gender_task import (
 from orion.core.operators.calculate_metrics_task import (
     RCAOperator,
     ResearchDiversityOperator,
+    GenderDiversityOperator
 )
 from orion.core.operators.text2vec_task import Text2TfidfOperator
 from orion.core.operators.dim_reduction_task import DimReductionOperator
@@ -74,11 +75,16 @@ topic_config = orion.config["topic_filter"]
 levels = topic_config["levels"]
 percentiles = topic_config["percentiles"]
 
+# task 11
+thresh = orion.config["gender_diversity"]["threshold"]
+
 with DAG(
     dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(days=365)
 ) as dag:
 
     dummy_task = DummyOperator(task_id="start")
+
+    dummy_task_2 = DummyOperator(task_id="gender_agg")
 
     query_mag = MagCollectionOperator(
         task_id="query_mag",
@@ -172,12 +178,15 @@ with DAG(
         prefix=topic_prefix,
     )
 
+    gender_diversity = GenderDiversityOperator(task_id='gender_diversity', db_config=DB_CONFIG, s3_bucket=topic_bucket, prefix=topic_prefix, thresh=thresh)
+
     dummy_task >> query_mag >> parse_mag
     parse_mag >> geocode_places >> rca
     parse_mag >> geocode_places >> country_collaboration_graph
     parse_mag >> collect_fos >> fos_frequency >> topic_filtering
     topic_filtering >> rca
     topic_filtering >> research_diversity
+    topic_filtering >> gender_diversity
     geocode_places >> research_diversity
-    parse_mag >> batch_names >> batch_task_gender
+    parse_mag >> batch_names >> batch_task_gender >> dummy_task_2 >> gender_diversity
     parse_mag >> text2vector >> dim_reduction
