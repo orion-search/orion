@@ -3,6 +3,9 @@ schema:
         type: integer
     doi:
         type: string
-    vector:
+    vector_2d:
         type: float[]
         description: 2D vector representation of an abstract.
+    vector_3d:
+        type: float[]
+        description: 3D vector representation of an abstract.
