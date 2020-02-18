@@ -1,0 +1,13 @@
+schema:
+    id:
+        type: integer
+    female_share:
+        type: float
+        description: Proportion of female co-authors.
+    year:
+        type: string
+    entity:
+        type: string
+        description: Country name.
+    field_of_study_id:
+        type: integer
