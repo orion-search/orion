@@ -19,3 +19,16 @@ def clean_name(name):
         return " ".join([first_name, last_name])
     else:
         return None
+
+
+def identity_tokenizer(tokens):
+    """Passes tokens without processing. Used in a CountVectorizer.
+
+    Args:
+        tokens (:obj:`list`)
+    
+    Returns:
+        tokens (:obj:`list`)
+
+    """
+    return tokens

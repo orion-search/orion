@@ -1,6 +1,7 @@
 import pytest
 
 from orion.packages.utils.nlp_utils import clean_name
+from orion.packages.utils.nlp_utils import identity_tokenizer
 
 
 def test_clean_name_from_double_initials():
@@ -35,5 +36,13 @@ def test_clean_name():
     result = clean_name(name)
 
     expected_result = "Foo FooBar"
+
+    assert result == expected_result
+
+
+def test_identity_tokenizer():
+    data = [1, 2, 3]
+    expected_result = [1, 2, 3]
+    result = identity_tokenizer(data)
 
     assert result == expected_result
