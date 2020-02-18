@@ -1,0 +1,9 @@
+schema:
+    id:
+        type: integer
+    country_a:
+        type: string
+    country_b:
+        type: string
+    weight:
+        type: integer

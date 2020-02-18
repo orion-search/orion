@@ -1,0 +1,19 @@
+schema:
+    id:
+        type: integer
+    shannon_diversity:
+        type: float
+        description: Shannon diversity index.
+    simpson_e_diversity:
+        type: float
+        description: Simpson E diversity index.
+    simpson_diversity:
+        type: float
+        description: Simpson diversity index.
+    year:
+        type: string
+    entity:
+        type: string
+        description: Country name.
+    field_of_study_id:
+        type: integer
