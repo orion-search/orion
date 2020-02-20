@@ -278,6 +278,22 @@ class GenderDiversityCountry(Base):
     field_of_study_id = Column(BIGINT, ForeignKey("mag_fields_of_study.id"))
 
 
+class FilteredFos(Base):
+    """Paper count and citation sum for a field of study"""
+
+    __tablename__ = "mag_filtered_field_of_study"
+    id = Column(
+        BIGINT,
+        ForeignKey("mag_fields_of_study.id"),
+        primary_key=True,
+        autoincrement=False,
+    )
+    year = Column(TEXT)
+    all_children = Column(ARRAY(BIGINT))
+    paper_count = Column(Integer)
+    total_citations = Column(Integer)
+
+
 if __name__ == "__main__":
     import logging
     import psycopg2
@@ -301,6 +317,6 @@ if __name__ == "__main__":
             logging.error(e)
             raise
 
-    db_config = misctools.get_config("orion_config.config", "postgresdb")["orion_prod"]
+    db_config = misctools.get_config("orion_config.config", "postgresdb")["orion"]
     engine = create_engine(db_config)
     Base.metadata.create_all(engine)
