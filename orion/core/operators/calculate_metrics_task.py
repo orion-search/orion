@@ -20,9 +20,9 @@ from orion.core.orms.mag_orm import (
     ResearchDiversityCountry,
     GenderDiversityCountry,
     AuthorGender,
+    FilteredFos
 )
 from orion.packages.utils.utils import dict2psql_format, flatten_lists, get_all_children
-from orion.packages.utils.s3_utils import load_from_s3
 from orion.packages.utils.nlp_utils import identity_tokenizer
 from skbio.diversity.alpha import simpson, simpson_e, shannon
 from sklearn.feature_extraction.text import CountVectorizer
@@ -39,10 +39,6 @@ class RCAOperator(BaseOperator):
         self.prefix = prefix
 
     def execute(self, context):
-        # Load topics
-        topics = flatten_lists(list(load_from_s3(self.s3_bucket, self.prefix).values()))
-        logging.info(f"Number of topics: {len(topics)}")
-
         # Connect to postgresql db
         engine = create_engine(self.db_config)
         Session = sessionmaker(engine)
@@ -54,6 +50,7 @@ class RCAOperator(BaseOperator):
         author_aff = pd.read_sql(s.query(AuthorAffiliation).statement, s.bind)
         paper_author = pd.read_sql(s.query(PaperAuthor).statement, s.bind)
         paper_fos = pd.read_sql(s.query(PaperFieldsOfStudy).statement, s.bind)
+        topics = [id_[0] for id_ in s.query(FilteredFos.field_of_study_id)]
 
         # Merge tables
         df = (
@@ -131,10 +128,6 @@ class ResearchDiversityOperator(BaseOperator):
         self.prefix = prefix
 
     def execute(self, context):
-        # Load topics
-        topics = flatten_lists(list(load_from_s3(self.s3_bucket, self.prefix).values()))
-        logging.info(f"Number of topics: {len(topics)}")
-
         # Connect to postgresql db
         engine = create_engine(self.db_config)
         Session = sessionmaker(engine)
@@ -147,9 +140,12 @@ class ResearchDiversityOperator(BaseOperator):
         paper_author = pd.read_sql(s.query(PaperAuthor).statement, s.bind)
         paper_fos = pd.read_sql(s.query(PaperFieldsOfStudy).statement, s.bind)
         hierarchy = pd.read_sql(s.query(FosHierarchy).statement, s.bind)
+        filtered_fos = pd.read_sql(s.query(FilteredFos).statement, s.bind)
 
-        # Traverse the FoS hierarchy tree and get all children
-        d = {topic: get_all_children(hierarchy, topic) for topic in topics}
+        # dict(topic id, all children)
+        d = {}
+        for _, row in filtered_fos.drop_duplicates('field_of_study_id').iterrows():
+            d[row['field_of_study_id']] = row['all_children']
 
         for parent, children in d.items():
             logging.info(f"Parent ID: {parent} - Number of children: {len(children)}")
@@ -241,10 +237,6 @@ class GenderDiversityOperator(BaseOperator):
         self.thresh = thresh
 
     def execute(self, context):
-        # Load topics
-        topics = flatten_lists(list(load_from_s3(self.s3_bucket, self.prefix).values()))
-        logging.info(f"Number of topics: {len(topics)}")
-
         # Connect to postgresql db
         engine = create_engine(self.db_config, pool_pre_ping=True)
         Session = sessionmaker(engine)
@@ -260,7 +252,6 @@ class GenderDiversityOperator(BaseOperator):
         gender = pd.read_sql(s.query(AuthorGender).statement, s.bind)
         # Keep only inferred gender with a probability higher than .75
         gender = gender[gender.probability >= self.thresh]
-        logging.info("Read all tables")
 
         # Merge papers IDs with authors and their gender
         paper_author_gender = paper_author[["paper_id", "author_id"]].merge(
@@ -290,8 +281,12 @@ class GenderDiversityOperator(BaseOperator):
         )
         logging.info("Prepared table with female share")
 
-        # Traverse the FoS hierarchy tree and get all children
-        d = {topic: get_all_children(hierarchy, topic) for topic in topics}
+        # Filtered topics table
+        filtered_fos = pd.read_sql(s.query(FilteredFos).statement, s.bind)
+        d = {}
+        for _, row in filtered_fos.drop_duplicates('field_of_study_id').iterrows():
+            d[row['field_of_study_id']] = row['all_children']
+        logging.info("Read all tables")
 
         for parent, children in d.items():
             logging.info(f"Parent ID: {parent} - Number of children: {len(children)}")
