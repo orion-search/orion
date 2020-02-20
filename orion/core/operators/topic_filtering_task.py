@@ -5,6 +5,7 @@ import logging
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 import numpy as np
@@ -67,14 +68,11 @@ class FilteredTopicsMetadataOperator(BaseOperator):
         # Load topics
         topics = flatten_lists(list(load_from_s3(self.s3_bucket, self.prefix).values()))
         logging.info(f"Number of topics: {len(topics)}")
-
+        
         # Connect to postgresql db
         engine = create_engine(self.db_config)
-        # Drop the table if it exists in order to update it with new values.
         FilteredFos.__table__.drop(engine, checkfirst=True)
-        # Recreate the table
         FilteredFos.__table__.create(engine, checkfirst=True)
-        # Establish the session
         Session = sessionmaker(engine)
         s = Session()
 
@@ -93,20 +91,22 @@ class FilteredTopicsMetadataOperator(BaseOperator):
 
         # Traverse the FoS hierarchy tree and get all children
         d = {topic: get_all_children(hierarchy, topic) for topic in topics}
-        logging.info('Got children of {len(d)} topics.')
+        logging.info(f'Got children of {len(d)} topics.')
 
         for fos_ids in d.values():
-            g = papers[papers.field_of_study_id.isin(fos_ids)].groupby("year")
-            for year, paper_count, citation_sum in zip(
+            logging.info(fos_ids[:10])
+            logging.info(f'fos id: {fos_ids[0]}')
+            g = papers[papers.field_of_study_id.isin(fos_ids)].drop_duplicates('paper_id').groupby("year")
+            for year, paper_count, total_citations in zip(
                 g.groups.keys(), g["paper_id"].count(), g["citations"].sum()
             ):
                 s.add(
                     FilteredFos(
-                        id=fos_ids[0],
-                        all_children=fos_ids,
+                        field_of_study_id=int(fos_ids[0]),
+                        all_children=[int(f) for f in fos_ids],
                         year=year,
-                        paper_count=paper_count,
-                        citation_sum=citation_sum,
+                        paper_count=int(paper_count),
+                        total_citations=int(total_citations),
                     )
                 )
                 s.commit()

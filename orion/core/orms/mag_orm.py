@@ -282,11 +282,11 @@ class FilteredFos(Base):
     """Paper count and citation sum for a field of study"""
 
     __tablename__ = "mag_filtered_field_of_study"
-    id = Column(
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    field_of_study_id = Column(
         BIGINT,
-        ForeignKey("mag_fields_of_study.id"),
-        primary_key=True,
-        autoincrement=False,
+        ForeignKey("mag_fields_of_study.id")
     )
     year = Column(TEXT)
     all_children = Column(ARRAY(BIGINT))
@@ -317,6 +317,6 @@ if __name__ == "__main__":
             logging.error(e)
             raise
 
-    db_config = misctools.get_config("orion_config.config", "postgresdb")["orion"]
+    db_config = misctools.get_config("orion_config.config", "postgresdb")["orion_prod"]
     engine = create_engine(db_config)
     Base.metadata.create_all(engine)
