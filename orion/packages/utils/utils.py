@@ -149,6 +149,7 @@ def get_all_children(df, topics, lvl=1):
     )
 
     if lvl == 5:
+        # t.remove(t[0])
         return t
     else:
         return get_all_children(df, t, lvl + 1)
