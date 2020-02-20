@@ -5,7 +5,6 @@ import logging
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import NullPool
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 import numpy as np
