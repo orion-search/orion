@@ -278,6 +278,22 @@ class GenderDiversityCountry(Base):
     field_of_study_id = Column(BIGINT, ForeignKey("mag_fields_of_study.id"))
 
 
+class FilteredFos(Base):
+    """Paper count and citation sum for a field of study"""
+
+    __tablename__ = "mag_filtered_field_of_study"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    field_of_study_id = Column(
+        BIGINT,
+        ForeignKey("mag_fields_of_study.id")
+    )
+    year = Column(TEXT)
+    all_children = Column(ARRAY(BIGINT))
+    paper_count = Column(Integer)
+    total_citations = Column(Integer)
+
+
 if __name__ == "__main__":
     import logging
     import psycopg2

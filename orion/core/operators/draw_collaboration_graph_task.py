@@ -9,7 +9,6 @@ from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 from orion.packages.utils.utils import cooccurrence_graph
 from orion.core.orms.mag_orm import (
-    Paper,
     PaperAuthor,
     AuthorAffiliation,
     AffiliationLocation,

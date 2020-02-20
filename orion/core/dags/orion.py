@@ -23,7 +23,10 @@ from orion.core.operators.calculate_metrics_task import (
 )
 from orion.core.operators.text2vec_task import Text2TfidfOperator
 from orion.core.operators.dim_reduction_task import DimReductionOperator
-from orion.core.operators.topic_filtering_task import FilterTopicsByDistributionOperator
+from orion.core.operators.topic_filtering_task import (
+    FilterTopicsByDistributionOperator,
+    FilteredTopicsMetadataOperator,
+)
 
 default_args = {
     "owner": "Kostas St",
@@ -171,6 +174,13 @@ with DAG(
         percentiles=percentiles,
     )
 
+    filtered_topic_metadata = FilteredTopicsMetadataOperator(
+        task_id="topic_metadata",
+        db_config=DB_CONFIG,
+        s3_bucket=topic_bucket,
+        prefix=topic_prefix,
+    )
+
     research_diversity = ResearchDiversityOperator(
         task_id="research_diversity",
         db_config=DB_CONFIG,
@@ -189,10 +199,10 @@ with DAG(
     dummy_task >> query_mag >> parse_mag
     parse_mag >> geocode_places >> rca
     parse_mag >> geocode_places >> country_collaboration_graph
-    parse_mag >> collect_fos >> fos_frequency >> topic_filtering
-    topic_filtering >> rca
-    topic_filtering >> research_diversity
-    topic_filtering >> gender_diversity
+    parse_mag >> collect_fos >> fos_frequency >> topic_filtering >> filtered_topic_metadata
+    filtered_topic_metadata >> rca
+    filtered_topic_metadata >> research_diversity
+    filtered_topic_metadata >> gender_diversity
     geocode_places >> research_diversity
     parse_mag >> batch_names >> batch_task_gender >> dummy_task_2 >> gender_diversity
     parse_mag >> text2vector >> dim_reduction
