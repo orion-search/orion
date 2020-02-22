@@ -118,16 +118,15 @@ class MagParserOperator(BaseOperator):
         logging.info(f"Completed parsing paper_with_fos: {len(paper_with_fos)}")
 
         # Parse affiliations
-        items = [parse_affiliations(response) for response in data]
+        items = [parse_affiliations(response, response['Id']) for response in data]
         affiliations = [
             d
             for d in unique_dicts(flatten_lists([item[0] for item in items]))
             if d["id"] not in aff_ids
         ]
-        author_with_aff = [
+        paper_author_aff = [
             d
             for d in unique_dicts(flatten_lists([item[1] for item in items]))
-            if d["author_id"] not in author_ids
         ]
         logging.info(f"Completed parsing affiliations: {len(affiliations)}")
         logging.info(f"Completed parsing author_with_aff: {len(author_with_aff)}")
@@ -143,8 +142,7 @@ class MagParserOperator(BaseOperator):
         s.bulk_insert_mappings(FieldOfStudy, fields_of_study)
         s.bulk_insert_mappings(PaperFieldsOfStudy, paper_with_fos)
         s.bulk_insert_mappings(Affiliation, affiliations)
-        s.bulk_insert_mappings(AuthorAffiliation, author_with_aff)
-
+        s.bulk_insert_mappings(AuthorAffiliation, paper_author_aff)
         s.commit()
         logging.info("Committed to DB")
 
