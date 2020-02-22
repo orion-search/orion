@@ -253,6 +253,7 @@ class CountryCollaboration(Base):
     country_a = Column(TEXT)
     country_b = Column(TEXT)
     weight = Column(Integer)
+    year = Column(TEXT)
 
 
 class ResearchDiversityCountry(Base):

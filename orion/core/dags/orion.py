@@ -36,7 +36,7 @@ default_args = {
 }
 
 DAG_ID = "orion"
-DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")["orion_prod"]
+DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")["orion"]
 MAG_API_KEY = misctools.get_config("orion_config.config", "mag")["mag_api_key"]
 
 # task 1:
@@ -49,6 +49,9 @@ prod = orion.config["data"]["prod"]
 
 # task 3: geocode places
 google_key = misctools.get_config("orion_config.config", "google")["google_key"]
+
+# task 4: country collaboration
+collab_year = mag_config = orion.config["country_collaboration"]["year"]
 
 # task 6: batch names
 BATCH_SIZE = 80000
@@ -162,7 +165,7 @@ with DAG(
     )
 
     country_collaboration_graph = CountryCollaborationOperator(
-        task_id="country_collaboration", db_config=DB_CONFIG
+        task_id="country_collaboration", db_config=DB_CONFIG, year=collab_year
     )
 
     topic_filtering = FilterTopicsByDistributionOperator(
