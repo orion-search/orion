@@ -132,11 +132,13 @@ def parse_fos(response, paper_id):
 
     return paper_with_fos, fields_of_study
 
+
 def parse_affiliations(response, paper_id):
     """Parse the author affiliations from a MAG API response.
 
     Args:
         response (json): Response from MAG API in JSON format. Contains all paper information.
+        paper_id (int): Paper ID.
 
     Returns:
         affiliations (:obj:`list` of :obj:`dict`): List of dictionaries with affiliation information.
@@ -149,7 +151,13 @@ def parse_affiliations(response, paper_id):
     for aff in response["AA"]:
         if aff["AfId"]:
             # mag_author_affiliation
-            paper_author_aff.append({"affiliation_id": aff["AfId"], "author_id": aff["AuId"], 'paper_id':paper_id})
+            paper_author_aff.append(
+                {
+                    "affiliation_id": aff["AfId"],
+                    "author_id": aff["AuId"],
+                    "paper_id": paper_id,
+                }
+            )
             # mag_affiliation
             affiliations.append({"id": aff["AfId"], "affiliation": aff["AfN"]})
         else:
