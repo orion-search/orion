@@ -96,7 +96,7 @@ class Affiliation(Base):
 
 
 class AuthorAffiliation(Base):
-    """Linking author with their affiliation."""
+    """Linking papers with authors and their affiliation."""
 
     __tablename__ = "mag_author_affiliation"
 
@@ -105,6 +105,9 @@ class AuthorAffiliation(Base):
     )
     author_id = Column(
         BIGINT, ForeignKey("mag_authors.id"), primary_key=True, autoincrement=False
+    )
+    paper_id = Column(
+        BIGINT, ForeignKey("mag_papers.id"), primary_key=True, autoincrement=False
     )
     affiliations = relationship("Affiliation")
     authors = relationship("Author")
@@ -284,10 +287,7 @@ class FilteredFos(Base):
     __tablename__ = "mag_filtered_field_of_study"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    field_of_study_id = Column(
-        BIGINT,
-        ForeignKey("mag_fields_of_study.id")
-    )
+    field_of_study_id = Column(BIGINT, ForeignKey("mag_fields_of_study.id"))
     year = Column(TEXT)
     all_children = Column(ARRAY(BIGINT))
     paper_count = Column(Integer)
@@ -317,6 +317,6 @@ if __name__ == "__main__":
             logging.error(e)
             raise
 
-    db_config = misctools.get_config("orion_config.config", "postgresdb")["orion_prod"]
+    db_config = misctools.get_config("orion_config.config", "postgresdb")["orion"]
     engine = create_engine(db_config)
     Base.metadata.create_all(engine)
