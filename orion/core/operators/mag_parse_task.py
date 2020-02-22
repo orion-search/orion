@@ -143,7 +143,7 @@ class MagParserOperator(BaseOperator):
         s.bulk_insert_mappings(Affiliation, affiliations)
         s.bulk_insert_mappings(AuthorAffiliation, paper_author_aff)
         s.commit()
-        logging.info("Committed to DB")
+        logging.info("Committed to DB!")
 
 
 class FosFrequencyOperator(BaseOperator):
