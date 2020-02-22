@@ -13,6 +13,9 @@ umap:
     metric: 'cosine'
     min_dist: .1
 
+country_collaboration:
+    year: '2013'
+
 svd:
     n_components: 500
 
