@@ -123,5 +123,10 @@ def test_parse_affiliations():
         {"id": 78577930, "affiliation": "columbia university"}
     ]
     expected_result_author_with_aff = [
-        {"affiliation_id": 78577930, "author_id": 2780121452}
+        {"affiliation_id": 78577930, "author_id": 2780121452, "paper_id":2592122940}
     ]
+
+    affiliations, paper_author_aff = parse_affiliations(test_example, 2592122940)
+
+    assert affiliations == expected_result_affiliations
+    assert paper_author_aff == expected_result_author_with_aff
