@@ -26,7 +26,12 @@ def test_calculate_rca_by_sum_calculates_correct_results():
 
     result = pd.DataFrame(
         calculate_rca_by_sum(
-            data, entity_column="country", commodity=13, value="citations"
+            data,
+            entity_column="country",
+            commodity=13,
+            value="citations",
+            paper_thresh=1,
+            year_thresh="2013",
         )
     )
 
@@ -51,7 +56,13 @@ def test_calculate_rca_by_count_calculates_correct_results():
     ).set_index(["country", "year"])
 
     result = pd.DataFrame(
-        calculate_rca_by_count(data, entity_column="country", commodity=13)
+        calculate_rca_by_count(
+            data,
+            entity_column="country",
+            commodity=13,
+            paper_thresh=1,
+            year_thresh="2013",
+        )
     )
 
     pd.testing.assert_frame_equal(
