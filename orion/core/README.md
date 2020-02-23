@@ -133,6 +133,9 @@ to turn on the scheduler. You should now be able to click on the DAG and **Trigg
 ### What's in the DAG ###
 There is a set of tasks and the DAG shows how they depend on each other. In Orion, every task fetches data from a source, usually a PostgreSQL DB or AWS S3, applies a set of transformations and stores them in a PostgreSQL DB or AWS S3. Here I will briefly explain what every operator does:
 
+#### `start` ####
+Dummy task to initiate the DAG. Used only for clarity.
+
 #### `query_mag` ####
 * Source: Microsoft Academic Graph API.
 * Action: For a given query (conference, journal or Field of Study name), retrieve all of the papers.
@@ -153,10 +156,10 @@ There is a set of tasks and the DAG shows how they depend on each other. In Orio
 * Action: Retrieve metadata (child nodes, parent nodes, level in hierarchy) for every queried Field of Study.
 * Target: PostgreSQL DB
 
-#### `fos_frequency` ####
+#### `text2vector` ####
 * Source: PostgreSQL DB
-* Action: Find the frequency of Fields of Study.
-* Target: PostgreSQL DB
+* Action: Transform text to vector.
+* Target: AWS S3
 
 #### `batch_names` ####
 * Source: PostgreSQL DB
@@ -168,10 +171,10 @@ There is a set of tasks and the DAG shows how they depend on each other. In Orio
 * Action: Fetch author names and query them on GenderAPI to infer their gender.
 * Target: PostgreSQL DB
 
-#### `text2vector` ####
+#### `fos_frequency` ####
 * Source: PostgreSQL DB
-* Action: Transform text to vector.
-* Target: AWS S3
+* Action: Find the frequency of Fields of Study.
+* Target: PostgreSQL DB
 
 #### `dim_reduction` ####
 * Source: AWS S3 
@@ -183,13 +186,30 @@ There is a set of tasks and the DAG shows how they depend on each other. In Orio
 * Action: Create a cooccurrence network of countries based on paper co-authorship.
 * Target: PostgreSQL DB
 
-#### `topic_filtering` ####
+#### `filter_topics` ####
 * Source: PostgreSQL DB
 * Action: Filter Fields of Study based on their level and frequency.
 * Target: AWS S3
 
-#### `rca` ####
-* Source: AWS S3, PostgreSQL DB
+#### `gender_agg` ####
+Dummy task used only for clarity (reduces the edges towards downstream tasks).
+
+#### `topic_metadata` ####
+* Source: AWS S3
+* Action: Calculate the citation sum and paper count for every topic (including its children).
+* Target: AWS S3
+
+#### `rca_measurement` ####
+* Source: PostgreSQL DB
 * Action: Calculate the comparative advantage of every topic for each country and year.
 * Target: PostgreSQL DB
 
+#### `gender_diversity` ####
+* Source: PostgreSQL DB
+* Action: Calculate the gender diversity of every topic for each country and year.
+* Target: PostgreSQL DB
+
+#### `research_diversity` ####
+* Source: PostgreSQL DB
+* Action: Calculate the a variety of within-discipline diversity metrics for every topic, each country and year.
+* Target: PostgreSQL DB
