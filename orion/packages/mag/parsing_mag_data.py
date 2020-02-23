@@ -161,5 +161,11 @@ def parse_affiliations(response, paper_id):
             # mag_affiliation
             affiliations.append({"id": aff["AfId"], "affiliation": aff["AfN"]})
         else:
-            continue
+            paper_author_aff.append(
+                {
+                    "affiliation_id": None,
+                    "author_id": aff["AuId"],
+                    "paper_id": paper_id,
+                }
+            )
     return affiliations, paper_author_aff

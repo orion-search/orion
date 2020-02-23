@@ -26,3 +26,8 @@ topic_filter:
 gender_diversity:
     threshold: .75
 
+metrics:
+    year: '2013'
+    paper_count_low: 5
+    paper_count_high: 40 
+    fos_count: 10

@@ -124,9 +124,7 @@ class MagParserOperator(BaseOperator):
             for d in unique_dicts(flatten_lists([item[0] for item in items]))
             if d["id"] not in aff_ids
         ]
-        paper_author_aff = [
-            d for d in unique_dicts(flatten_lists([item[1] for item in items]))
-        ]
+        paper_author_aff = unique_dicts(flatten_lists([item[1] for item in items]))
         logging.info(f"Completed parsing affiliations: {len(affiliations)}")
         logging.info(f"Completed parsing author_with_aff: {len(author_with_aff)}")
 

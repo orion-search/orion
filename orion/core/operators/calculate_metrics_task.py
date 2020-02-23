@@ -10,7 +10,7 @@ from airflow.utils.decorators import apply_defaults
 from orion.packages.metrics.metrics import calculate_rca_by_sum
 from orion.core.orms.mag_orm import (
     Paper,
-    PaperAuthor,
+    # PaperAuthor,
     AuthorAffiliation,
     AffiliationLocation,
     PaperFieldsOfStudy,
@@ -31,15 +31,20 @@ class RCAOperator(BaseOperator):
     """Calculate RCA for institutions and countries."""
 
     @apply_defaults
-    def __init__(self, db_config, s3_bucket, prefix, *args, **kwargs):
+    def __init__(self, db_config, year_thresh, paper_thresh, *args, **kwargs):
         super().__init__(**kwargs)
         self.db_config = db_config
-        self.s3_bucket = s3_bucket
-        self.prefix = prefix
+        self.year_thresh = year_thresh
+        self.paper_thresh = paper_thresh
 
     def execute(self, context):
         # Connect to postgresql db
         engine = create_engine(self.db_config)
+        # Drop and recreate the tables to update the metrics
+        MetricCountryRCA.__table__.drop(engine, checkfirst=True)
+        MetricCountryRCA.__table__.create(engine, checkfirst=True)
+        MetricAffiliationRCA.__table__.drop(engine, checkfirst=True)
+        MetricAffiliationRCA.__table__.create(engine, checkfirst=True)
         Session = sessionmaker(engine)
         s = Session()
 
@@ -47,7 +52,7 @@ class RCAOperator(BaseOperator):
         papers = pd.read_sql(s.query(Paper).statement, s.bind)
         aff_location = pd.read_sql(s.query(AffiliationLocation).statement, s.bind)
         author_aff = pd.read_sql(s.query(AuthorAffiliation).statement, s.bind)
-        paper_author = pd.read_sql(s.query(PaperAuthor).statement, s.bind)
+        # paper_author = pd.read_sql(s.query(PaperAuthor).statement, s.bind)
         paper_fos = pd.read_sql(s.query(PaperFieldsOfStudy).statement, s.bind)
         topics = [id_[0] for id_ in s.query(FilteredFos.field_of_study_id)]
 
@@ -55,11 +60,6 @@ class RCAOperator(BaseOperator):
         df = (
             aff_location[aff_location.country != ""][["affiliation_id", "country"]]
             .merge(author_aff, left_on="affiliation_id", right_on="affiliation_id")
-            .merge(
-                paper_author[["paper_id", "author_id"]],
-                left_on="author_id",
-                right_on="author_id",
-            )
             .merge(
                 papers[["id", "year", "citations"]], left_on="paper_id", right_on="id"
             )
@@ -89,10 +89,18 @@ class RCAOperator(BaseOperator):
         d = {}
         for fos in country_level.field_of_study_id.unique():
             d[fos] = calculate_rca_by_sum(
-                country_level, entity_column="country", commodity=fos, value="citations"
+                country_level,
+                entity_column="country",
+                commodity=fos,
+                value="citations",
+                paper_thresh=self.paper_thresh,
+                year_thresh=self.year_thresh,
             )
-
+        logging.info(
+            f"RCA thresholds - Paper count: {self.paper_thresh}, Year: {self.year_thresh}"
+        )
         rca_country_level_sum = dict2psql_format(d)
+        logging.info(f"Number of rows: {rca_country_level_sum}")
 
         s.bulk_insert_mappings(MetricCountryRCA, rca_country_level_sum)
 
@@ -109,6 +117,8 @@ class RCAOperator(BaseOperator):
                 entity_column="affiliation_id",
                 commodity=fos,
                 value="citations",
+                paper_thresh=self.paper_thresh,
+                year_thresh=self.year_thresh,
             )
 
         rca_affiliation_level_sum = dict2psql_format(d)
@@ -120,15 +130,18 @@ class ResearchDiversityOperator(BaseOperator):
     """Calculates diversity metrics for each country, year and level 1 topic."""
 
     @apply_defaults
-    def __init__(self, db_config, s3_bucket, prefix, *args, **kwargs):
+    def __init__(self, db_config, fos_thresh, year_thresh, *args, **kwargs):
         super().__init__(**kwargs)
         self.db_config = db_config
-        self.s3_bucket = s3_bucket
-        self.prefix = prefix
+        self.fos_thresh = fos_thresh
+        self.year_thresh = year_thresh
 
     def execute(self, context):
         # Connect to postgresql db
         engine = create_engine(self.db_config)
+        # Drop and recreate the tables to update the metrics
+        ResearchDiversityCountry.__table__.drop(engine, checkfirst=True)
+        ResearchDiversityCountry.__table__.create(engine, checkfirst=True)
         Session = sessionmaker(engine)
         s = Session()
 
@@ -136,7 +149,7 @@ class ResearchDiversityOperator(BaseOperator):
         papers = pd.read_sql(s.query(Paper).statement, s.bind)
         aff_location = pd.read_sql(s.query(AffiliationLocation).statement, s.bind)
         author_aff = pd.read_sql(s.query(AuthorAffiliation).statement, s.bind)
-        paper_author = pd.read_sql(s.query(PaperAuthor).statement, s.bind)
+        # paper_author = pd.read_sql(s.query(PaperAuthor).statement, s.bind)
         paper_fos = pd.read_sql(s.query(PaperFieldsOfStudy).statement, s.bind)
         filtered_fos = pd.read_sql(s.query(FilteredFos).statement, s.bind)
 
@@ -151,11 +164,6 @@ class ResearchDiversityOperator(BaseOperator):
             df = (
                 aff_location[aff_location.country != ""][["affiliation_id", "country"]]
                 .merge(author_aff, left_on="affiliation_id", right_on="affiliation_id")
-                .merge(
-                    paper_author[["paper_id", "author_id"]],
-                    left_on="author_id",
-                    right_on="author_id",
-                )
                 .merge(
                     papers[["id", "year", "citations"]],
                     left_on="paper_id",
@@ -185,10 +193,15 @@ class ResearchDiversityOperator(BaseOperator):
                 .groupby(["year", "country"])["field_of_study_id"]
                 .apply(list)
             )
+            # Keep only rows after 2014 and with more than 3 Fields of Study
+            country_level = country_level.loc[self.year_thresh :]
+            country_level = country_level.where(
+                country_level.apply(lambda x: len(x) > self.fos_thresh)
+            ).dropna()
             logging.info(f"Country level frame: {country_level.shape}")
 
             # Slice country_level by year
-            for year in country_level.index.levels[0]:
+            for year in set([idx[0] for idx in country_level.index]):
                 frame = country_level.loc[[year], :]
                 logging.info(f"{year} - Countries: {frame.shape[0]}")
 
@@ -227,16 +240,18 @@ class GenderDiversityOperator(BaseOperator):
     """Measures the gender diversity for a country, topic and year."""
 
     @apply_defaults
-    def __init__(self, db_config, s3_bucket, prefix, thresh, *args, **kwargs):
+    def __init__(self, db_config, thresh, paper_thresh, *args, **kwargs):
         super().__init__(**kwargs)
         self.db_config = db_config
-        self.s3_bucket = s3_bucket
-        self.prefix = prefix
         self.thresh = thresh
+        self.paper_thresh = paper_thresh
 
     def execute(self, context):
         # Connect to postgresql db
         engine = create_engine(self.db_config, pool_pre_ping=True)
+        # Drop and recreate the tables to update the metrics
+        GenderDiversityCountry.__table__.drop(engine, checkfirst=True)
+        GenderDiversityCountry.__table__.create(engine, checkfirst=True)
         Session = sessionmaker(engine)
         s = Session()
 
@@ -244,14 +259,13 @@ class GenderDiversityOperator(BaseOperator):
         papers = pd.read_sql(s.query(Paper).statement, s.bind)
         aff_location = pd.read_sql(s.query(AffiliationLocation).statement, s.bind)
         author_aff = pd.read_sql(s.query(AuthorAffiliation).statement, s.bind)
-        paper_author = pd.read_sql(s.query(PaperAuthor).statement, s.bind)
         paper_fos = pd.read_sql(s.query(PaperFieldsOfStudy).statement, s.bind)
         gender = pd.read_sql(s.query(AuthorGender).statement, s.bind)
         # Keep only inferred gender with a probability higher than .75
         gender = gender[gender.probability >= self.thresh]
 
         # Merge papers IDs with authors and their gender
-        paper_author_gender = paper_author[["paper_id", "author_id"]].merge(
+        paper_author_gender = author_aff[["paper_id", "author_id"]].merge(
             gender[["id", "gender"]], left_on="author_id", right_on="id"
         )
         paper_author_gender = pd.DataFrame(
@@ -291,11 +305,6 @@ class GenderDiversityOperator(BaseOperator):
                 aff_location[aff_location.country != ""][["affiliation_id", "country"]]
                 .merge(author_aff, left_on="affiliation_id", right_on="affiliation_id")
                 .merge(
-                    paper_author[["paper_id", "author_id"]],
-                    left_on="author_id",
-                    right_on="author_id",
-                )
-                .merge(
                     papers[
                         papers.id.isin(
                             paper_fos[paper_fos.field_of_study_id.isin(children)][
@@ -318,11 +327,19 @@ class GenderDiversityOperator(BaseOperator):
                 ]
             )
 
+            # Countries with more than N papers in a year
+            # paper_count = df.drop_duplicates(subset=["country", "paper_id", "year"]).groupby(["year", "country"])["paper_id"].count()
+            # paper_count = paper_count.where(paper_count > self.paper_thresh).dropna()
+
+            # Country level share of female co-authors
             country_level = (
                 df.drop_duplicates(subset=["country", "paper_id", "year"])
                 .groupby(["year", "country"])["female_share"]
                 .mean()
             )
+            # Keep only countries with more than N papers
+            # country_level = country_level.where(country_level.index.isin(paper_count.index)).dropna()
+
             logging.info(f"Country level frame: {country_level.shape}")
 
             for idx, val in country_level.iteritems():

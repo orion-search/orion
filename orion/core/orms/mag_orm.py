@@ -100,15 +100,10 @@ class AuthorAffiliation(Base):
 
     __tablename__ = "mag_author_affiliation"
 
-    affiliation_id = Column(
-        BIGINT, ForeignKey("mag_affiliation.id"), primary_key=True, autoincrement=False
-    )
-    author_id = Column(
-        BIGINT, ForeignKey("mag_authors.id"), primary_key=True, autoincrement=False
-    )
-    paper_id = Column(
-        BIGINT, ForeignKey("mag_papers.id"), primary_key=True, autoincrement=False
-    )
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    affiliation_id = Column(BIGINT, ForeignKey("mag_affiliation.id"))
+    author_id = Column(BIGINT, ForeignKey("mag_authors.id"))
+    paper_id = Column(BIGINT, ForeignKey("mag_papers.id"))
     affiliations = relationship("Affiliation")
     authors = relationship("Author")
 
