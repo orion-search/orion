@@ -39,7 +39,7 @@ DAG_ID = "orion"
 DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")["orion"]
 MAG_API_KEY = misctools.get_config("orion_config.config", "mag")["mag_api_key"]
 
-# task 1:
+# query_mag
 MAG_OUTPUT_BUCKET = "mag-data-dump"
 mag_config = orion.config["data"]["mag"]
 query_values = mag_config["query_values"]
@@ -47,26 +47,26 @@ entity_name = mag_config["entity_name"]
 metadata = mag_config["metadata"]
 prod = orion.config["data"]["prod"]
 
-# task 3: geocode places
+# geocode_places
 google_key = misctools.get_config("orion_config.config", "google")["google_key"]
 
-# task 4: country collaboration
+# country_collaboration
 collab_year = mag_config = orion.config["country_collaboration"]["year"]
 
-# task 6: batch names
+# batch_names
 BATCH_SIZE = 80000
 S3_BUCKET = "names-batches"
 PREFIX = "batched_names"
 
-# task 7: infer gender
+# gender_inference_N
 parallel_tasks = 4
 auth_token = misctools.get_config("orion_config.config", "genderapi")["auth"]
 
-# task 8: text embeddings
+# text2vector
 text_vectors_prefix = "doc_vectors"
 text_vectors_bucket = "document-vectors"
 
-# task 9: dimensionality reduction
+# dim_reduction
 umap_config = orion.config["umap"]
 # umap hyperparameters
 n_neighbors = umap_config["n_neighbors"]
@@ -74,15 +74,19 @@ n_components = umap_config["n_components"]
 metric = umap_config["metric"]
 min_dist = umap_config["min_dist"]
 
-# task 10
+# topic_filtering
 topic_bucket = "mag-topics"
 topic_prefix = "filtered_topics"
 topic_config = orion.config["topic_filter"]
 levels = topic_config["levels"]
 percentiles = topic_config["percentiles"]
 
-# task 11
+# metrics
 thresh = orion.config["gender_diversity"]["threshold"]
+paper_thresh_low = orion.config["metrics"]["paper_count_low"]
+paper_thresh_high = orion.config["metrics"]["paper_count_high"]
+year_thresh = orion.config["metrics"]["year"]
+fos_thresh = orion.config["metrics"]["fos_count"]
 
 with DAG(
     dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(days=365)
@@ -142,8 +146,8 @@ with DAG(
     rca = RCAOperator(
         task_id="rca_measurement",
         db_config=DB_CONFIG,
-        s3_bucket=topic_bucket,
-        prefix=topic_prefix,
+        year_thresh=year_thresh,
+        paper_thresh=paper_thresh_high,
     )
 
     text2vector = Text2TfidfOperator(
@@ -187,15 +191,14 @@ with DAG(
     research_diversity = ResearchDiversityOperator(
         task_id="research_diversity",
         db_config=DB_CONFIG,
-        s3_bucket=topic_bucket,
-        prefix=topic_prefix,
+        fos_thresh=fos_thresh,
+        year_thresh=year_thresh,
     )
 
     gender_diversity = GenderDiversityOperator(
         task_id="gender_diversity",
         db_config=DB_CONFIG,
-        s3_bucket=topic_bucket,
-        prefix=topic_prefix,
+        paper_thresh=paper_thresh_low,
         thresh=thresh,
     )
 
@@ -207,5 +210,6 @@ with DAG(
     filtered_topic_metadata >> research_diversity
     filtered_topic_metadata >> gender_diversity
     geocode_places >> research_diversity
+    geocode_places >> gender_diversity
     parse_mag >> batch_names >> batch_task_gender >> dummy_task_2 >> gender_diversity
     parse_mag >> text2vector >> dim_reduction
