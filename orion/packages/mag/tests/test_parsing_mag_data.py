@@ -123,7 +123,8 @@ def test_parse_affiliations():
         {"id": 78577930, "affiliation": "columbia university"}
     ]
     expected_result_author_with_aff = [
-        {"affiliation_id": 78577930, "author_id": 2780121452, "paper_id":2592122940}
+        {"affiliation_id": 78577930, "author_id": 2780121452, "paper_id": 2592122940},
+        {"affiliation_id": None, "author_id": 2159352281, "paper_id": 2592122940},
     ]
 
     affiliations, paper_author_aff = parse_affiliations(test_example, 2592122940)
