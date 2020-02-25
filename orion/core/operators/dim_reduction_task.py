@@ -10,8 +10,20 @@ from orion.packages.utils.s3_utils import load_from_s3
 
 class DimReductionOperator(BaseOperator):
     """Transforms a high dimensional array to 2D or 3D."""
+
     @apply_defaults
-    def __init__(self, db_config, bucket, prefix, n_neighbors, min_dist, n_components, metric, *args, **kwargs):
+    def __init__(
+        self,
+        db_config,
+        bucket,
+        prefix,
+        n_neighbors,
+        min_dist,
+        n_components,
+        metric,
+        *args,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         self.db_config = db_config
         self.bucket = bucket
@@ -21,22 +33,36 @@ class DimReductionOperator(BaseOperator):
         self.n_components = n_components
         self.metric = metric
 
-    def execute(self, context):        
+    def execute(self, context):
         # Load vectors from S3
         doi, vectors, ids = zip(*load_from_s3(self.bucket, self.prefix))
-        
+
         # Reduce dimensionality to 2D with umap
-        embeddings_2d = umap_embeddings(vectors, self.n_neighbors, self.min_dist, self.n_components, self.metric)
-        logging.info(f'UMAP embeddings: {embeddings_2d.shape}')
-        
+        embeddings_2d = umap_embeddings(
+            vectors, self.n_neighbors, self.min_dist, self.n_components, self.metric
+        )
+        logging.info(f"UMAP embeddings: {embeddings_2d.shape}")
+
         # Reduce dimensionality to 3D with umap
-        embeddings_3d = umap_embeddings(vectors, self.n_neighbors, self.min_dist, self.n_components+1, self.metric)
-        
-        logging.info(f'UMAP embeddings: {embeddings_3d.shape}')
+        embeddings_3d = umap_embeddings(
+            vectors, self.n_neighbors, self.min_dist, self.n_components + 1, self.metric
+        )
+
+        logging.info(f"UMAP embeddings: {embeddings_3d.shape}")
 
         # Construct DB insertions
-        doc_vectors = [{"id": id_, "doi": doi_, "vector_2d":embed_2d.tolist(), "vector_3d":embed_3d.tolist()} for doi_, embed_2d, embed_3d, id_ in zip(doi, embeddings_2d, embeddings_3d, ids)]
-        logging.info(f'Constructed DocVector input')
+        doc_vectors = [
+            {
+                "id": id_,
+                "doi": doi_,
+                "vector_2d": embed_2d.tolist(),
+                "vector_3d": embed_3d.tolist(),
+            }
+            for doi_, embed_2d, embed_3d, id_ in zip(
+                doi, embeddings_2d, embeddings_3d, ids
+            )
+        ]
+        logging.info(f"Constructed DocVector input")
 
         # Store document vectors in PostgreSQL
         engine = create_engine(self.db_config)
@@ -45,4 +71,4 @@ class DimReductionOperator(BaseOperator):
 
         s.bulk_insert_mappings(DocVector, doc_vectors)
         s.commit()
-        logging.info('Commited to DB!')
+        logging.info("Commited to DB!")

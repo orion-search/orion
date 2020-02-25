@@ -213,3 +213,8 @@ Dummy task used only for clarity (reduces the edges towards downstream tasks).
 * Source: PostgreSQL DB
 * Action: Calculate the a variety of within-discipline diversity metrics for every topic, each country and year.
 * Target: PostgreSQL DB
+
+#### `faiss_index` ####
+* Source: AWS S3
+* Action: Create a FAISS index using the document vectors and the paper IDs from MAG.
+* Target: AWS S3
