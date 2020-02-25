@@ -98,11 +98,12 @@ class Text2TfidfOperator(BaseOperator):
 
         # Reduce dimensionality with SVD to speed up UMAP computation
         svd = TruncatedSVD(n_components=500, random_state=42)
-        features = svd.fit_transform(X)
+        features = svd.fit_transform(X).astype("float32")
         logging.info(f"SVD dimensionality reduction shape: {features.shape}")
 
         vectors = [[doi, vec, id_] for doi, vec, id_ in zip(doi, features, ids)]
         logging.info(f"Embedding triplets: {len(vectors)}")
 
         store_on_s3(vectors, self.bucket, self.prefix)
+        store_on_s3(vectorizer, self.bucket, "tfidf_model")
         logging.info("Stored to S3!")
