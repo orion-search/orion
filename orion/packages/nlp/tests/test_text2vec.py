@@ -1,9 +1,15 @@
 import pytest
+from unittest import mock
 
 import torch
 import numpy as np
+import pandas as pd
+import tensorflow as tf
+import sentencepiece as spm
+import tensorflow_hub as hub
 
 from orion.packages.nlp.text2vec import Text2Vector
+from orion.packages.nlp.text2vec import use_vectors
 
 
 def test_text_encoder():
@@ -39,3 +45,27 @@ def test_average_vectors():
     expected_result = np.array([4.5, 5.5, 6.5])
 
     assert all(result == expected_result)
+
+
+def test_use_vectors():
+    documents = ["Water under the bridge.", "Who let the dogs out."]
+
+    values = [4489, 315, 9, 5063, 6, 1945, 456, 9, 112, 70, 6]
+    indices = [
+        [0, 0],
+        [0, 1],
+        [0, 2],
+        [0, 3],
+        [0, 4],
+        [1, 0],
+        [1, 1],
+        [1, 2],
+        [1, 3],
+        [1, 4],
+        [1, 5],
+    ]
+    dense_shape = (2, 6)
+
+    doc_embeddings = use_vectors(documents)
+    assert len(documents) == doc_embeddings.shape[0]
+    assert doc_embeddings.shape[1] == 512
