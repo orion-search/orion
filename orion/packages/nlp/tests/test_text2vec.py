@@ -37,6 +37,16 @@ def test_feature_extraction():
     assert result.shape == expected_shape
 
 
+def test_average_vectors():
+    vectors = torch.tensor([[[2, 3, 4], [7, 8, 9]]])
+
+    tv = Text2Vector()
+    result = tv.average_vectors(vectors)
+    expected_result = np.array([4.5, 5.5, 6.5])
+
+    assert all(result == expected_result)
+
+
 def test_use_vectors():
     documents = ["Water under the bridge.", "Who let the dogs out."]
 
