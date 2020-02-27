@@ -21,12 +21,13 @@ from orion.core.operators.calculate_metrics_task import (
     ResearchDiversityOperator,
     GenderDiversityOperator,
 )
-from orion.core.operators.text2vec_task import Text2TfidfOperator
+from orion.core.operators.text2vec_task import Text2TfidfOperator, Text2USEOperator
 from orion.core.operators.dim_reduction_task import DimReductionOperator
 from orion.core.operators.topic_filtering_task import (
     FilterTopicsByDistributionOperator,
     FilteredTopicsMetadataOperator,
 )
+from orion.core.operators.faiss_index_task import FaissIndexOperator
 
 default_args = {
     "owner": "Kostas St",
@@ -150,7 +151,7 @@ with DAG(
         paper_thresh=paper_thresh_high,
     )
 
-    text2vector = Text2TfidfOperator(
+    text2vector = Text2USEOperator(
         task_id="text2vector",
         db_config=DB_CONFIG,
         bucket=text_vectors_bucket,
@@ -202,6 +203,10 @@ with DAG(
         thresh=thresh,
     )
 
+    faiss_index = FaissIndexOperator(
+        task_id="faiss_index", bucket=text_vectors_bucket, prefix=text_vectors_prefix
+    )
+
     dummy_task >> query_mag >> parse_mag
     parse_mag >> geocode_places >> rca
     parse_mag >> geocode_places >> country_collaboration_graph
@@ -213,3 +218,4 @@ with DAG(
     geocode_places >> gender_diversity
     parse_mag >> batch_names >> batch_task_gender >> dummy_task_2 >> gender_diversity
     parse_mag >> text2vector >> dim_reduction
+    text2vector >> faiss_index
