@@ -148,3 +148,7 @@ dmypy.json
 
 # config
 /orion/core/config/
+orion/core/airflow-scheduler.pid
+orion/core/airflow.cfg
+orion/core/logs/
+orion/core/unittests.cfg
