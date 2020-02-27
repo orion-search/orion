@@ -128,7 +128,7 @@ class Text2USEOperator(BaseOperator):
         # Get the abstracts of bioRxiv papers.
         papers = s.query(Paper.inverted_abstract, Paper.id, Paper.doi).filter(
             and_(
-                # ~exists().where(Paper.id == DocVector.id),
+                ~exists().where(Paper.id == DocVector.id),
                 Paper.doi.isnot(None),
                 Paper.inverted_abstract != "NaN",
             )

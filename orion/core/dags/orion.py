@@ -21,7 +21,7 @@ from orion.core.operators.calculate_metrics_task import (
     ResearchDiversityOperator,
     GenderDiversityOperator,
 )
-from orion.core.operators.text2vec_task import Text2TfidfOperator, Text2USEOperator
+from orion.core.operators.text2vec_task import Text2TfidfOperator
 from orion.core.operators.dim_reduction_task import DimReductionOperator
 from orion.core.operators.topic_filtering_task import (
     FilterTopicsByDistributionOperator,
@@ -151,7 +151,7 @@ with DAG(
         paper_thresh=paper_thresh_high,
     )
 
-    text2vector = Text2USEOperator(
+    text2vector = Text2TfidfOperator(
         task_id="text2vector",
         db_config=DB_CONFIG,
         bucket=text_vectors_bucket,
