@@ -1,9 +1,8 @@
 import pytest
+from unittest import mock
 
 import torch
 import numpy as np
-import pytest
-from unittest import mock
 import pandas as pd
 import tensorflow as tf
 import sentencepiece as spm
