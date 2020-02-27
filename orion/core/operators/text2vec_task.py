@@ -139,10 +139,10 @@ class Text2USEOperator(BaseOperator):
         inverted_abstracts, ids, doi = zip(*papers)
         abstracts = [inverted2abstract(abstract) for abstract in inverted_abstracts]
         assert len(abstracts) == len(ids)
-        logging.info(f"Number of abstracts to vectorise: {len(abstracts)}")
-
+        logging.info(f'Number of abstracts to vectorise: {len(abstracts)}')
+        
         # Vectorisation with USE
         vectors = use_vectors(abstracts)
-        logging.info("Finished vectorisation :)")
+        logging.info('Finished vectorisation :)')
         vectors = [[doi, vec, id_] for doi, vec, id_ in zip(doi, vectors, ids)]
-        store_on_s3(vectors, self.bucket, self.prefix)
+        store_on_s3(vectors, self.bucket, 'test')
