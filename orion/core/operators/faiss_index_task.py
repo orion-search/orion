@@ -7,6 +7,7 @@ from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 from orion.packages.utils.s3_utils import store_on_s3, load_from_s3
 import faiss
+from orion.packages.projection.faiss_index import faiss_index
 
 
 class FaissIndexOperator(BaseOperator):
@@ -22,9 +23,7 @@ class FaissIndexOperator(BaseOperator):
         logging.info("Loaded document vectors")
 
         # Build the FAISS index with custom IDs
-        index = faiss.IndexFlatL2(vectors.shape[1])
-        index = faiss.IndexIDMap(index)
-        index.add_with_ids(vectors, np.array([i for i in ids]))
+        index = faiss_index(vectors, ids)
         logging.info(f"Created index with {index.ntotal} elements.")
 
         # Serialise index and store it on S3

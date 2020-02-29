@@ -8,7 +8,13 @@ from sqlalchemy.orm import sessionmaker
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 import numpy as np
-from orion.core.orms.mag_orm import FosMetadata, FilteredFos, Paper, PaperFieldsOfStudy, FosHierarchy
+from orion.core.orms.mag_orm import (
+    FosMetadata,
+    FilteredFos,
+    Paper,
+    PaperFieldsOfStudy,
+    FosHierarchy,
+)
 from orion.packages.utils.s3_utils import store_on_s3, load_from_s3
 from orion.packages.utils.utils import flatten_lists, get_all_children
 
@@ -55,9 +61,7 @@ class FilteredTopicsMetadataOperator(BaseOperator):
         annual citation sum and paper count."""
 
     @apply_defaults
-    def __init__(
-        self, db_config, s3_bucket, prefix, *args, **kwargs
-    ):
+    def __init__(self, db_config, s3_bucket, prefix, *args, **kwargs):
         super().__init__(**kwargs)
         self.db_config = db_config
         self.s3_bucket = s3_bucket
@@ -67,7 +71,7 @@ class FilteredTopicsMetadataOperator(BaseOperator):
         # Load topics
         topics = flatten_lists(list(load_from_s3(self.s3_bucket, self.prefix).values()))
         logging.info(f"Number of topics: {len(topics)}")
-        
+
         # Connect to postgresql db
         engine = create_engine(self.db_config)
         FilteredFos.__table__.drop(engine, checkfirst=True)
@@ -86,16 +90,20 @@ class FilteredTopicsMetadataOperator(BaseOperator):
             .merge(paper_fos, left_on="id", right_on="paper_id")
             .drop("id", axis=1)
         )
-        logging.info('Merged tables.')
+        logging.info("Merged tables.")
 
         # Traverse the FoS hierarchy tree and get all children
         d = {topic: get_all_children(hierarchy, topic) for topic in topics}
-        logging.info(f'Got children of {len(d)} topics.')
+        logging.info(f"Got children of {len(d)} topics.")
 
         for fos_ids in d.values():
             logging.info(fos_ids[:10])
-            logging.info(f'fos id: {fos_ids[0]}')
-            g = papers[papers.field_of_study_id.isin(fos_ids)].drop_duplicates('paper_id').groupby("year")
+            logging.info(f"fos id: {fos_ids[0]}")
+            g = (
+                papers[papers.field_of_study_id.isin(fos_ids)]
+                .drop_duplicates("paper_id")
+                .groupby("year")
+            )
             for year, paper_count, total_citations in zip(
                 g.groups.keys(), g["paper_id"].count(), g["citations"].sum()
             ):

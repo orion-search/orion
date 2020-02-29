@@ -1,19 +1,26 @@
 """
-Draw a collaboration graph between countries and between institutions.
+Draw a collaboration graph between countries and between institutions. 
+Find the similarity between countries based on the abstracts.
 """
 import logging
 import pandas as pd
+import numpy as np
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 from orion.packages.utils.utils import cooccurrence_graph
+from orion.packages.utils.s3_utils import load_from_s3
 from orion.core.orms.mag_orm import (
     AuthorAffiliation,
     AffiliationLocation,
     CountryCollaboration,
     Paper,
+    FilteredFos,
+    CountrySimilarity,
+    PaperFieldsOfStudy,
 )
+from orion.packages.projection.faiss_index import faiss_index
 
 
 class CountryCollaborationOperator(BaseOperator):
@@ -68,3 +75,116 @@ class CountryCollaborationOperator(BaseOperator):
                 s.commit()
 
         logging.info("Done :)")
+
+
+class CountrySimilarityOperator(BaseOperator):
+    """Find the semantic similarity between abstracts."""
+
+    @apply_defaults
+    def __init__(self, db_config, year, bucket, prefix, k=5, thresh=2, *args, **kwargs):
+        super().__init__(**kwargs)
+        self.db_config = db_config
+        self.year = year
+        self.k = k
+        self.thresh = thresh
+        self.bucket = bucket
+        self.prefix = prefix
+
+    def execute(self, context):
+        # Load document vectors from S3
+        doi, vectors, ids = zip(*load_from_s3(self.bucket, self.prefix))
+        vectors = pd.DataFrame({"id": ids, "vector": vectors})
+        logging.info(f"Vectors DF: {vectors.shape}")
+
+        # Connect to postgresql db
+        engine = create_engine(self.db_config)
+        Session = sessionmaker(engine)
+        s = Session()
+
+        # Drop and recreate the country similarity table to update the metric
+        CountrySimilarity.__table__.drop(engine, checkfirst=True)
+        CountrySimilarity.__table__.create(engine, checkfirst=True)
+
+        # Load all the tables needed for the metrics
+        papers = pd.read_sql(s.query(Paper).statement, s.bind)
+        aff_location = pd.read_sql(s.query(AffiliationLocation).statement, s.bind)
+        author_aff = pd.read_sql(s.query(AuthorAffiliation).statement, s.bind)
+        paper_fos = pd.read_sql(s.query(PaperFieldsOfStudy).statement, s.bind)
+        filtered_fos = pd.read_sql(s.query(FilteredFos).statement, s.bind)
+
+        # dict(topic id, all children)
+        d = {}
+        for _, row in filtered_fos.drop_duplicates("field_of_study_id").iterrows():
+            d[row["field_of_study_id"]] = row["all_children"]
+
+        for parent, children in d.items():
+            logging.info(f"Parent ID: {parent} - Number of children: {len(children)}")
+            # Merge tables for a particular "discipline" (level 1 FoS and its children)
+            df = (
+                aff_location[aff_location.country != ""][["affiliation_id", "country"]]
+                .merge(author_aff, left_on="affiliation_id", right_on="affiliation_id")
+                .merge(
+                    papers[["id", "year", "citations"]],
+                    left_on="paper_id",
+                    right_on="id",
+                )
+                .merge(vectors, left_on="paper_id", right_on="id")
+                .merge(
+                    paper_fos[paper_fos["field_of_study_id"].isin(d[121864883])],
+                    left_on="paper_id",
+                    right_on="paper_id",
+                )[
+                    [
+                        "affiliation_id",
+                        "field_of_study_id",
+                        "country",
+                        "paper_id",
+                        "citations",
+                        "year",
+                        "vector",
+                    ]
+                ]
+            )
+            # Filter country/year pairs based on paper frequency
+            filter_ = (
+                df.drop_duplicates(["country", "paper_id", "year"])
+                .groupby(["year", "country"])["paper_id"]
+                .count()
+            )
+            logging.info(f"Remaining country/year pairs: {filter_.shape}")
+
+            # Group and drop countries with less than N papers
+            grouped = (
+                df.drop_duplicates(["country", "paper_id", "year"])
+                .groupby(["year", "country"])["vector"]
+                .apply(lambda x: np.mean(x, axis=0))
+                .loc[filter_.where(filter_ > self.thresh).dropna().index]
+            )
+
+            # Find similar countries on annual basis
+            for year in set([tup[0] for tup in grouped.index if tup[0] > self.year]):
+                v = np.array([v for v in grouped.loc[year]])
+                ids = range(len(grouped.loc[year].index))
+                logging.info(f"Vectors shape: {v.shape}")
+                # Check that we have at least more than 5 countries in that year and topic
+                if v.shape[0] > self.k:
+                    # Create FAISS index
+                    index = faiss_index(v, ids)
+                    # Find similar countries for each country
+                    for vector, country in zip(v, grouped.loc[year].index):
+                        D, I = index.search(np.array([vector]), self.k + 1)
+                        for i, (idx, similarity) in enumerate(zip(I[0][1:], D[0][1:])):
+
+                            s.add(
+                                CountrySimilarity(
+                                    country_a=country,
+                                    country_b=grouped.loc[year].index[idx],
+                                    closeness=float(similarity),
+                                    year=year,
+                                    field_of_study_id=parent,
+                                )
+                            )
+                            s.commit()
+                        logging.info(f"Stored in DB for {country} - {year}")
+                else:
+                    continue

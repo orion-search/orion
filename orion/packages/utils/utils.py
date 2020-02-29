@@ -153,3 +153,16 @@ def get_all_children(df, topics, lvl=1):
         return t
     else:
         return get_all_children(df, t, lvl + 1)
+
+
+def average_vectors(vectors):
+    """Averages vectors.
+
+    Args:
+        vectors (:obj:`list` of `numpy.array`)
+
+    Returns:
+        (numpy.ndarray) Average of the vectors of the shape.
+
+    """
+    return np.mean([v for v in vectors], axis=0)
