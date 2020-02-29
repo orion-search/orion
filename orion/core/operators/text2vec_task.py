@@ -145,4 +145,5 @@ class Text2USEOperator(BaseOperator):
         vectors = use_vectors(abstracts)
         logging.info("Finished vectorisation :)")
         vectors = [[doi, vec, id_] for doi, vec, id_ in zip(doi, vectors, ids)]
-        store_on_s3(vectors, self.bucket, "test")
+        store_on_s3(vectors, self.bucket, "use_vectors")
+        logging.info("Stored to S3!")
