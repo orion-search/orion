@@ -126,7 +126,7 @@ class MagParserOperator(BaseOperator):
         ]
         paper_author_aff = unique_dicts(flatten_lists([item[1] for item in items]))
         logging.info(f"Completed parsing affiliations: {len(affiliations)}")
-        logging.info(f"Completed parsing author_with_aff: {len(author_with_aff)}")
+        logging.info(f"Completed parsing author_with_aff: {len(paper_author_aff)}")
 
         logging.info(f"Parsing completed!")
 
