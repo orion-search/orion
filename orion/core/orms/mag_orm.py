@@ -290,6 +290,19 @@ class FilteredFos(Base):
     total_citations = Column(Integer)
 
 
+class CountrySimilarity(Base):
+    """Country similarity for each topic and year."""
+
+    __tablename__ = "country_similarity"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    country_a = Column(TEXT)
+    country_b = Column(TEXT)
+    closeness = Column(Float)
+    year = Column(TEXT)
+    field_of_study_id = Column(BIGINT, ForeignKey("mag_fields_of_study.id"))
+
+
 if __name__ == "__main__":
     import logging
     import psycopg2

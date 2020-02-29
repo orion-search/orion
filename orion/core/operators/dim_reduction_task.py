@@ -37,6 +37,9 @@ class DimReductionOperator(BaseOperator):
         # Load vectors from S3
         doi, vectors, ids = zip(*load_from_s3(self.bucket, self.prefix))
 
+        logging.info(
+            f"UMAP hyperparameters: n_neighbors:{self.n_neighbors}, min_dist:{self.min_dist}, metric:{self.metric}"
+        )
         # Reduce dimensionality to 2D with umap
         embeddings_2d = umap_embeddings(
             vectors, self.n_neighbors, self.min_dist, self.n_components, self.metric

@@ -8,10 +8,10 @@ data:
         metadata: ["Id", "Ti", "AA.AfId", "AA.AfN", "AA.AuId", "AA.DAuN", "AA.S", "CC", "D", "F.DFN", "F.FId", "J.JId", "J.JN", "Pt", "RId", "Y", "DOI", "PB", "BT", "IA", "C.CN", "C.CId"]
 
 umap:
-    n_neighbors: 10
+    n_neighbors: 5
     n_components: 2
     metric: 'cosine'
-    min_dist: .1
+    min_dist: .01
 
 country_collaboration:
     year: '2013'

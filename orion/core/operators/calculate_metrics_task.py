@@ -193,7 +193,7 @@ class ResearchDiversityOperator(BaseOperator):
                 .groupby(["year", "country"])["field_of_study_id"]
                 .apply(list)
             )
-            # Keep only rows after 2014 and with more than 3 Fields of Study
+            # Keep only rows after 2014 and with more than 5 Fields of Study
             country_level = country_level.loc[self.year_thresh :]
             country_level = country_level.where(
                 country_level.apply(lambda x: len(x) > self.fos_thresh)

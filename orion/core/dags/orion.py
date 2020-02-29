@@ -5,6 +5,7 @@ from orion.core.airflow_utils import misctools
 from orion.core.operators.mag_parse_task import MagParserOperator, FosFrequencyOperator
 from orion.core.operators.draw_collaboration_graph_task import (
     CountryCollaborationOperator,
+    CountrySimilarityOperator,
 )
 from orion.core.operators.mag_geocode_task import GeocodingOperator
 from orion.core.operators.mag_collect_task import (
@@ -173,6 +174,14 @@ with DAG(
         task_id="country_collaboration", db_config=DB_CONFIG, year=collab_year
     )
 
+    country_similarity = CountrySimilarityOperator(
+        task_id="country_similarity",
+        db_config=DB_CONFIG,
+        year=collab_year,
+        bucket=text_vectors_bucket,
+        prefix=text_vectors_prefix,
+    )
+
     topic_filtering = FilterTopicsByDistributionOperator(
         task_id="filter_topics",
         db_config=DB_CONFIG,
@@ -216,6 +225,9 @@ with DAG(
     filtered_topic_metadata >> gender_diversity
     geocode_places >> research_diversity
     geocode_places >> gender_diversity
+    geocode_places >> country_similarity
+    text2vector >> country_similarity
+    filtered_topic_metadata >> country_similarity
     parse_mag >> batch_names >> batch_task_gender >> dummy_task_2 >> gender_diversity
     parse_mag >> text2vector >> dim_reduction
     text2vector >> faiss_index
