@@ -303,6 +303,71 @@ class CountrySimilarity(Base):
     field_of_study_id = Column(BIGINT, ForeignKey("mag_fields_of_study.id"))
 
 
+class CountryTopicOutput(Base):
+    """Output for each country, topic and year. Used in front-end."""
+
+    __tablename__ = "viz_output_by_research_area_country"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    country = Column(TEXT)
+    field_of_study_id = Column(BIGINT, ForeignKey("mag_fields_of_study.id"))
+    year = Column(TEXT)
+    paper_count = Column(Integer)
+    total_citations = Column(Integer)
+    name = Column(TEXT)
+
+
+class AllMetrics(Base):
+    """Consolidates metrics from other tables. Used in front-end."""
+
+    __tablename__ = "viz_metrics_by_country"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    year = Column(TEXT)
+    country = Column(TEXT)
+    shannon_diversity = Column(Float)
+    field_of_study_id = Column(BIGINT, ForeignKey("mag_fields_of_study.id"))
+    rca_sum = Column(Float)
+    female_share = Column(Float)
+    name = Column(TEXT)
+
+
+class PaperCountry(Base):
+    """Paper IDs and Paper ID count for every country. Used in front-end."""
+
+    __tablename__ = "viz_paper_country"
+
+    country = Column(TEXT, primary_key=True, autoincrement=False)
+    count = Column(Integer)
+    paper_ids = Column(ARRAY(BIGINT))
+
+
+class PaperTopics(Base):
+    """Paper IDs for every topic. Used in front-end."""
+
+    __tablename__ = "viz_paper_topics"
+
+    field_of_study_id = Column(
+        BIGINT,
+        ForeignKey("mag_fields_of_study.id"),
+        primary_key=True,
+        autoincrement=False,
+    )
+    name = Column(TEXT)
+    count = Column(Integer)
+    paper_ids = Column(ARRAY(BIGINT))
+
+
+class PaperYear(Base):
+    """Paper IDs and paper ID count for every publication year. Used in front-end."""
+
+    __tablename__ = "viz_paper_year"
+
+    year = Column(TEXT, primary_key=True, autoincrement=False)
+    count = Column(Integer)
+    paper_ids = Column(ARRAY(BIGINT))
+
+
 if __name__ == "__main__":
     import logging
     import psycopg2
@@ -326,6 +391,8 @@ if __name__ == "__main__":
             logging.error(e)
             raise
 
-    db_config = misctools.get_config("orion_config.config", "postgresdb")["orion"]
+    db_config = misctools.get_config("orion_config.config", "postgresdb")[
+        "climate_emergency"
+    ]
     engine = create_engine(db_config)
     Base.metadata.create_all(engine)
