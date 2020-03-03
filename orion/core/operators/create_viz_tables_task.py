@@ -36,9 +36,10 @@ class CreateVizTables(BaseOperator):
     """Creates tables used in visualisation."""
 
     @apply_defaults
-    def __init__(self, db_config, *args, **kwargs):
+    def __init__(self, db_config, thresh_year="2012", *args, **kwargs):
         super().__init__(**kwargs)
         self.db_config = db_config
+        self.thresh_year = thresh_year
 
     def execute(self, context):
         # Connect to postgresql db
@@ -177,7 +178,7 @@ class CreateVizTables(BaseOperator):
 
         # Store results in a new table
         for r in res:
-            if r.country is not None:
+            if r.country is not None and r.country is not "":
                 s.add(
                     PaperCountry(
                         country=r.country, count=r.count, paper_ids=r.paper_ids
@@ -197,6 +198,13 @@ class CreateVizTables(BaseOperator):
                 PaperTopics(
                     field_of_study_id=int(row["field_of_study_id"]),
                     name=row["name"],
+                    count=len(
+                        set(
+                            paper_fos[
+                                paper_fos.field_of_study_id.isin(row["all_children"])
+                            ]["paper_id"]
+                        )
+                    ),
                     paper_ids=set(
                         paper_fos[
                             paper_fos.field_of_study_id.isin(row["all_children"])
@@ -215,6 +223,7 @@ class CreateVizTables(BaseOperator):
         ).group_by(Paper.year)
 
         for r in res:
-            s.add(PaperYear(year=r.year, count=r.count, paper_ids=r.paper_ids))
-            s.commit()
+            if r.year > self.thresh_year:
+                s.add(PaperYear(year=r.year, count=r.count, paper_ids=r.paper_ids))
+                s.commit()
         logging.info("Stored PaperYear table!")
