@@ -97,7 +97,6 @@ class FilteredTopicsMetadataOperator(BaseOperator):
         logging.info(f"Got children of {len(d)} topics.")
 
         for fos_ids in d.values():
-            logging.info(fos_ids[:10])
             logging.info(f"fos id: {fos_ids[0]}")
             g = (
                 papers[papers.field_of_study_id.isin(fos_ids)]
