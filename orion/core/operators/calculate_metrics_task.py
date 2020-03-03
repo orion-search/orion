@@ -10,7 +10,6 @@ from airflow.utils.decorators import apply_defaults
 from orion.packages.metrics.metrics import calculate_rca_by_sum
 from orion.core.orms.mag_orm import (
     Paper,
-    # PaperAuthor,
     AuthorAffiliation,
     AffiliationLocation,
     PaperFieldsOfStudy,
@@ -40,19 +39,18 @@ class RCAOperator(BaseOperator):
     def execute(self, context):
         # Connect to postgresql db
         engine = create_engine(self.db_config)
-        # Drop and recreate the tables to update the metrics
-        MetricCountryRCA.__table__.drop(engine, checkfirst=True)
-        MetricCountryRCA.__table__.create(engine, checkfirst=True)
-        MetricAffiliationRCA.__table__.drop(engine, checkfirst=True)
-        MetricAffiliationRCA.__table__.create(engine, checkfirst=True)
         Session = sessionmaker(engine)
         s = Session()
+
+        # Delete table content to update the metrics
+        s.query(MetricCountryRCA).delete()
+        s.query(MetricAffiliationRCA).delete()
+        s.commit()
 
         # Load all the tables needed for the metrics
         papers = pd.read_sql(s.query(Paper).statement, s.bind)
         aff_location = pd.read_sql(s.query(AffiliationLocation).statement, s.bind)
         author_aff = pd.read_sql(s.query(AuthorAffiliation).statement, s.bind)
-        # paper_author = pd.read_sql(s.query(PaperAuthor).statement, s.bind)
         paper_fos = pd.read_sql(s.query(PaperFieldsOfStudy).statement, s.bind)
         topics = [id_[0] for id_ in s.query(FilteredFos.field_of_study_id)]
 
@@ -100,7 +98,7 @@ class RCAOperator(BaseOperator):
             f"RCA thresholds - Paper count: {self.paper_thresh}, Year: {self.year_thresh}"
         )
         rca_country_level_sum = dict2psql_format(d)
-        logging.info(f"Number of rows: {rca_country_level_sum}")
+        logging.info(f"Number of rows: {len(rca_country_level_sum)}")
 
         s.bulk_insert_mappings(MetricCountryRCA, rca_country_level_sum)
 
@@ -139,17 +137,17 @@ class ResearchDiversityOperator(BaseOperator):
     def execute(self, context):
         # Connect to postgresql db
         engine = create_engine(self.db_config)
-        # Drop and recreate the tables to update the metrics
-        ResearchDiversityCountry.__table__.drop(engine, checkfirst=True)
-        ResearchDiversityCountry.__table__.create(engine, checkfirst=True)
         Session = sessionmaker(engine)
         s = Session()
+
+        # Delete table content to update the metrics
+        s.query(ResearchDiversityCountry).delete()
+        s.commit()
 
         # Load all the tables needed for the metrics
         papers = pd.read_sql(s.query(Paper).statement, s.bind)
         aff_location = pd.read_sql(s.query(AffiliationLocation).statement, s.bind)
         author_aff = pd.read_sql(s.query(AuthorAffiliation).statement, s.bind)
-        # paper_author = pd.read_sql(s.query(PaperAuthor).statement, s.bind)
         paper_fos = pd.read_sql(s.query(PaperFieldsOfStudy).statement, s.bind)
         filtered_fos = pd.read_sql(s.query(FilteredFos).statement, s.bind)
 
@@ -249,11 +247,12 @@ class GenderDiversityOperator(BaseOperator):
     def execute(self, context):
         # Connect to postgresql db
         engine = create_engine(self.db_config, pool_pre_ping=True)
-        # Drop and recreate the tables to update the metrics
-        GenderDiversityCountry.__table__.drop(engine, checkfirst=True)
-        GenderDiversityCountry.__table__.create(engine, checkfirst=True)
         Session = sessionmaker(engine)
         s = Session()
+
+        # Delete table content to update the metrics
+        s.query(GenderDiversityCountry).delete()
+        s.commit()
 
         # Load all the tables needed for the metrics
         papers = pd.read_sql(s.query(Paper).statement, s.bind)

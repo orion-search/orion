@@ -1,9 +1,12 @@
 """
-Creates tables used in the front-end.
+Creates the following tables that are used in the front-end:
 - CountryTopicOutput: Shows a country's total citations and paper volume by year and topic.
-- 
+- AllMetrics: Combines all the metrics (gender diversity, research diversity, RCA) we've derived by year and topic.
+- PaperCountry: Shows the paper IDs of a country. Used in the particle visualisation. 
+- PaperTopics:  Shows the paper IDs of a topic. Used in the particle visualisation.
+- PaperYear:  Shows the paper IDs of a year. Used in the particle visualisation.
 
-Note: All topics are derived from the FilteredFos table.
+Note: Topics are fetched from the FilteredFos table.
 """
 import logging
 import pandas as pd
@@ -26,7 +29,7 @@ from orion.core.orms.mag_orm import (
     PaperCountry,
     PaperTopics,
     PaperYear,
-    CountryTopicOutput
+    CountryTopicOutput,
 )
 
 
@@ -61,6 +64,7 @@ class CreateVizTables(BaseOperator):
         aff_location = pd.read_sql(s.query(AffiliationLocation).statement, s.bind)
         author_aff = pd.read_sql(s.query(AuthorAffiliation).statement, s.bind)
         filtered_fos = pd.read_sql(s.query(FilteredFos).statement, s.bind)
+        fos = pd.read_sql(s.query(FieldOfStudy).statement, s.bind)
 
         # CountryTopicOutput table
         df = (
@@ -85,7 +89,7 @@ class CreateVizTables(BaseOperator):
             .drop_duplicates("field_of_study_id")
             .iterrows()
         ):
-            logging.info(f"fos id: {row['field_of_study_id']}")
+            # logging.info(f"fos id: {row['field_of_study_id']}")
             g = (
                 df[df.field_of_study_id.isin(row["all_children"])]
                 .drop_duplicates("paper_id")
@@ -105,7 +109,7 @@ class CreateVizTables(BaseOperator):
                     )
                 )
                 s.commit()
-        logging.info('Stored CountryTopicOutput table!')
+        logging.info("Stored CountryTopicOutput table!")
 
         # AllMetrics table
         res = (
@@ -153,7 +157,7 @@ class CreateVizTables(BaseOperator):
                 )
             )
             s.commit()
-        logging.info('Stored AllMetrics table!')
+        logging.info("Stored AllMetrics table!")
 
         # PaperCountry table
         res = (
@@ -174,15 +178,22 @@ class CreateVizTables(BaseOperator):
 
         # Store results in a new table
         for r in res:
-            s.add(PaperCountry(country=r.country, count=r.count, paper_ids=r.paper_ids))
-            s.commit()
-        logging.info('Stored PaperCountry table!')
+            if r.country is not None:
+                s.add(
+                    PaperCountry(
+                        country=r.country, count=r.count, paper_ids=r.paper_ids
+                    )
+                )
+                s.commit()
+        logging.info("Stored PaperCountry table!")
 
         # PaperTopics table
-        for _, row in filtered_fos.merge(
-            fos, left_on="field_of_study_id", right_on="id"
-        ).drop_duplicates("field_of_study_id"):
-            logging.info(f"fos id: {row['field_of_study_id']}")
+        for _, row in (
+            filtered_fos.merge(fos, left_on="field_of_study_id", right_on="id")
+            .drop_duplicates("field_of_study_id")
+            .iterrows()
+        ):
+            # logging.info(f"fos id: {row['field_of_study_id']}")
             s.add(
                 PaperTopics(
                     field_of_study_id=int(row["field_of_study_id"]),
@@ -195,8 +206,8 @@ class CreateVizTables(BaseOperator):
                 )
             )
             s.commit()
-        logging.info('Stored PaperTopics table!')
-        
+        logging.info("Stored PaperTopics table!")
+
         # PaperYear table
         res = s.query(
             Paper.year,
@@ -207,4 +218,4 @@ class CreateVizTables(BaseOperator):
         for r in res:
             s.add(PaperYear(year=r.year, count=r.count, paper_ids=r.paper_ids))
             s.commit()
-        logging.info('Stored PaperYear table!')
+        logging.info("Stored PaperYear table!")
