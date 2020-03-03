@@ -29,6 +29,7 @@ from orion.core.operators.topic_filtering_task import (
     FilteredTopicsMetadataOperator,
 )
 from orion.core.operators.faiss_index_task import FaissIndexOperator
+from orion.core.operators.create_viz_tables_task import CreateVizTables
 
 default_args = {
     "owner": "Kostas St",
@@ -216,16 +217,19 @@ with DAG(
         task_id="faiss_index", bucket=text_vectors_bucket, prefix=text_vectors_prefix
     )
 
+    viz_tables = CreateVizTables(task_id="viz_tables", db_config=DB_CONFIG)
+
     dummy_task >> query_mag >> parse_mag
     parse_mag >> geocode_places >> rca
     parse_mag >> geocode_places >> country_collaboration_graph
-    parse_mag >> collect_fos >> fos_frequency >> topic_filtering >> filtered_topic_metadata
-    filtered_topic_metadata >> rca
+    parse_mag >> collect_fos >> fos_frequency >> topic_filtering >> filtered_topic_metadata >> viz_tables
+    filtered_topic_metadata >> rca >> viz_tables
     filtered_topic_metadata >> research_diversity
     filtered_topic_metadata >> gender_diversity
-    geocode_places >> research_diversity
-    geocode_places >> gender_diversity
+    geocode_places >> research_diversity >> viz_tables
+    geocode_places >> gender_diversity >> viz_tables
     geocode_places >> country_similarity
+    geocode_places >> viz_tables
     text2vector >> country_similarity
     filtered_topic_metadata >> country_similarity
     parse_mag >> batch_names >> batch_task_gender >> dummy_task_2 >> gender_diversity
