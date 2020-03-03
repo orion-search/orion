@@ -14,7 +14,6 @@ from sqlalchemy import create_engine, func, distinct
 from sqlalchemy.orm import sessionmaker
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
-import numpy as np
 from orion.core.orms.mag_orm import (
     FilteredFos,
     Paper,
