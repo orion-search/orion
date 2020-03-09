@@ -3,7 +3,6 @@ Split the affiliations to industry and non-industry by using a seed list of toke
 The seed list can be found in `model_config.yaml`
 """
 import logging
-import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from airflow.models import BaseOperator
