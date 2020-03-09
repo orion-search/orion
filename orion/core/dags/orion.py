@@ -30,6 +30,7 @@ from orion.core.operators.topic_filtering_task import (
 )
 from orion.core.operators.faiss_index_task import FaissIndexOperator
 from orion.core.operators.create_viz_tables_task import CreateVizTables
+from orion.core.operators.affiliation_type_task import AffiliationTypeOperator
 
 default_args = {
     "owner": "Kostas St",
@@ -219,6 +220,8 @@ with DAG(
 
     viz_tables = CreateVizTables(task_id="viz_tables", db_config=DB_CONFIG)
 
+    aff_types = AffiliationTypeOperator(task_id="affiliation_type", db_config=DB_CONFIG)
+
     dummy_task >> query_mag >> parse_mag
     parse_mag >> geocode_places >> rca
     parse_mag >> geocode_places >> country_collaboration_graph
@@ -235,3 +238,4 @@ with DAG(
     parse_mag >> batch_names >> batch_task_gender >> dummy_task_2 >> gender_diversity
     parse_mag >> text2vector >> dim_reduction
     text2vector >> faiss_index
+    parse_mag >> aff_types

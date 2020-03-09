@@ -368,6 +368,17 @@ class PaperYear(Base):
     paper_ids = Column(ARRAY(BIGINT))
 
 
+class AffiliationType(Base):
+    """Type (1: non-industry, 0: industry) of an affiliation."""
+
+    __tablename__ = "affiliation_type"
+
+    id = Column(
+        BIGINT, ForeignKey("mag_affiliation.id"), primary_key=True, autoincrement=False
+    )
+    type = Column(Integer)
+
+
 if __name__ == "__main__":
     import logging
     import psycopg2
