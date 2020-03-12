@@ -17,3 +17,4 @@ tensorflow_hub==0.7.0
 faiss-cpu==1.6.1
 sentencepiece==0.1.85
 tensorflow==2.1.0
+pandas-datareader==0.8.1

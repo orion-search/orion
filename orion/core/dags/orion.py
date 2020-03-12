@@ -31,6 +31,7 @@ from orion.core.operators.topic_filtering_task import (
 from orion.core.operators.faiss_index_task import FaissIndexOperator
 from orion.core.operators.create_viz_tables_task import CreateVizTables
 from orion.core.operators.affiliation_type_task import AffiliationTypeOperator
+from orion.core.operators.collect_wb_indicators_task import WBIndicatorOperator
 
 default_args = {
     "owner": "Kostas St",
@@ -92,6 +93,27 @@ paper_thresh_high = orion.config["metrics"]["paper_count_high"]
 year_thresh = orion.config["metrics"]["year"]
 fos_thresh = orion.config["metrics"]["fos_count"]
 
+# wb indicators
+wb_indicators = [
+    "NY.GDP.MKTP.CD",
+    "GB.XPD.RSDV.GD.ZS",
+    "SE.XPD.TOTL.GD.ZS",
+    "SL.TLF.CACT.FM.ZS",
+]
+wb_table_names = [
+    "wb_gdp",
+    "wb_rnd_expenditure",
+    "wb_edu_expenditure",
+    "wb_female_workforce",
+]
+
+# wb_gdp = "NY.GDP.MKTP.CD"
+# wb_rnd_expenditure = "GB.XPD.RSDV.GD.ZS"
+# wb_edu_expenditure = "SE.XPD.TOTL.GD.ZS"
+# wb_female_workforce = "SL.TLF.CACT.FM.ZS"
+wb_end_year = "2019"
+wb_country = "all"
+
 with DAG(
     dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(days=365)
 ) as dag:
@@ -99,6 +121,8 @@ with DAG(
     dummy_task = DummyOperator(task_id="start")
 
     dummy_task_2 = DummyOperator(task_id="gender_agg")
+
+    dummy_task_3 = DummyOperator(task_id="world_bank_indicators")
 
     query_mag = MagCollectionOperator(
         task_id="query_mag",
@@ -222,6 +246,21 @@ with DAG(
 
     aff_types = AffiliationTypeOperator(task_id="affiliation_type", db_config=DB_CONFIG)
 
+    batch_task_wb = []
+    for wb_indicator, wb_table_name in zip(wb_indicators, wb_table_names):
+        task_id = f"{wb_table_name}"
+        batch_task_wb.append(
+            WBIndicatorOperator(
+                task_id=task_id,
+                db_config=DB_CONFIG,
+                indicator=wb_indicator,
+                start_year=year_thresh,
+                end_year=wb_end_year,
+                country=wb_country,
+                table_name=wb_table_name,
+            )
+        )
+
     dummy_task >> query_mag >> parse_mag
     parse_mag >> geocode_places >> rca
     parse_mag >> geocode_places >> country_collaboration_graph
@@ -239,3 +278,4 @@ with DAG(
     parse_mag >> text2vector >> dim_reduction
     text2vector >> faiss_index
     parse_mag >> aff_types
+    dummy_task >> dummy_task_3 >> batch_task_wb
