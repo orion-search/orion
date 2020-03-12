@@ -41,7 +41,7 @@ default_args = {
 }
 
 DAG_ID = "orion"
-DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")["orion"]
+DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")["orion_prod"]
 MAG_API_KEY = misctools.get_config("orion_config.config", "mag")["mag_api_key"]
 
 # query_mag

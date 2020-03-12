@@ -5,7 +5,6 @@ Collects indicators from the World Bank. Currently, we collect indicators from t
 - http://datatopics.worldbank.org/world-development-indicators/themes/global-links.html#featured-indicators_1
 - http://datatopics.worldbank.org/world-development-indicators/themes/people.html#featured-indicators_1
 """
-import logging
 from pandas_datareader import wb
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker

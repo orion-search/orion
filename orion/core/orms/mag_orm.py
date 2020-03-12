@@ -446,6 +446,6 @@ if __name__ == "__main__":
             logging.error(e)
             raise
 
-    db_config = misctools.get_config("orion_config.config", "postgresdb")["orion"]
+    db_config = misctools.get_config("orion_config.config", "postgresdb")["orion_prod"]
     engine = create_engine(db_config)
     Base.metadata.create_all(engine)
