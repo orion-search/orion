@@ -379,6 +379,50 @@ class AffiliationType(Base):
     type = Column(Integer)
 
 
+class WorldBankGDP(Base):
+    """World Bank GDP indicator."""
+
+    __tablename__ = "wb_gdp"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    country = Column(TEXT)
+    indicator = Column(Float)
+    year = Column(TEXT)
+
+
+class WorldBankResearchDevelopment(Base):
+    """World Bank Research and development expenditure (% of GDP) indicator."""
+
+    __tablename__ = "wb_rnd_expenditure"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    country = Column(TEXT)
+    indicator = Column(Float)
+    year = Column(TEXT)
+
+
+class WorldBankGovEducation(Base):
+    """World Bank Government expenditure on education, total (% of GDP) indicator."""
+
+    __tablename__ = "wb_edu_expenditure"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    country = Column(TEXT)
+    indicator = Column(Float)
+    year = Column(TEXT)
+
+
+class WorldBankFemaleLaborForce(Base):
+    """World Bank Ratio of female to male labor force participation rate (%) indicator."""
+
+    __tablename__ = "wb_female_workforce"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    country = Column(TEXT)
+    indicator = Column(Float)
+    year = Column(TEXT)
+
+
 if __name__ == "__main__":
     import logging
     import psycopg2
@@ -402,6 +446,6 @@ if __name__ == "__main__":
             logging.error(e)
             raise
 
-    db_config = misctools.get_config("orion_config.config", "postgresdb")["orion_prod"]
+    db_config = misctools.get_config("orion_config.config", "postgresdb")["orion"]
     engine = create_engine(db_config)
     Base.metadata.create_all(engine)
