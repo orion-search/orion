@@ -32,6 +32,10 @@ from orion.core.operators.faiss_index_task import FaissIndexOperator
 from orion.core.operators.create_viz_tables_task import CreateVizTables
 from orion.core.operators.affiliation_type_task import AffiliationTypeOperator
 from orion.core.operators.collect_wb_indicators_task import WBIndicatorOperator
+from orion.core.operators.country_details_task import (
+    HomogeniseCountryNamesOperator,
+    CountryDetailsOperator,
+)
 
 default_args = {
     "owner": "Kostas St",
@@ -106,11 +110,6 @@ wb_table_names = [
     "wb_edu_expenditure",
     "wb_female_workforce",
 ]
-
-# wb_gdp = "NY.GDP.MKTP.CD"
-# wb_rnd_expenditure = "GB.XPD.RSDV.GD.ZS"
-# wb_edu_expenditure = "SE.XPD.TOTL.GD.ZS"
-# wb_female_workforce = "SL.TLF.CACT.FM.ZS"
 wb_end_year = "2019"
 wb_country = "all"
 
@@ -261,6 +260,14 @@ with DAG(
             )
         )
 
+    country_association = HomogeniseCountryNamesOperator(
+        task_id="homogenise_countries", db_config=DB_CONFIG
+    )
+
+    country_details = CountryDetailsOperator(
+        task_id="country_details", db_config=DB_CONFIG
+    )
+
     dummy_task >> query_mag >> parse_mag
     parse_mag >> geocode_places >> rca
     parse_mag >> geocode_places >> country_collaboration_graph
@@ -278,4 +285,5 @@ with DAG(
     parse_mag >> text2vector >> dim_reduction
     text2vector >> faiss_index
     parse_mag >> aff_types
-    dummy_task >> dummy_task_3 >> batch_task_wb
+    dummy_task >> dummy_task_3 >> batch_task_wb >> country_association
+    geocode_places >> country_association >> country_details

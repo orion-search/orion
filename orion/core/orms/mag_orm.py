@@ -423,6 +423,33 @@ class WorldBankFemaleLaborForce(Base):
     year = Column(TEXT)
 
 
+class CountryAssociation(Base):
+    """Associates a country name from the World Bank with Google Places."""
+
+    __tablename__ = "country_association"
+
+    wb_country = Column(TEXT, primary_key=True, autoincrement=False)
+    google_country = Column(TEXT, primary_key=True, autoincrement=False)
+
+
+class CountryDetails(Base):
+    """Country details."""
+
+    __tablename__ = "country_details"
+
+    alpha2Code = Column(TEXT, primary_key=True, autoincrement=False)
+    alpha3Code = Column(TEXT, primary_key=True, autoincrement=False)
+    name = Column(TEXT)
+    google_name = Column(TEXT, primary_key=True)
+    wb_name = Column(TEXT, primary_key=True)
+    # google_name = Column(TEXT, ForeignKey('country_association.country'))
+    # wb_name = Column(TEXT, ForeignKey('country_association.country'))
+    region = Column(TEXT)
+    subregion = Column(TEXT)
+    population = Column(BIGINT)
+    capital = Column(TEXT)
+
+
 if __name__ == "__main__":
     import logging
     import psycopg2
