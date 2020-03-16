@@ -5,7 +5,7 @@ Knowledge and meta-knowledge are fragmented across databases, making it difficul
 
 Learn more about Orion by reading the following non-technical blogs:
 * [Orion: An open-source tool for the science of science](https://medium.com/@kstathou/orion-an-open-source-tool-for-the-science-of-science-4259935f91d4)
-* [A walkthrough of Orion's backend, data and design decisions]()
+* [A walkthrough of Orion's backend, data and design decisions](https://medium.com/@kstathou/a-walkthrough-of-orions-backend-data-and-design-decisions-f60c01b507aa)
 
 Orion is an open-source tool. If you want to use our work or parts of it, be a good citizen of the Internet and drop us an acknowledgement. We would also love to know what you are developing so get in touch! 
 
