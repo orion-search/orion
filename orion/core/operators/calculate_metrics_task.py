@@ -1,5 +1,25 @@
 """
-Calculate all the metrics (RCA, research diversity, gender diversity).
+Calculates all metrics used in Orion.
+
+RCAOperator: Measures the country-level and affiliation-level research topic
+specialisation on an annual basis. It uses the Revealed Comparative Advantage (RCA)
+to measure the level of specialisation. This is currently done by summing the number of 
+citations of a country (or affiliation) on a particular topic. An entity with an RCA > 1 
+is more specialised on topic X than the rest of the entities. Before measuring RCA, 
+RCAOperator filters publications by year and countries by their number of papers.
+
+ResearchDiversityOperator: Measures the country-level research diversity for each topic
+on an annual basis. For each topic, it recursively collects its children topics and 
+aggregates them on country level. Then, it uses diversity indexes 
+(Shannon-Wiener and Simpson) to measure the diversity within the topic. Users can 
+filter countries by the number of topics (Fields of Study) they have used and by papers
+by their publication year.
+
+GenderDiversityOperator: Measures the country-level gender diversity for each topic
+on an annual basis. For each topic, it recursively collects its children topics and 
+aggregates them on country level. Users can filter countries by their number of
+publications and author names by the accuracy of the name-gender-inference service.
+
 """
 import logging
 import pandas as pd

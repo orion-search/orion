@@ -1,6 +1,12 @@
 """
-Draw a collaboration graph between countries and between institutions. 
-Find the similarity between countries based on the abstracts.
+CountryCollaborationOperator: Draws a collaboration graph between countries based on
+the author affiliations. Papers are filtered by their publication year.
+
+CountrySimilarityOperator: Finds the similarity between countries based on their abstracts.
+It averages the abstract vectors of a country to create a country vector.
+Uses the text vectors that were calculated from the text2vector task. It filters papers 
+by publication year and users can choose the number of similar countries to return.
+
 """
 import logging
 import pandas as pd

@@ -1,3 +1,7 @@
+"""
+DimReductionOperator: Transforms high dimensional arrays to 2D and 3D using UMAP.
+
+"""
 import logging
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
