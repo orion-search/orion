@@ -43,8 +43,8 @@ class Text2VectorOperator(BaseOperator):
             )
         )
         logging.info(f"Number of documents to be vectorised: {papers.count()}")
-        # papers = papers[:10]
-        # logging.info(f"Number of documents to be vectorised: {len(papers)}")
+
+        # Convert text to vectors
         tv = Text2Vector()
         vectors = []
         for i, (inverted_abstract, id_, doi) in enumerate(papers):
@@ -78,7 +78,7 @@ class Text2TfidfOperator(BaseOperator):
         # Get the paper abstracts.
         papers = s.query(Paper.inverted_abstract, Paper.id, Paper.doi).filter(
             and_(
-                # ~exists().where(Paper.id == DocVector.id),
+                ~exists().where(Paper.id == DocVector.id),
                 Paper.doi.isnot(None),
                 Paper.inverted_abstract != "NaN",
             )
