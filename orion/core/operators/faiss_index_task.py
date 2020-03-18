@@ -8,7 +8,7 @@ from airflow.utils.decorators import apply_defaults
 from orion.packages.utils.s3_utils import store_on_s3, load_from_s3
 import faiss
 from orion.packages.projection.faiss_index import faiss_index
-import boto3
+
 
 class FaissIndexOperator(BaseOperator):
     @apply_defaults
