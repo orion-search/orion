@@ -78,7 +78,7 @@ class Text2TfidfOperator(BaseOperator):
         # Get the paper abstracts.
         papers = s.query(Paper.inverted_abstract, Paper.id, Paper.doi).filter(
             and_(
-                ~exists().where(Paper.id == DocVector.id),
+                # ~exists().where(Paper.id == DocVector.id),
                 Paper.doi.isnot(None),
                 Paper.inverted_abstract != "NaN",
             )
@@ -106,6 +106,7 @@ class Text2TfidfOperator(BaseOperator):
 
         store_on_s3(vectors, self.bucket, self.prefix)
         store_on_s3(vectorizer, self.bucket, "tfidf_model")
+        store_on_s3(svd, self.bucket, "svd_model")
         logging.info("Stored to S3!")
 
 
