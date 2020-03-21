@@ -31,15 +31,17 @@ $ pip install -e .
 ```
 
 3. Setup Airflow. 
-   a. Export path to Airflow HOME: `export AIRFLOW_HOME=/Users/USERNAME/Desktop/orion/orion/core`. For convenience, add this in the `~/.bash_profile`.
-   b. Create a database named `airflow` to store Airflow's metadata: `create database airflow;`
-   c. Run `airflow version` or `airflow initdb`. This might return an error but will generate some needed files in `orion/core` such as `airflow.cfg` and `unittests.cfg`.
-   d. In both `airflow.cfg` and `unittests.cfg`, change the following:
+   - Export path to Airflow HOME: `export AIRFLOW_HOME=/Users/USERNAME/Desktop/orion/orion/core`. For convenience, add this in the `~/.bash_profile`.
+   - Create a database named `airflow` to store Airflow's metadata: `create database airflow;`
+   - Run `airflow version` or `airflow initdb`. This might return an error but will generate some needed files in `orion/core` such as `airflow.cfg` and `unittests.cfg`.
+   - In both `airflow.cfg` and `unittests.cfg`, change the following:
+   
    ```
    sql_alchemy_conn = postgres+psycopg2://USER:PASSWORD@localhost:5432/airflow
    executor = LocalExecutor
    ```
-   e. Delete the `airflow.db` file `$ rm orion/core/airflow.db`
+   
+   - Delete the `airflow.db` file `$ rm orion/core/airflow.db`
 4. `$ mkdir orion/core/config/` to create a directory for the `orion_config.config` configuration file which must have the following format:
 ```
 [postgresdb]
