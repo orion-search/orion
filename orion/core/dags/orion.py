@@ -52,7 +52,6 @@ DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")[db_name]
 MAG_API_KEY = misctools.get_config("orion_config.config", "mag")["mag_api_key"]
 
 # query_mag
-# MAG_OUTPUT_BUCKET = "mag-data-dump"
 MAG_OUTPUT_BUCKET = orion.config["s3_buckets"]["mag"]
 mag_config = orion.config["data"]["mag"]
 query_values = mag_config["query_values"]
@@ -67,9 +66,6 @@ google_key = misctools.get_config("orion_config.config", "google")["google_key"]
 collab_year = mag_config = orion.config["country_collaboration"]["year"]
 
 # batch_names
-# BATCH_SIZE = 80000
-# S3_BUCKET = "names-batches"
-# PREFIX = "batched_names"
 BATCH_SIZE = orion.config["batch_size"]
 S3_BUCKET = orion.config["s3_buckets"]["gender"]
 PREFIX = orion.config["prefix"]["gender"]
@@ -79,8 +75,6 @@ parallel_tasks = orion.config["parallel_tasks"]
 auth_token = misctools.get_config("orion_config.config", "genderapi")["auth"]
 
 # text2vector
-# text_vectors_prefix = "doc_vectors"
-# text_vectors_bucket = "document-vectors"
 text_vectors_prefix = orion.config["prefix"]["text_vectors"]
 text_vectors_bucket = orion.config["s3_buckets"]["text_vectors"]
 
@@ -93,8 +87,6 @@ metric = umap_config["metric"]
 min_dist = umap_config["min_dist"]
 
 # topic_filtering
-# topic_bucket = "mag-topics"
-# topic_prefix = "filtered_topics"
 topic_prefix = orion.config["prefix"]["topic"]
 topic_bucket = orion.config["s3_buckets"]["topic"]
 topic_config = orion.config["topic_filter"]
@@ -109,21 +101,6 @@ year_thresh = orion.config["metrics"]["year"]
 fos_thresh = orion.config["metrics"]["fos_count"]
 
 # wb indicators
-# wb_indicators = [
-#     "NY.GDP.MKTP.CD",
-#     "GB.XPD.RSDV.GD.ZS",
-#     "SE.XPD.TOTL.GD.ZS",
-#     "SL.TLF.CACT.FM.ZS",
-# ]
-# wb_table_names = [
-#     "wb_gdp",
-#     "wb_rnd_expenditure",
-#     "wb_edu_expenditure",
-#     "wb_female_workforce",
-# ]
-# wb_end_year = "2019"
-# wb_country = "all"
-
 wb_country = orion.config["data"]["wb"]["country"]
 wb_end_year = orion.config["data"]["wb"]["end_year"]
 wb_indicators = orion.config["data"]["wb"]["indicators"]
