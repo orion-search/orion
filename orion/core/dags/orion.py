@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.python_operator import PythonOperator
 from orion.core.airflow_utils import misctools
 from orion.core.operators.mag_parse_task import MagParserOperator, FosFrequencyOperator
 from orion.core.operators.draw_collaboration_graph_task import (
@@ -36,6 +37,7 @@ from orion.core.operators.country_details_task import (
     HomogeniseCountryNamesOperator,
     CountryDetailsOperator,
 )
+from orion.packages.mag.create_tables import create_db_and_tables
 
 default_args = {
     "owner": "Kostas St",
@@ -45,11 +47,13 @@ default_args = {
 }
 
 DAG_ID = "orion"
-DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")["orion_prod"]
+db_name = "orion_prod"
+DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")[db_name]
 MAG_API_KEY = misctools.get_config("orion_config.config", "mag")["mag_api_key"]
 
 # query_mag
-MAG_OUTPUT_BUCKET = "mag-data-dump"
+# MAG_OUTPUT_BUCKET = "mag-data-dump"
+MAG_OUTPUT_BUCKET = orion.config["s3_buckets"]["mag"]
 mag_config = orion.config["data"]["mag"]
 query_values = mag_config["query_values"]
 entity_name = mag_config["entity_name"]
@@ -63,17 +67,22 @@ google_key = misctools.get_config("orion_config.config", "google")["google_key"]
 collab_year = mag_config = orion.config["country_collaboration"]["year"]
 
 # batch_names
-BATCH_SIZE = 80000
-S3_BUCKET = "names-batches"
-PREFIX = "batched_names"
+# BATCH_SIZE = 80000
+# S3_BUCKET = "names-batches"
+# PREFIX = "batched_names"
+BATCH_SIZE = orion.config["batch_size"]
+S3_BUCKET = orion.config["s3_buckets"]["gender"]
+PREFIX = orion.config["prefix"]["gender"]
 
 # gender_inference_N
-parallel_tasks = 4
+parallel_tasks = orion.config["parallel_tasks"]
 auth_token = misctools.get_config("orion_config.config", "genderapi")["auth"]
 
 # text2vector
-text_vectors_prefix = "doc_vectors"
-text_vectors_bucket = "document-vectors"
+# text_vectors_prefix = "doc_vectors"
+# text_vectors_bucket = "document-vectors"
+text_vectors_prefix = orion.config["prefix"]["text_vectors"]
+text_vectors_bucket = orion.config["s3_buckets"]["text_vectors"]
 
 # dim_reduction
 umap_config = orion.config["umap"]
@@ -84,8 +93,10 @@ metric = umap_config["metric"]
 min_dist = umap_config["min_dist"]
 
 # topic_filtering
-topic_bucket = "mag-topics"
-topic_prefix = "filtered_topics"
+# topic_bucket = "mag-topics"
+# topic_prefix = "filtered_topics"
+topic_prefix = orion.config["prefix"]["topic"]
+topic_bucket = orion.config["s3_buckets"]["topic"]
 topic_config = orion.config["topic_filter"]
 levels = topic_config["levels"]
 percentiles = topic_config["percentiles"]
@@ -98,20 +109,25 @@ year_thresh = orion.config["metrics"]["year"]
 fos_thresh = orion.config["metrics"]["fos_count"]
 
 # wb indicators
-wb_indicators = [
-    "NY.GDP.MKTP.CD",
-    "GB.XPD.RSDV.GD.ZS",
-    "SE.XPD.TOTL.GD.ZS",
-    "SL.TLF.CACT.FM.ZS",
-]
-wb_table_names = [
-    "wb_gdp",
-    "wb_rnd_expenditure",
-    "wb_edu_expenditure",
-    "wb_female_workforce",
-]
-wb_end_year = "2019"
-wb_country = "all"
+# wb_indicators = [
+#     "NY.GDP.MKTP.CD",
+#     "GB.XPD.RSDV.GD.ZS",
+#     "SE.XPD.TOTL.GD.ZS",
+#     "SL.TLF.CACT.FM.ZS",
+# ]
+# wb_table_names = [
+#     "wb_gdp",
+#     "wb_rnd_expenditure",
+#     "wb_edu_expenditure",
+#     "wb_female_workforce",
+# ]
+# wb_end_year = "2019"
+# wb_country = "all"
+
+wb_country = orion.config["data"]["wb"]["country"]
+wb_end_year = orion.config["data"]["wb"]["end_year"]
+wb_indicators = orion.config["data"]["wb"]["indicators"]
+wb_table_names = orion.config["data"]["wb"]["table_names"]
 
 with DAG(
     dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(days=365)
@@ -122,6 +138,12 @@ with DAG(
     dummy_task_2 = DummyOperator(task_id="gender_agg")
 
     dummy_task_3 = DummyOperator(task_id="world_bank_indicators")
+
+    create_tables = PythonOperator(
+        task_id="create_tables",
+        python_callable=create_db_and_tables,
+        op_kwargs={"db": db_name},
+    )
 
     query_mag = MagCollectionOperator(
         task_id="query_mag",
@@ -268,7 +290,7 @@ with DAG(
         task_id="country_details", db_config=DB_CONFIG
     )
 
-    dummy_task >> query_mag >> parse_mag
+    dummy_task >> create_tables >> query_mag >> parse_mag
     parse_mag >> geocode_places >> rca
     parse_mag >> geocode_places >> country_collaboration_graph
     parse_mag >> collect_fos >> fos_frequency >> topic_filtering >> filtered_topic_metadata >> viz_tables
@@ -285,5 +307,5 @@ with DAG(
     parse_mag >> text2vector >> dim_reduction
     text2vector >> faiss_index
     parse_mag >> aff_types
-    dummy_task >> dummy_task_3 >> batch_task_wb >> country_association
+    dummy_task >> create_tables >> dummy_task_3 >> batch_task_wb >> country_association
     geocode_places >> country_association >> country_details
