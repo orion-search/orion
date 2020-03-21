@@ -18,3 +18,58 @@ We are currently collecting data from the following sources:
 * [restcountries API](https://restcountries.eu/): Fetches information about countries.
 
 Find out how these data sources are linked [here](/schema).
+
+## Installation ##
+1. Clone the repo
+`$ git clone https://github.com/orion-search/orion`
+
+2. `cd` in the repo and install the requirements and the orion package.
+
+``` bash
+$ pip install -r requirements
+$ pip install -e .
+```
+
+3. Setup Airflow. 
+   a. Export path to Airflow HOME: `export AIRFLOW_HOME=/Users/USERNAME/Desktop/orion/orion/core`. For convenience, add this in the `~/.bash_profile`.
+   b. Create a database named `airflow` to store Airflow's metadata: `create database airflow;`
+   c. Run `airflow version` or `airflow initdb`. This might return an error but will generate some needed files in `orion/core` such as `airflow.cfg` and `unittests.cfg`.
+   d. In both `airflow.cfg` and `unittests.cfg`, change the following:
+   ```
+   sql_alchemy_conn = postgres+psycopg2://USER:PASSWORD@localhost:5432/airflow
+   executor = LocalExecutor
+   ```
+   e. Delete the `airflow.db` file `$ rm orion/core/airflow.db`
+4. `$ mkdir orion/core/config/` to create a directory for the `orion_config.config` configuration file which must have the following format:
+```
+[postgresdb]
+orion_prod=postgres+psycopg2://USER:PASSWORD@localhost:5432/orion_prod
+orion_test=postgres+psycopg2://USER:PASSWORD@localhost:5432/postgres
+
+[mag]
+MAG_API_KEY=MY_MAG_API_KEY
+
+[google]
+GOOGLE_KEY=MY_GOOGLE_API_KEY
+
+[genderapi]
+AUTH=MY_GENDER_API_KEY
+```
+5. Create the following S3 buckets (you need an AWS account):
+   - mag-data-dump
+   - names-batches
+   - document-vectors
+   - mag-topics
+
+It is recommended to use Orion in a virtual environment, preferably Anaconda. This repo has been tested for Python 3.6 and 3.7.
+
+## How to use Orion ##
+After installing Orion, you can customise the data collection by changing the `query_values` and `entity_name` in the `model_config.yaml` file. 
+
+You also need to create accounts on Google Cloud, Microsoft Academic Graph and GenderAPI to get the required API keys. See instructions [here](/orion/packages/README.md).
+
+You can then access Airflow's UI by doing the following:
+1. Start Airflow's webserver with `$ airflow webserver`
+2. Open a new tab on your terminal and start Airflow's scheduler with `$ airflow scheduler`
+3. Go to http://localhost:8080/, toggle orion to ON and click on it. You should be able to see the DAG now.
+4. Click on **Trigger** to execute the whole DAG
