@@ -63,5 +63,3 @@ GENDER_API_KEY=MY_GENDER_API_KEY
 ```
 
 **Note**: All of the above are paid services.
-# Packages #
-Orion module.
