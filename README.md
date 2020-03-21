@@ -26,7 +26,7 @@ Find out how these data sources are linked [here](/schema).
 2. `cd` in the repo and install the requirements and the orion package.
 
 ``` bash
-$ pip install -r requirements
+$ pip install -r requirements.txt
 $ pip install -e .
 ```
 
@@ -61,7 +61,9 @@ AUTH=MY_GENDER_API_KEY
    - document-vectors
    - mag-topics
 
-It is recommended to use Orion in a virtual environment, preferably Anaconda. This repo has been tested for Python 3.6 and 3.7.
+It is recommended to use Orion in a virtual environment, preferably Anaconda. Orion's backend uses a PostgreSQL database. Download a PostgreSQL distribution if you plan to use Orion locally, otherwise, setup a PostgreSQL database on AWS RDS. 
+
+This repo has been tested for Python 3.6 and 3.7.
 
 ## How to use Orion ##
 After installing Orion, you can customise the data collection by changing the `query_values` and `entity_name` in the `model_config.yaml` file. 
