@@ -6,6 +6,11 @@ data:
         query_values: ['biorxiv']
         entity_name: 'J.JN'
         metadata: ["Id", "Ti", "AA.AfId", "AA.AfN", "AA.AuId", "AA.DAuN", "AA.S", "CC", "D", "F.DFN", "F.FId", "J.JId", "J.JN", "Pt", "RId", "Y", "DOI", "PB", "BT", "IA", "C.CN", "C.CId"]
+    wb:
+        end_year: "2019"
+        country: "all"
+        table_names: ["wb_gdp", "wb_rnd_expenditure", "wb_edu_expenditure", "wb_female_workforce"]
+        indicators: ["NY.GDP.MKTP.CD", "GB.XPD.RSDV.GD.ZS", "SE.XPD.TOTL.GD.ZS", "SL.TLF.CACT.FM.ZS"]
 
 umap:
     n_neighbors: 5
@@ -31,6 +36,20 @@ metrics:
     paper_count_low: 5
     paper_count_high: 40 
     fos_count: 10
+
+s3_buckets:
+    mag: "mag-data-dump"
+    gender: "names-batches"
+    text_vectors: "document-vectors"
+    topic: "mag-topics"
+    
+prefix:
+    gender: "batched_names"
+    text_vectors: "doc_vectors"
+    topic: "filtered_topics"
+
+batch_size: 80000
+parallel_tasks: 4
 
 country_name_mapping:
         google2wb : {'Brunei': 'Brunei Darussalam', 'Cape Verde':'Cabo Verde', 'Czechia':'Czech Republic', "Côte d'Ivoire":"Cote d'Ivoire", 'Democratic Republic of the Congo':'Congo, Dem. Rep.','Egypt':'Egypt, Arab Rep.', 'Hong Kong':'Hong Kong SAR, China', 'Iran':'Iran, Islamic Rep.', 'Laos': 'Lao PDR', 'Macao':'Macao SAR, China', 'PS':None, 'Russia':'Russian Federation', 'Réunion':None, 'Saint Kitts and Nevis':'St. Kitts and Nevis', 'Slovakia':'Slovak Republic', 'South Korea':'Korea, Rep.', 'Taiwan':None, 'Venezuela':'Venezuela, RB'}
