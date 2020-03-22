@@ -1,5 +1,11 @@
 """
 Filter topics so that they can be used in downstream tasks.
+
+FilterTopicsByDistributionOperator: Filter topics by level and frequency.
+
+FilteredTopicsMetadataOperator: Creates a table with the filtered Fields of Study, their children, 
+annual citation sum and paper count.
+
 """
 import logging
 import pandas as pd

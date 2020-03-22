@@ -1,6 +1,7 @@
 """
-MagParserOperator fetches MAG responses which were stored in S3 as pickle files, parses them and stores them in a PostgreSQL database.
-FosFrequencyOperator fetches all the Fields of Study from one table, calculates their frequency and stores them in another.
+MagParserOperator: Fetches MAG responses (pickle files on S3), parses them and stores them in a PostgreSQL database.
+FosFrequencyOperator: Fetches all the Fields of Study from one table, calculates their frequency and stores them in another.
+
 """
 import logging
 from sqlalchemy.orm.exc import NoResultFound

@@ -1,5 +1,7 @@
 """
 DimReductionOperator: Transforms high dimensional arrays to 2D and 3D using UMAP.
+Fetches vectors, DOIs and paper IDs from S3 and stores the low dimensional 
+representation in PostgreSQL.
 
 """
 import logging

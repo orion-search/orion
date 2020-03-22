@@ -1,5 +1,7 @@
 """
-Get paper titles from a PostgreSQL DB and process them to be used as queries to Microsoft Academic Graph API. Queries are stored in S3.
+ProcessTitlesOperator: Fetches paper titles from a PostgreSQL DB and process them to be used as queries to Microsoft Academic Graph API. 
+Queries are stored in S3 and are used in downstream tasks.
+
 """
 import logging
 from sqlalchemy.sql import exists

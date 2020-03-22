@@ -1,5 +1,8 @@
 """
-Read university and company names from a database, geocode them and collect additional details using Google Places API, parse the response and store it in PostgreSQL.
+GeocodingOperator: Fetches affiliation names from PostgreSQL, geocodes them and 
+collects additional details using Google Places API. It parses the response and stores
+it in PostgreSQL.
+
 """
 import logging
 from sqlalchemy import create_engine
