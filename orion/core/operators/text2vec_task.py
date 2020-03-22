@@ -43,8 +43,8 @@ class Text2VectorOperator(BaseOperator):
             )
         )
         logging.info(f"Number of documents to be vectorised: {papers.count()}")
-        # papers = papers[:10]
-        # logging.info(f"Number of documents to be vectorised: {len(papers)}")
+
+        # Convert text to vectors
         tv = Text2Vector()
         vectors = []
         for i, (inverted_abstract, id_, doi) in enumerate(papers):
@@ -106,6 +106,7 @@ class Text2TfidfOperator(BaseOperator):
 
         store_on_s3(vectors, self.bucket, self.prefix)
         store_on_s3(vectorizer, self.bucket, "tfidf_model")
+        store_on_s3(svd, self.bucket, "svd_model")
         logging.info("Stored to S3!")
 
 

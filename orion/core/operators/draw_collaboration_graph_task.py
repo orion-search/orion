@@ -136,7 +136,7 @@ class CountrySimilarityOperator(BaseOperator):
                 )
                 .merge(vectors, left_on="paper_id", right_on="id")
                 .merge(
-                    paper_fos[paper_fos["field_of_study_id"].isin(d[121864883])],
+                    paper_fos[paper_fos["field_of_study_id"].isin(children)],
                     left_on="paper_id",
                     right_on="paper_id",
                 )[

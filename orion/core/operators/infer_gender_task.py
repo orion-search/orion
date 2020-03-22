@@ -14,6 +14,7 @@ from orion.packages.utils.s3_utils import load_from_s3
 from orion.packages.gender.query_gender_api import query_gender_api, parse_response
 from orion.core.orms.mag_orm import Author, AuthorGender
 from orion.packages.utils.nlp_utils import clean_name
+from botocore.exceptions import ClientError
 
 
 class NamesBatchesOperator(BaseOperator):
@@ -67,23 +68,27 @@ class GenderInferenceOperator(BaseOperator):
         # Fetch all collected author IDs
         ids = set([id[0] for id in s.query(AuthorGender.id)])
 
-        # Load queries from S3
-        queries = load_from_s3(self.s3_bucket, self.prefix)
+        try:
+            # Load queries from S3
+            queries = load_from_s3(self.s3_bucket, self.prefix)
 
-        # Filter authors that already exist in the DB
-        # This is mainly to catch existing keys after task failures
-        queries = [tup for tup in queries if tup[0] not in ids]
-        logging.info(f"Total number of queries: {len(queries)}")
+            # Filter authors that already exist in the DB
+            # This is mainly to catch existing keys after task failures
+            queries = [tup for tup in queries if tup[0] not in ids]
+            logging.info(f"Total number of queries: {len(queries)}")
 
-        for i, (id_, name) in enumerate(queries, start=1):
-            logging.info(f"Query {name}: {i} / {len(queries)}")
-            data = query_gender_api(name, self.auth_token)
-            if data is not None:
-                data = parse_response(id_, name, data)
+            for i, (id_, name) in enumerate(queries, start=1):
+                logging.info(f"Query {name}: {i} / {len(queries)}")
+                data = query_gender_api(name, self.auth_token)
+                if data is not None:
+                    data = parse_response(id_, name, data)
 
-                # Inserting to DB
-                s.add(AuthorGender(**data))
-                s.commit()
-            else:
-                continue
-        logging.info("Done! :)")
+                    # Inserting to DB
+                    s.add(AuthorGender(**data))
+                    s.commit()
+                else:
+                    continue
+            logging.info("Done! :)")
+        except ClientError as err:
+            logging.info(err)
+            pass
