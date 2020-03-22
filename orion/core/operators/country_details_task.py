@@ -1,5 +1,11 @@
 """
-Homogenise country names from Google Places API and the World Bank.
+HomogeniseCountryNamesOperator: Homogenises country names from Google Places API 
+and the World Bank. It uses a country mapping dictionary from `model_config.yaml`.
+
+CountryDetailsOperator: Fetches additional country details from the restcountries API.
+This includes things such as population, capital, region (continent), sub-region and 
+country codes.
+
 """
 import logging
 from sqlalchemy import create_engine, distinct

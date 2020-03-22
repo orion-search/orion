@@ -1,6 +1,7 @@
 """
-Split the affiliations to industry and non-industry by using a seed list of tokens. 
-The seed list can be found in `model_config.yaml`
+AffiliationTypeOperator: Splits the affiliations to industry (= 0) and non-industry (= 1) 
+using a seed list of tokens. The seed list can be found in `model_config.yaml`.
+
 """
 import logging
 from sqlalchemy import create_engine

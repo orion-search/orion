@@ -1,7 +1,21 @@
 """
-Transform a variable length text to a fixed-length vector. We use pretrained models from
-the transformers library to create word vectors which are then averaged to produce a 
-document vector.
+Transforms a variable length text to a fixed-length vector.
+
+Text2VectorOperator: Uses a pretrained model (ALBERT) from the transformers library 
+to create word vectors which are then averaged to produce a document vector. It fetches
+inverted abstracts from PostgreSQL which decodes to text. The output vectors are 
+stored on S3.
+
+Text2TfidfOperator: Transforms text to vectors using TF-IDF and SVD. TF-IDF from scikit-learn 
+preprocesses the data and SVD reduces the dimensionality of the document vectors. It fetches
+inverted abstracts from PostgreSQL which decodes to text. The output vectors are 
+stored on S3.
+
+
+Text2USEOperator: Uses a pretrained model (Universal Sentence Encoder) from TensorHub to
+transform text to vectors. It fetches inverted abstracts from PostgreSQL which decodes to 
+text. The output vectors are stored on S3.
+
 """
 import logging
 from sqlalchemy import create_engine, and_

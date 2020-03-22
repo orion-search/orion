@@ -4,6 +4,18 @@ Collects indicators from the World Bank. Currently, we collect indicators from t
 - http://datatopics.worldbank.org/world-development-indicators/themes/states-and-markets.html#featured-indicators_1
 - http://datatopics.worldbank.org/world-development-indicators/themes/global-links.html#featured-indicators_1
 - http://datatopics.worldbank.org/world-development-indicators/themes/people.html#featured-indicators_1
+
+We use the pandas-datareader, a Python package that provides access to economic databases 
+for this as it is straightforward to collect indicators by querying their unique code.
+
+Orion currently collects the following country-level indicators:
+* GDP (current US$)
+* Research and development expenditure (% of GDP)
+* Government expenditure on education, total (% of GDP)
+* Ratio of female to male labour force participation rate (%) (modelled ILO estimate)
+
+Users can filter indicators by start and end year as well as country.
+
 """
 from pandas_datareader import wb
 from sqlalchemy import create_engine

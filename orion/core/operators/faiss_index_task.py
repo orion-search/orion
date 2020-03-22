@@ -1,5 +1,7 @@
 """
-Create a FAISS index.
+FaissIndexOperator: Creates a FAISS index. It fetches vectors, DOIs and paper IDs from S3.
+It serialises and stores the index as a pickle in S3.
+
 """
 import logging
 import numpy as np

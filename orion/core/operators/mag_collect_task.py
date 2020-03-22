@@ -1,7 +1,41 @@
 """
-MagCollectionOperator: Get expressions (ie processed paper titles) from S3 and query MAG API. The API will return matches to these titles which will be stored in a PostgreSQL DB.
+MagCollectionOperator: Queries Microsoft Academic Knowledge API and stores the responses on S3. 
+The pickle file is a list of JSONs where every JSON object is the API response corresponsing to a paper. 
+Every  pickle contains a maximum of 1,000 objects (that's the maximum number of 
+papers we can retrieve from MAG with a query).
 
-MagFosCollectionOperator: Get the IDs from the FieldOfStudy table and collect their level in the hierarchy, child and parent nodes (only if they're in the FieldOfStudy table).
+Example API response:
+{'logprob': -24.006,
+ 'prob': 3.75255e-11,
+ 'Id': 2904236373,
+ 'Ti': 'conspiracy ideation and fake science news',
+ 'Pt': '0',
+ 'Y': 2018,
+ 'D': '2018-01-18',
+ 'CC': 0,
+ 'RId': [2067319876, 2130121899],
+ 'PB': 'OSF',
+ 'BT': 'a',
+ 'AA': [{'DAuN': 'Asheley R. Landrum',
+   'AuId': 2226866834,
+   'AfId': None,
+   'S': 1},
+  {'DAuN': 'Alex Olshansky', 'AuId': 2883323127, 'AfId': None, 'S': 2}],
+ 'F': [{'DFN': 'Science communication',
+   'FN': 'science communication',
+   'FId': 472806},
+  {'DFN': 'Public relations', 'FN': 'public relations', 'FId': 39549134},
+  {'DFN': 'Public awareness of science',
+   'FN': 'public awareness of science',
+   'FId': 176049440},
+  {'DFN': 'Political science', 'FN': 'political science', 'FId': 17744445},
+  {'DFN': 'Misinformation', 'FN': 'misinformation', 'FId': 2776990098},
+  {'DFN': 'Ideation', 'FN': 'ideation', 'FId': 170477896},
+  {'DFN': 'Fake news', 'FN': 'fake news', 'FId': 2779756789}]}
+
+MagFosCollectionOperator: Fetches Fields of Study IDs from PostgreSQL and collects their level in the hierarchy, 
+child and parent nodes from Microsoft Academic Graph.
+
 """
 import logging
 from sqlalchemy import create_engine

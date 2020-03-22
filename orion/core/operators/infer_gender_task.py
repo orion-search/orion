@@ -1,7 +1,10 @@
 """
-Infer the gender of a person by using their name. I am using GenderAPI for this, which is supposed to be one of the most reliable name to gender inference services. 
+NamesBatchesOperator: Fetches full names from PostgreSQL, removes those with just an initial
+and stores them as batches on S3. 
 
-Disclaimer: Gender is not binary and the gender that has been assigned to a person by using this system might not be the one that person identifies with. Please treat the results with caution.
+GenderInferenceOperator: Infers the gender of a person by using their name. I am using GenderAPI for this,
+which is supposed to be one of the most reliable name to gender inference services. 
+
 """
 import logging
 from sqlalchemy.sql import exists

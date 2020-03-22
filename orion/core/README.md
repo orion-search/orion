@@ -218,3 +218,8 @@ Dummy task used only for clarity (reduces the edges towards downstream tasks).
 * Source: AWS S3
 * Action: Create a FAISS index using the document vectors and the paper IDs from MAG.
 * Target: AWS S3
+
+#### `affiliation_type` ####
+* Source: PostgreSQL DB
+* Action: Splits the affiliations to industry and non-industry using a seed list of tokens. 
+* Target: PostgreSQL DB
