@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
+from orion.packages.utils.s3_utils import create_s3_bucket
 from orion.core.operators.mag_parse_task import MagParserOperator, FosFrequencyOperator
 from orion.core.operators.draw_collaboration_graph_task import (
     CountryCollaborationOperator,
@@ -124,6 +125,15 @@ with DAG(
         python_callable=create_db_and_tables,
         op_kwargs={"db": db_name},
     )
+
+    create_buckets = [
+        PythonOperator(
+            task_id=bucket,
+            python_callable=create_s3_bucket,
+            op_kwargs={"bucket": bucket},
+        )
+        for bucket in [MAG_OUTPUT_BUCKET, S3_BUCKET, topic_bucket, text_vectors_bucket]
+    ]
 
     query_mag = MagCollectionOperator(
         task_id="query_mag",
@@ -271,6 +281,7 @@ with DAG(
     )
 
     dummy_task >> create_tables >> query_mag >> parse_mag
+    dummy_task >> create_buckets
     parse_mag >> geocode_places >> rca
     parse_mag >> geocode_places >> country_collaboration_graph
     parse_mag >> collect_fos >> fos_frequency >> topic_filtering >> filtered_topic_metadata >> viz_tables

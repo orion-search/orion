@@ -52,3 +52,11 @@ def s3_bucket_obj(bucket):
     """
     s3 = boto3.resource("s3")
     return list(s3.Bucket(bucket).objects.all())
+
+
+def create_s3_bucket(bucket, location="eu-west-2"):
+    """Create an s3 bucket on a given location."""
+    s3 = boto3.resource("s3")
+    s3.create_bucket(
+        Bucket="mybucket", CreateBucketConfiguration={"LocationConstraint": location}
+    )
