@@ -462,7 +462,7 @@ if __name__ == "__main__":
 
     # Try to create the database if it doesn't already exist.
     try:
-        db_config = os.getenv("orion_prod")
+        db_config = os.getenv("orion_test")
         engine = create_engine(db_config)
         conn = engine.connect()
         conn.execute("commit")

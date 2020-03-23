@@ -3,13 +3,14 @@ import unittest
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from orion.core.orms.mag_orm import Base
-from orion.core.airflow_utils import misctools
-
+from dotenv import load_dotenv, find_dotenv
+import os
+load_dotenv(find_dotenv())
 
 class TestMag(unittest.TestCase):
     """Check that the MAG ORM works as expected"""
 
-    db_config = misctools.get_config("orion_config.config", "postgresdb")["test_uri"]
+    db_config = os.getenv('orion_test')
     engine = create_engine(db_config)
     Session = sessionmaker(engine)
 
