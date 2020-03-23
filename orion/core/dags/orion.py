@@ -38,6 +38,10 @@ from orion.core.operators.country_details_task import (
     CountryDetailsOperator,
 )
 from orion.packages.mag.create_tables import create_db_and_tables
+from dotenv import load_dotenv, find_dotenv
+import os
+
+load_dotenv(find_dotenv())
 
 default_args = {
     "owner": "Kostas St",
@@ -47,9 +51,9 @@ default_args = {
 }
 
 DAG_ID = "orion"
-db_name = "orion_prod"
-DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")[db_name]
-MAG_API_KEY = misctools.get_config("orion_config.config", "mag")["mag_api_key"]
+db_name = orion.config["data"]["db_name"]
+DB_CONFIG = os.getenv(db_name)
+MAG_API_KEY = os.getenv("mag_api_key")
 
 # query_mag
 MAG_OUTPUT_BUCKET = orion.config["s3_buckets"]["mag"]
@@ -60,10 +64,10 @@ metadata = mag_config["metadata"]
 prod = orion.config["data"]["prod"]
 
 # geocode_places
-google_key = misctools.get_config("orion_config.config", "google")["google_key"]
+google_key = os.getenv("google_api_key")
 
 # country_collaboration
-collab_year = mag_config = orion.config["country_collaboration"]["year"]
+collab_year = orion.config["country_collaboration"]["year"]
 
 # batch_names
 BATCH_SIZE = orion.config["batch_size"]
@@ -72,7 +76,7 @@ PREFIX = orion.config["prefix"]["gender"]
 
 # gender_inference_N
 parallel_tasks = orion.config["parallel_tasks"]
-auth_token = misctools.get_config("orion_config.config", "genderapi")["auth"]
+auth_token = os.getenv("gender_api")
 
 # text2vector
 text_vectors_prefix = orion.config["prefix"]["text_vectors"]

@@ -1,6 +1,7 @@
 seed: 42
 
 data:
+    db_name: 'orion_prod'
     prod: True
     mag:
         query_values: ['biorxiv']
@@ -17,6 +18,9 @@ umap:
     n_components: 2
     metric: 'cosine'
     min_dist: .01
+
+tfidf:
+    max_features: 120000
 
 country_collaboration:
     year: '2013'

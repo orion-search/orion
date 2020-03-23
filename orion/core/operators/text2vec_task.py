@@ -29,6 +29,11 @@ from orion.packages.utils.s3_utils import store_on_s3
 from orion.packages.utils.utils import inverted2abstract
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
+import orion
+
+svd_components = orion.config["svd"]["n_components"]
+seed = orion.config["seed"]
+max_features = orion.config["tfidf"]["max_features"]
 
 
 class Text2VectorOperator(BaseOperator):
@@ -105,13 +110,13 @@ class Text2TfidfOperator(BaseOperator):
 
         # Get tfidf vectors
         vectorizer = TfidfVectorizer(
-            stop_words="english", analyzer="word", max_features=120000
+            stop_words="english", analyzer="word", max_features=max_features
         )
         X = vectorizer.fit_transform(abstracts)
         logging.info("Embedding documents - Done!")
 
         # Reduce dimensionality with SVD to speed up UMAP computation
-        svd = TruncatedSVD(n_components=500, random_state=42)
+        svd = TruncatedSVD(n_components=svd_components, random_state=seed)
         features = svd.fit_transform(X).astype("float32")
         logging.info(f"SVD dimensionality reduction shape: {features.shape}")
 
