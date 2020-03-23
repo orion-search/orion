@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
-from orion.core.airflow_utils import misctools
 from orion.core.operators.mag_parse_task import MagParserOperator, FosFrequencyOperator
 from orion.core.operators.draw_collaboration_graph_task import (
     CountryCollaborationOperator,

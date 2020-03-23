@@ -453,7 +453,6 @@ class CountryDetails(Base):
 if __name__ == "__main__":
     import logging
     import psycopg2
-    from orion.core.airflow_utils import misctools
     from sqlalchemy import create_engine, exc
     from dotenv import load_dotenv, find_dotenv
     import os
