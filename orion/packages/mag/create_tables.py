@@ -5,6 +5,8 @@ from orion.core.orms.mag_orm import Base
 from dotenv import load_dotenv, find_dotenv
 import os
 
+load_dotenv(find_dotenv())
+
 
 def create_db_and_tables(db):
     # Try to create the database if it doesn't already exist.
