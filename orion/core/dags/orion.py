@@ -120,6 +120,10 @@ with DAG(
 
     dummy_task_3 = DummyOperator(task_id="world_bank_indicators")
 
+    dummy_task_4 = DummyOperator(task_id="create_s3_buckets")
+
+    dummy_task_5 = DummyOperator(task_id="s3_buckets")
+
     create_tables = PythonOperator(
         task_id="create_tables",
         python_callable=create_db_and_tables,
@@ -281,7 +285,7 @@ with DAG(
     )
 
     dummy_task >> create_tables >> query_mag >> parse_mag
-    dummy_task >> create_buckets
+    dummy_task >> dummy_task_4 >> create_buckets >> dummy_task_5 >> query_mag
     parse_mag >> geocode_places >> rca
     parse_mag >> geocode_places >> country_collaboration_graph
     parse_mag >> collect_fos >> fos_frequency >> topic_filtering >> filtered_topic_metadata >> viz_tables
