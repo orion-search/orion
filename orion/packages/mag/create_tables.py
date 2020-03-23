@@ -1,16 +1,15 @@
 import logging
 import psycopg2
-from orion.core.airflow_utils import misctools
 from sqlalchemy import create_engine, exc
 from orion.core.orms.mag_orm import Base
+from dotenv import load_dotenv, find_dotenv
+import os
 
 
 def create_db_and_tables(db):
     # Try to create the database if it doesn't already exist.
     try:
-        db_config = misctools.get_config("orion_config.config", "postgresdb")[
-            "orion_test"
-        ]
+        db_config = os.getenv("orion_test")
         engine = create_engine(db_config)
         conn = engine.connect()
         conn.execute("commit")
@@ -23,6 +22,6 @@ def create_db_and_tables(db):
             logging.error(e)
             raise
 
-    db_config = misctools.get_config("orion_config.config", "postgresdb")[db]
+    db_config = os.getenv(db)
     engine = create_engine(db_config)
     Base.metadata.create_all(engine)
