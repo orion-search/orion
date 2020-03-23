@@ -453,14 +453,15 @@ class CountryDetails(Base):
 if __name__ == "__main__":
     import logging
     import psycopg2
-    from orion.core.airflow_utils import misctools
     from sqlalchemy import create_engine, exc
+    from dotenv import load_dotenv, find_dotenv
+    import os
+
+    load_dotenv(find_dotenv())
 
     # Try to create the database if it doesn't already exist.
     try:
-        db_config = misctools.get_config("orion_config.config", "postgresdb")[
-            "orion_test"
-        ]
+        db_config = os.getenv("orion_test")
         engine = create_engine(db_config)
         conn = engine.connect()
         conn.execute("commit")
@@ -473,6 +474,6 @@ if __name__ == "__main__":
             logging.error(e)
             raise
 
-    db_config = misctools.get_config("orion_config.config", "postgresdb")["orion_prod"]
+    db_config = os.getenv("orion_prod")
     engine = create_engine(db_config)
     Base.metadata.create_all(engine)

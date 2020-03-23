@@ -213,45 +213,48 @@ class ResearchDiversityOperator(BaseOperator):
             )
             # Keep only rows after 2014 and with more than 5 Fields of Study
             country_level = country_level.loc[self.year_thresh :]
-            country_level = country_level.where(
-                country_level.apply(lambda x: len(x) > self.fos_thresh)
-            ).dropna()
-            logging.info(f"Country level frame: {country_level.shape}")
+            if country_level.shape[0] > 0:
+                country_level = country_level.where(
+                    country_level.apply(lambda x: len(x) > self.fos_thresh)
+                ).dropna()
+                logging.info(f"Country level frame: {country_level.shape}")
 
-            # Slice country_level by year
-            for year in set([idx[0] for idx in country_level.index]):
-                frame = country_level.loc[[year], :]
-                logging.info(f"{year} - Countries: {frame.shape[0]}")
+                # Slice country_level by year
+                for year in set([idx[0] for idx in country_level.index]):
+                    frame = country_level.loc[[year], :]
+                    logging.info(f"{year} - Countries: {frame.shape[0]}")
 
-                # Create a Bag-of-FoS
-                vectorizer = CountVectorizer(
-                    tokenizer=identity_tokenizer, lowercase=False
-                )
-                X = vectorizer.fit_transform(list(frame))
-                X = X.toarray()
-                logging.info(
-                    f"Number of vectorised FoS: {len(vectorizer.get_feature_names())}"
-                )
-
-                # Calculate diversity metrics
-                shannon_div = [shannon(arr) for arr in X]
-                simpson_e_div = [simpson_e(arr) for arr in X]
-                simpson_div = [simpson(arr) for arr in X]
-                logging.info("Calculated diversity metrics.")
-
-                for idx, i in zip(frame.index, range(X.shape[0])):
-                    s.add(
-                        ResearchDiversityCountry(
-                            shannon_diversity=shannon_div[i],
-                            simpson_e_diversity=simpson_e_div[i],
-                            simpson_diversity=simpson_div[i],
-                            year=year,
-                            entity=idx[1],
-                            field_of_study_id=int(parent),
-                        )
+                    # Create a Bag-of-FoS
+                    vectorizer = CountVectorizer(
+                        tokenizer=identity_tokenizer, lowercase=False
                     )
-                    s.commit()
-                    logging.info("Added to DB!")
+                    X = vectorizer.fit_transform(list(frame))
+                    X = X.toarray()
+                    logging.info(
+                        f"Number of vectorised FoS: {len(vectorizer.get_feature_names())}"
+                    )
+
+                    # Calculate diversity metrics
+                    shannon_div = [shannon(arr) for arr in X]
+                    simpson_e_div = [simpson_e(arr) for arr in X]
+                    simpson_div = [simpson(arr) for arr in X]
+                    logging.info("Calculated diversity metrics.")
+
+                    for idx, i in zip(frame.index, range(X.shape[0])):
+                        s.add(
+                            ResearchDiversityCountry(
+                                shannon_diversity=shannon_div[i],
+                                simpson_e_diversity=simpson_e_div[i],
+                                simpson_diversity=simpson_div[i],
+                                year=year,
+                                entity=idx[1],
+                                field_of_study_id=int(parent),
+                            )
+                        )
+                        s.commit()
+                        logging.info("Added to DB!")
+            else:
+                continue
 
 
 class GenderDiversityOperator(BaseOperator):

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
-from orion.core.airflow_utils import misctools
+from orion.packages.utils.s3_utils import create_s3_bucket
 from orion.core.operators.mag_parse_task import MagParserOperator, FosFrequencyOperator
 from orion.core.operators.draw_collaboration_graph_task import (
     CountryCollaborationOperator,
@@ -38,6 +38,10 @@ from orion.core.operators.country_details_task import (
     CountryDetailsOperator,
 )
 from orion.packages.mag.create_tables import create_db_and_tables
+from dotenv import load_dotenv, find_dotenv
+import os
+
+load_dotenv(find_dotenv())
 
 default_args = {
     "owner": "Kostas St",
@@ -47,9 +51,9 @@ default_args = {
 }
 
 DAG_ID = "orion"
-db_name = "orion_prod"
-DB_CONFIG = misctools.get_config("orion_config.config", "postgresdb")[db_name]
-MAG_API_KEY = misctools.get_config("orion_config.config", "mag")["mag_api_key"]
+db_name = orion.config["data"]["db_name"]
+DB_CONFIG = os.getenv(db_name)
+MAG_API_KEY = os.getenv("mag_api_key")
 
 # query_mag
 MAG_OUTPUT_BUCKET = orion.config["s3_buckets"]["mag"]
@@ -60,10 +64,10 @@ metadata = mag_config["metadata"]
 prod = orion.config["data"]["prod"]
 
 # geocode_places
-google_key = misctools.get_config("orion_config.config", "google")["google_key"]
+google_key = os.getenv("google_api_key")
 
 # country_collaboration
-collab_year = mag_config = orion.config["country_collaboration"]["year"]
+collab_year = orion.config["country_collaboration"]["year"]
 
 # batch_names
 BATCH_SIZE = orion.config["batch_size"]
@@ -72,7 +76,7 @@ PREFIX = orion.config["prefix"]["gender"]
 
 # gender_inference_N
 parallel_tasks = orion.config["parallel_tasks"]
-auth_token = misctools.get_config("orion_config.config", "genderapi")["auth"]
+auth_token = os.getenv("gender_api")
 
 # text2vector
 text_vectors_prefix = orion.config["prefix"]["text_vectors"]
@@ -116,11 +120,24 @@ with DAG(
 
     dummy_task_3 = DummyOperator(task_id="world_bank_indicators")
 
+    dummy_task_4 = DummyOperator(task_id="create_s3_buckets")
+
+    dummy_task_5 = DummyOperator(task_id="s3_buckets")
+
     create_tables = PythonOperator(
         task_id="create_tables",
         python_callable=create_db_and_tables,
         op_kwargs={"db": db_name},
     )
+
+    create_buckets = [
+        PythonOperator(
+            task_id=bucket,
+            python_callable=create_s3_bucket,
+            op_kwargs={"bucket": bucket},
+        )
+        for bucket in [MAG_OUTPUT_BUCKET, S3_BUCKET, topic_bucket, text_vectors_bucket]
+    ]
 
     query_mag = MagCollectionOperator(
         task_id="query_mag",
@@ -268,6 +285,7 @@ with DAG(
     )
 
     dummy_task >> create_tables >> query_mag >> parse_mag
+    dummy_task >> dummy_task_4 >> create_buckets >> dummy_task_5 >> query_mag
     parse_mag >> geocode_places >> rca
     parse_mag >> geocode_places >> country_collaboration_graph
     parse_mag >> collect_fos >> fos_frequency >> topic_filtering >> filtered_topic_metadata >> viz_tables

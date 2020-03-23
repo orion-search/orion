@@ -42,26 +42,7 @@ $ pip install -e .
    ```
    
    - Delete the `airflow.db` file `$ rm orion/core/airflow.db`
-4. `$ mkdir orion/core/config/` to create a directory for the `orion_config.config` configuration file which must have the following format:
-```
-[postgresdb]
-orion_prod=postgres+psycopg2://USER:PASSWORD@localhost:5432/orion_prod
-orion_test=postgres+psycopg2://USER:PASSWORD@localhost:5432/postgres
-
-[mag]
-MAG_API_KEY=MY_MAG_API_KEY
-
-[google]
-GOOGLE_KEY=MY_GOOGLE_API_KEY
-
-[genderapi]
-AUTH=MY_GENDER_API_KEY
-```
-5. Create the following S3 buckets (you need an AWS account):
-   - mag-data-dump
-   - names-batches
-   - document-vectors
-   - mag-topics
+4. Create a `.env` file with these [variables](.env.example).
 
 It is recommended to use Orion in a virtual environment, preferably Anaconda. Orion's backend uses a PostgreSQL database. Download a PostgreSQL distribution if you plan to use Orion locally, otherwise, setup a PostgreSQL database on AWS RDS. 
 

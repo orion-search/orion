@@ -65,6 +65,7 @@ def test_dedupe_entities_picks_highest_for_each_title():
 
     assert dedupe_entities(entities) == {1, 4}
 
+
 def test_build_composite_queries_correctly():
     assert (
         build_composite_expr(["biorxiv", "foo"], "C.CN")

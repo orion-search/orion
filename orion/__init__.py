@@ -8,5 +8,5 @@ from pathlib import Path
 project_dir = Path(__file__).resolve().parents[1]
 
 # Model config
-with open(project_dir / 'model_config.yaml', 'rt') as f:
+with open(project_dir / "model_config.yaml", "rt") as f:
     config = yaml.safe_load(f.read())
