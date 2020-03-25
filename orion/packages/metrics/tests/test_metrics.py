@@ -81,14 +81,16 @@ def test_validate_counts_vector_list():
     np.testing.assert_array_equal(obs, np.array([0, 2, 1, 3]))
     assert obs.dtype == int
 
+
 def test_validate_counts_vector_numpy_array():
     # numpy array (no copy made)
     data = np.array([0, 2, 1, 3])
     obs = _validate_counts_vector(data)
-    
+
     np.testing.assert_array_equal(obs, data)
     assert obs.dtype == int
-    
+
+
 def test_validate_counts_vector_single_element():
     obs = _validate_counts_vector([42])
 
@@ -96,48 +98,58 @@ def test_validate_counts_vector_single_element():
     assert obs.dtype == int
     assert obs.shape == (1,)
 
+
 def test_validate_counts_vector_suppress_casting_to_int():
     obs = _validate_counts_vector([42.2, 42.1, 0], suppress_cast=True)
-    
+
     np.testing.assert_array_equal(obs, np.array([42.2, 42.1, 0]))
     assert obs.dtype == float
 
+
 def test_validate_counts_vector_all_zeros():
     obs = _validate_counts_vector([0, 0, 0])
-    
+
     np.testing.assert_array_equal(obs, np.array([0, 0, 0]))
     assert obs.dtype == int
 
+
 def test_validate_counts_vector_all_zeros_single_value():
     obs = _validate_counts_vector([0])
-    
+
     np.testing.assert_array_equal(obs, np.array([0]))
     assert obs.dtype == int
+
 
 def test_validate_counts_vector_invalid_input_wrong_dtype():
     with pytest.raises(Exception):
         _validate_counts_vector([0, 2, 1.2, 3])
 
+
 def test_validate_counts_vector_invalid_input_wrong_number_of_dimensions():
     with pytest.raises(Exception):
         _validate_counts_vector([[0, 2, 1, 3], [4, 5, 6, 7]])
+
 
 def test_validate_counts_vector_invalid_input_wrong_number_of_dimensions_scalar():
     with pytest.raises(Exception):
         _validate_counts_vector(1)
 
+
 def test_validate_counts_vector_invalid_input_negative_values():
     with pytest.raises(Exception):
         _validate_counts_vector([0, 0, 2, -1, 3])
 
+
 def test_dominance():
-    assert dominance(np.array([5])) ==  1
+    assert dominance(np.array([5])) == 1
     assert pytest.approx(dominance(np.array([1, 0, 2, 5, 2])), 0.34)
 
+
 def test_shannon():
-        assert shannon(np.array([5])) == 0
-        assert shannon(np.array([5, 5])) == 1
-        assert shannon(np.array([1, 1, 1, 1, 0])) == 2
+    assert shannon(np.array([5])) == 0
+    assert shannon(np.array([5, 5])) == 1
+    assert shannon(np.array([1, 1, 1, 1, 0])) == 2
+
 
 def test_simpson():
     assert pytest.approx(simpson(np.array([1, 0, 2, 5, 2])), 0.66)

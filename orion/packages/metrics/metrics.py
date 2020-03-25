@@ -95,7 +95,7 @@ def _validate_counts_vector(counts, suppress_cast=False):
     counts = np.asarray(counts)
 
     if not suppress_cast:
-        counts = counts.astype(int, casting='safe', copy=False)
+        counts = counts.astype(int, casting="safe", copy=False)
 
     if counts.ndim != 1:
         raise ValueError("Only 1-D vectors are supported.")
@@ -103,6 +103,7 @@ def _validate_counts_vector(counts, suppress_cast=False):
         raise ValueError("Counts vector cannot contain negative values.")
 
     return counts
+
 
 def dominance(counts):
     """Calculates dominance.
@@ -134,6 +135,7 @@ def dominance(counts):
     counts = _validate_counts_vector(counts)
     freqs = counts / counts.sum()
     return (freqs * freqs).sum()
+
 
 def shannon(counts, base=2):
     """Calculate Shannon entropy of counts, default in bits.
