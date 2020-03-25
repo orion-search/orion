@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def _rca_division(val1, val2, val3, val4):
     """Multi-step division."""
     return (val1 / val2) / (val3 / val4)
@@ -80,3 +83,117 @@ def calculate_rca_by_count(data, entity_column, commodity, paper_thresh, year_th
     )
 
     return rca.dropna()
+
+
+def _validate_counts_vector(counts, suppress_cast=False):
+    """Validates and converts input to an acceptable counts vector type.
+    Note: may not always return a copy of `counts`!
+    
+    This is taken from scikit-bio.
+
+    """
+    counts = np.asarray(counts)
+
+    if not suppress_cast:
+        counts = counts.astype(int, casting='safe', copy=False)
+
+    if counts.ndim != 1:
+        raise ValueError("Only 1-D vectors are supported.")
+    elif (counts < 0).any():
+        raise ValueError("Counts vector cannot contain negative values.")
+
+    return counts
+
+def dominance(counts):
+    """Calculates dominance.
+    
+    Dominance is defined as
+    .. math::
+       \sum{p_i^2}
+    where :math:`p_i` is the proportion of the entire community that OTU
+    :math:`i` represents.
+    Dominance can also be defined as 1 - Simpson's index. It ranges between
+    0 and 1.
+
+    Args:
+        counts (:obj:`numpy.array` of `int`): Vector of counts.
+    
+    Returns:
+        (float) dominance score.
+    
+    Notes
+    -----
+    The implementation here is based on the description given in [1]_.
+    References
+    ----------
+    .. [1] http://folk.uio.no/ohammer/past/diversity.html
+
+    This is taken from scikit-bio.
+
+    """
+    counts = _validate_counts_vector(counts)
+    freqs = counts / counts.sum()
+    return (freqs * freqs).sum()
+
+def shannon(counts, base=2):
+    """Calculate Shannon entropy of counts, default in bits.
+    Shannon-Wiener diversity index is defined as:
+    .. math::
+       H = -\sum_{i=1}^s\left(p_i\log_2 p_i\right)
+    where :math:`s` is the number of OTUs and :math:`p_i` is the proportion of
+    the community represented by OTU :math:`i`.
+
+    
+    Args:
+        counts (:obj:`numpy.array` of `int`): Vector of counts.
+        base (int): Logarithm base to use in the calculations.
+    
+    Returns:
+        (float) Shannon diversity index H.
+    
+    Notes
+    -----
+    The implementation here is based on the description given in the SDR-IV
+    online manual [1]_ except that the default logarithm base used here is 2
+    instead of :math:`e`.
+    References
+    ----------
+    .. [1] http://www.pisces-conservation.com/sdrhelp/index.html
+
+    This is taken from scikit-bio.
+
+    """
+    counts = _validate_counts_vector(counts)
+    freqs = counts / counts.sum()
+    nonzero_freqs = freqs[freqs.nonzero()]
+    return -(nonzero_freqs * np.log(nonzero_freqs)).sum() / np.log(base)
+
+
+def simpson(counts):
+    """Calculate Simpson's index.
+    Simpson's index is defined as ``1 - dominance``:
+    .. math::
+       1 - \sum{p_i^2}
+    where :math:`p_i` is the proportion of the community represented by OTU
+    :math:`i`.
+
+    Args:
+        counts (:obj:`numpy.array` of `int`): Vector of counts.
+
+    Returns:
+        (float) Simpson's index.
+
+    Notes
+    -----
+    The implementation here is ``1 - dominance`` as described in [1]_. Other
+    references (such as [2]_) define Simpson's index as ``1 / dominance``.
+    References
+    ----------
+    .. [1] http://folk.uio.no/ohammer/past/diversity.html
+    .. [2] http://www.pisces-conservation.com/sdrhelp/index.html
+
+    This is taken from scikit-bio.
+
+    """
+    counts = _validate_counts_vector(counts)
+    return 1 - dominance(counts)
