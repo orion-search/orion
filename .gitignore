@@ -155,3 +155,4 @@ orion/core/unittests.cfg
 orion/core/airflow-webserver.pid
 
 boto.cfg
+*.db
