@@ -12,7 +12,6 @@ pytest==5.2.2
 psycopg2==2.8.3
 umap-learn==0.3.10
 scikit-learn==0.22.1
-scikit-bio==0.5.5
 tensorflow_hub==0.7.0
 faiss-cpu==1.6.1
 sentencepiece==0.1.85
