@@ -8,6 +8,9 @@ from orion.packages.metrics.metrics import simpson
 from orion.packages.metrics.metrics import dominance
 from orion.packages.metrics.metrics import shannon
 from orion.packages.metrics.metrics import _validate_counts_vector
+from orion.packages.metrics.metrics import observed_otus
+from orion.packages.metrics.metrics import simpson_e
+from orion.packages.metrics.metrics import enspie
 
 
 def test_calculate_rca_by_sum_calculates_correct_results():
@@ -154,3 +157,33 @@ def test_shannon():
 def test_simpson():
     assert pytest.approx(simpson(np.array([1, 0, 2, 5, 2])), 0.66)
     assert pytest.approx(simpson(np.array([5])), 0)
+
+
+def test_observed_otus():
+    obs = observed_otus(np.array([4, 3, 4, 0, 1, 0, 2]))
+    assert obs == 5
+
+    obs = observed_otus(np.array([0, 0, 0]))
+    assert obs == 0
+
+    obs = observed_otus(np.array([0, 1, 1, 4, 2, 5, 2, 4, 1, 2]))
+    assert obs == 9
+
+
+def test_enspie():
+    # Totally even community should have ENS_pie = number of OTUs.
+    assert pytest.approx(enspie(np.array([1, 1, 1, 1, 1, 1])), 6)
+    assert pytest.approx(enspie(np.array([13, 13, 13, 13])), 4)
+
+    # Hand calculated.
+    arr = np.array([1, 41, 0, 0, 12, 13])
+    exp = 1 / ((arr / arr.sum()) ** 2).sum()
+    np.testing.assert_almost_equal(enspie(arr), exp)
+
+    # Using dominance.
+    exp = 1 / dominance(arr)
+    np.testing.assert_almost_equal(enspie(arr), exp)
+
+    arr = np.array([1, 0, 2, 5, 2])
+    exp = 1 / dominance(arr)
+    np.testing.assert_array_almost_equal(enspie(arr), exp)

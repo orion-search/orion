@@ -199,3 +199,75 @@ def simpson(counts):
     """
     counts = _validate_counts_vector(counts)
     return 1 - dominance(counts)
+
+
+def enspie(counts):
+    """Calculate ENS_pie alpha diversity measure.
+    ENS_pie is equivalent to ``1 / dominance``:
+    .. math::
+       ENS_{pie} = \frac{1}{\sum_{i=1}^s{p_i^2}}
+    where :math:`s` is the number of OTUs and :math:`p_i` is the proportion of
+    the community represented by OTU :math:`i`.
+    
+    Args:
+        counts (:obj:`numpy.array` of `int`): Vector of counts.
+    
+    Returns:
+        (float) ENS_pie alpha diversity measure.
+
+    Notes
+    -----
+    ENS_pie is defined in [1]_.
+    References
+    ----------
+    .. [1] Chase and Knight (2013). "Scale-dependent effect sizes of ecological
+       drivers on biodiversity: why standardised sampling is not enough".
+       Ecology Letters, Volume 16, Issue Supplement s1, pgs 17-26.    
+
+    This is taken from scikit-bio.
+
+    """
+    counts = _validate_counts_vector(counts)
+    return 1 / dominance(counts)
+
+
+def observed_otus(counts):
+    """Calculate the number of distinct OTUs.
+    
+    Args:
+        counts (:obj:`numpy.array` of `int`): Vector of counts.
+    
+    Returns:
+        (int) Distinct OTU count.
+    
+    """
+    counts = _validate_counts_vector(counts)
+    return (counts != 0).sum()
+
+
+def simpson_e(counts):
+    """Calculate Simpson's evenness measure E.
+    Simpson's E is defined as
+    .. math::
+       E=\frac{1 / D}{S_{obs}}
+    where :math:`D` is dominance and :math:`S_{obs}` is the number of observed
+    OTUs.
+
+    Args:
+        counts (:obj:`numpy.array` of `int`): Vector of counts.
+
+    Returns:
+        (float) Simpson's evenness measure E.
+
+    Notes
+    -----
+    The implementation here is based on the description given in [1]_.
+    References
+    ----------
+    .. [1] http://www.tiem.utk.edu/~gross/bioed/bealsmodules/simpsonDI.html
+
+    This is taken from scikit-bio.
+
+    """
+    counts = _validate_counts_vector(counts)
+    return enspie(counts) / observed_otus(counts)
