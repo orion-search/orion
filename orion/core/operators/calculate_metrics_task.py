@@ -42,7 +42,7 @@ from orion.core.orms.mag_orm import (
 )
 from orion.packages.utils.utils import dict2psql_format
 from orion.packages.utils.nlp_utils import identity_tokenizer
-from skbio.diversity.alpha import simpson, simpson_e, shannon
+from orion.packages.metrics.metrics import shannon, simpson, simpson_e
 from sklearn.feature_extraction.text import CountVectorizer
 
 
