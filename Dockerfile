@@ -12,10 +12,12 @@ ARG DB_PASS
 
 ENV orion_prod=postgres+psycopg2://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
 ENV orion_test=postgres+psycopg2://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/postgres
+ENV airflow_db=postgres+psycopg2://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/airflow
 
 ENV AIRFLOW_HOME /airflow/orion/core
-ENV AIRFLOW__CORE__SQL_ALCHEMY_CONN ${orion_prod}
+ENV AIRFLOW__CORE__SQL_ALCHEMY_CONN ${airflow_db}
 ENV AIRFLOW__CORE__EXECUTOR LocalExecutor
+ENV AIRFLOW__CORE__DAGS_FOLDER /airflow/orion/core/dags
 
 FROM base as builder
 
@@ -50,4 +52,5 @@ RUN echo $orion_prod \
 EXPOSE 8080
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["airflow", "webserver"]
+CMD ["airflow", "webserver", "-D"]
+CMD ["airflow", "scheduler", "-D"]
