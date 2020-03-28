@@ -1,6 +1,6 @@
 import torch
-import numpy as np
 from transformers import AlbertModel, AlbertTokenizer
+import numpy as np
 import tensorflow as tf
 import sentencepiece as spm
 import tensorflow_hub as hub
