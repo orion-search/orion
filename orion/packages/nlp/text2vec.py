@@ -1,5 +1,5 @@
 import torch
-from transformers import AlbertModel, AlbertTokenizer
+from transformers import DistilBertModel, DistilBertTokenizer
 import numpy as np
 import tensorflow as tf
 import sentencepiece as spm
@@ -10,13 +10,13 @@ USE = "https://tfhub.dev/google/universal-sentence-encoder/4"
 
 
 class Text2Vector:
-    """Transform text to vector using Albert."""
+    """Transform text to vector using DistilBert from HuggingFace."""
 
     def __init__(
         self,
-        tokenizer_model=AlbertTokenizer,
-        transformer=AlbertModel,
-        pretrained_weights="albert-base-v2",
+        tokenizer_model=DistilBertTokenizer,
+        transformer=DistilBertModel,
+        pretrained_weights="distilbert-base-uncased",
     ):
         self.tokenizer_model = tokenizer_model
         self.transformer = transformer
@@ -29,7 +29,7 @@ class Text2Vector:
 
         Args:
             text (str): Text input.
-            tokenizer_model (transformers.tokenization_albert.AlbertTokenizer): Pretrained tokenizer.
+            tokenizer_model (transformers.tokenization_distilbert.DistilBertTokenizer): Pretrained tokenizer.
                The tokenizer must match the transformer architecture that will be used.
             pretrained_weights (str): Pretrained weights shortcut.
 
@@ -48,7 +48,7 @@ class Text2Vector:
 
         Args:
             input_ids (torch.Tensor) Indices of input sequence tokens in the vocabulary of the transformer.
-            model_class (transformers.modeling_albert.AlbertModel): Pretrained transformer.
+            model_class (transformers.modeling_distilbert.DistilBertModel): Pretrained transformer.
             pretrained_weights (str): Pretrained weights shortcut.
 
         Returns:

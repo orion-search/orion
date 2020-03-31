@@ -17,8 +17,8 @@ def test_text_encoder():
     tv = Text2Vector()
     result = tv.encode_text(text)
 
-    expected_shape = torch.Size([1, 9])
-    expected_values = torch.tensor([[2, 10975, 126, 9, 4310, 111, 748, 187, 3]])
+    expected_shape = torch.Size([1, 8])
+    expected_values = torch.tensor([[101, 7592, 2088, 1012, 29379, 3347, 999, 102]])
 
     assert result.shape == expected_shape
     assert torch.all(result.eq(expected_values))
