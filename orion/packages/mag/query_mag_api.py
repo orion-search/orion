@@ -220,6 +220,7 @@ def build_composite_expr(query_values, entity_name):
     Args:
         query_values (:obj:`list` of str): Phrases to query MAG with. 
         entity_name (str): MAG attribute that will be used in query.
+
     Returns:
         (str) MAG expression.
     

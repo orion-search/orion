@@ -53,7 +53,7 @@ class MagParserOperator(BaseOperator):
         s = Session()
 
         # Collect IDs from tables to ensure we're not inserting duplicates
-        paper_ids = {id_[0] for id_ in s.query(Paper.doi)}
+        paper_ids = {id_[0] for id_ in s.query(Paper.id)}
         author_ids = {id_[0] for id_ in s.query(Author.id)}
         fos_ids = {id_[0] for id_ in s.query(FieldOfStudy.id)}
         aff_ids = {id_[0] for id_ in s.query(Affiliation.id)}
@@ -66,7 +66,7 @@ class MagParserOperator(BaseOperator):
 
         # Remove duplicates and keep only papers that are not already in the mag_papers table.
         data = [
-            d for d in unique_dicts_by_value(data, "Id") if d["DOI"] not in paper_ids
+            d for d in unique_dicts_by_value(data, "Id") if d["Id"] not in paper_ids
         ]
         logging.info(f"Number of unique  papers not existing in DB: {len(data)}")
 

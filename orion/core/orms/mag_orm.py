@@ -19,13 +19,13 @@ class Paper(Base):
     year = Column(TEXT)
     date = Column(TEXT)
     citations = Column(Integer)
-    references = Column(
-        TEXT
-    )  # This is transformed from list to string using json.dumps().
+    original_title = Column(TEXT)
+    references = Column(TEXT)
     doi = Column(VARCHAR(200))
     publisher = Column(TEXT)
     bibtex_doc_type = Column(TEXT)
-    inverted_abstract = Column(TEXT)
+    abstract = Column(TEXT)
+    source = Column(TEXT)
     journals = relationship("Journal", back_populates="paper")
     fields_of_study = relationship("PaperFieldsOfStudy", back_populates="paper")
     authors = relationship("PaperAuthor", back_populates="paper")

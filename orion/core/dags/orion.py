@@ -62,6 +62,7 @@ mag_config = orion.config["data"]["mag"]
 query_values = mag_config["query_values"]
 entity_name = mag_config["entity_name"]
 metadata = mag_config["metadata"]
+with_doi = mag_config["with_doi"]
 prod = orion.config["data"]["prod"]
 
 # geocode_places
@@ -148,6 +149,7 @@ with DAG(
         entity_name=entity_name,
         metadata=metadata,
         prod=prod,
+        with_doi=with_doi
     )
 
     parse_mag = MagParserOperator(

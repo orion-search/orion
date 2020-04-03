@@ -1,6 +1,7 @@
 import json
 import logging
 import numpy as np
+from orion.packages.utils.utils import inverted2abstract
 
 
 def parse_papers(response):
@@ -22,16 +23,20 @@ def parse_papers(response):
     d["year"] = response["Y"]
     d["date"] = response["D"]
     d["citations"] = response["CC"]
+    d["original_title"] = response["DN"]
+    # Get the first URL - MAG sorts them by relevance
+    d["source"] = response["S"][0]["U"]
+
     try:
         d["bibtex_doc_type"] = response["BT"]
     except KeyError as e:
         logging.info(f"{response['Id']}: {e}")
         d["bibtex_doc_type"] = np.nan
     try:
-        d["inverted_abstract"] = json.dumps(response["IA"])
+        d["abstract"] = inverted2abstract(response["IA"])
     except KeyError as e:
         logging.info(f"{response['Id']}: {e}")
-        d["inverted_abstract"] = np.nan
+        d["abstract"] = np.nan
     try:
         d["references"] = json.dumps(response["RId"])
     except KeyError as e:

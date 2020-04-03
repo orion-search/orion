@@ -13,6 +13,7 @@ test_example = {
     "Id": 2592122940,
     "Ti": "dna fountain enables a robust and efficient storage architecture",
     "Pt": "1",
+    "DN": "this is an original title",
     "Y": 2017,
     "D": "2017-03-03",
     "CC": 109,
@@ -44,9 +45,18 @@ test_example = {
             "high-throughput": [2],
             "sequencing": [3],
             "assays,": [4],
-            "a": [5, 44, 51, 78],
+            "a": [5],
         },
     },
+    "S": [
+        {"U": "https://www.biorxiv.org/content/early/2018/04/02/292706.full.pdf"},
+        {
+            "Ty": 3,
+            "U": "https://www.biorxiv.org/content/biorxiv/early/2018/05/08/292706.full.pdf",
+        },
+        {"Ty": 1, "U": "https://www.biorxiv.org/content/10.1101/292706v4"},
+        {"U": "https://www.biorxiv.org/content/early/2018/05/08/292706"},
+    ],
 }
 
 
@@ -59,11 +69,13 @@ def test_parse_papers():
         "publication_type": "1",
         "year": 2017,
         "date": "2017-03-03",
+        "original_title": "this is an original title",
         "citations": 109,
         "bibtex_doc_type": "a",
         "references": "[2293000460, 2296125569]",
         "publisher": "American Association for the Advancement of Science",
-        "inverted_abstract": '{"IndexLength": 111, "InvertedIndex": {"In": [0], "comparative": [1], "high-throughput": [2], "sequencing": [3], "assays,": [4], "a": [5, 44, 51, 78]}}',
+        "abstract": "In comparative high-throughput sequencing assays, a",
+        "source": "https://www.biorxiv.org/content/early/2018/04/02/292706.full.pdf",
     }
     result = parse_papers(test_example)
 
