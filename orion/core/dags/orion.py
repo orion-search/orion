@@ -149,7 +149,7 @@ with DAG(
         entity_name=entity_name,
         metadata=metadata,
         prod=prod,
-        with_doi=with_doi
+        with_doi=with_doi,
     )
 
     parse_mag = MagParserOperator(

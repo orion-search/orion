@@ -99,7 +99,7 @@ class MagCollectionOperator(BaseOperator):
                 offset=offset,
             )
 
-            if with_doi:
+            if self.with_doi:
                 # Keep only papers with a DOI
                 results = [ents for ents in data["entities"] if "DOI" in ents.keys()]
             else:
