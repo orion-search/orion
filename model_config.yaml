@@ -6,7 +6,8 @@ data:
     mag:
         query_values: ['biorxiv']
         entity_name: 'J.JN'
-        metadata: ["Id", "Ti", "AA.AfId", "AA.AfN", "AA.AuId", "AA.DAuN", "AA.S", "CC", "D", "F.DFN", "F.FId", "J.JId", "J.JN", "Pt", "RId", "Y", "DOI", "PB", "BT", "IA", "C.CN", "C.CId"]
+        metadata: ["Id", "Ti", "AA.AfId", "AA.AfN", "AA.AuId", "AA.DAuN", "AA.S", "CC", "D", "F.DFN", "F.FId", "J.JId", "J.JN", "Pt", "RId", "Y", "DOI", "PB", "BT", "IA", "C.CN", "C.CId", "DN", "S"]
+        with_doi: True
     wb:
         end_year: "2019"
         country: "all"

@@ -66,6 +66,7 @@ class MagCollectionOperator(BaseOperator):
         entity_name,
         metadata,
         prod,
+        with_doi,
         *args,
         **kwargs,
     ):
@@ -76,6 +77,7 @@ class MagCollectionOperator(BaseOperator):
         self.subscription_key = subscription_key
         self.output_bucket = output_bucket
         self.prod = prod
+        self.with_doi = with_doi
 
     def execute(self, context):
         expression = build_composite_expr(self.query_values, self.entity_name)
@@ -96,7 +98,12 @@ class MagCollectionOperator(BaseOperator):
                 query_count=query_count,
                 offset=offset,
             )
-            results = [ents for ents in data["entities"] if "DOI" in ents.keys()]
+
+            if self.with_doi:
+                # Keep only papers with a DOI
+                results = [ents for ents in data["entities"] if "DOI" in ents.keys()]
+            else:
+                results = [ents for ents in data["entities"]]
 
             filename = "-".join([self.output_bucket, str(i),])
             logging.info(f"File on s3: {filename}")

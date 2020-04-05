@@ -2,18 +2,18 @@
 Transforms a variable length text to a fixed-length vector.
 
 Text2VectorOperator: Uses a pretrained model (ALBERT) from the transformers library 
-to create word vectors which are then averaged to produce a document vector. It fetches
-inverted abstracts from PostgreSQL which decodes to text. The output vectors are 
+to create word vectors which are then averaged to produce a document vector. It fetches 
+abstracts from PostgreSQL which decodes to text. The output vectors are 
 stored on S3.
 
 Text2TfidfOperator: Transforms text to vectors using TF-IDF and SVD. TF-IDF from scikit-learn 
 preprocesses the data and SVD reduces the dimensionality of the document vectors. It fetches
-inverted abstracts from PostgreSQL which decodes to text. The output vectors are 
+abstracts from PostgreSQL which decodes to text. The output vectors are 
 stored on S3.
 
 
 Text2USEOperator: Uses a pretrained model (Universal Sentence Encoder) from TensorHub to
-transform text to vectors. It fetches inverted abstracts from PostgreSQL which decodes to 
+transform text to vectors. It fetches abstracts from PostgreSQL which decodes to 
 text. The output vectors are stored on S3.
 
 """
@@ -26,7 +26,6 @@ from airflow.utils.decorators import apply_defaults
 from orion.packages.nlp.text2vec import Text2Vector, use_vectors
 from orion.core.orms.mag_orm import Paper, DocVector
 from orion.packages.utils.s3_utils import store_on_s3
-from orion.packages.utils.utils import inverted2abstract
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
 import orion
@@ -54,11 +53,11 @@ class Text2VectorOperator(BaseOperator):
         s = Session()
 
         # Get the abstracts of bioRxiv papers.
-        papers = s.query(Paper.inverted_abstract, Paper.id, Paper.doi).filter(
+        papers = s.query(Paper.abstract, Paper.id, Paper.doi).filter(
             and_(
                 ~exists().where(Paper.id == DocVector.id),
                 Paper.doi.isnot(None),
-                Paper.inverted_abstract != "NaN",
+                Paper.abstract != "NaN",
             )
         )
         logging.info(f"Number of documents to be vectorised: {papers.count()}")
@@ -66,9 +65,8 @@ class Text2VectorOperator(BaseOperator):
         # Convert text to vectors
         tv = Text2Vector()
         vectors = []
-        for i, (inverted_abstract, id_, doi) in enumerate(papers):
+        for i, (abstract, id_, doi) in enumerate(papers):
             logging.info(f"{i}: {doi}")
-            abstract = inverted2abstract(inverted_abstract)
             vec = tv.average_vectors(tv.feature_extraction(tv.encode_text(abstract)))
             vectors.append([doi, vec, id_])
         logging.info("Embedding documents - Done!")
@@ -95,18 +93,17 @@ class Text2TfidfOperator(BaseOperator):
         s = Session()
 
         # Get the paper abstracts.
-        papers = s.query(Paper.inverted_abstract, Paper.id, Paper.doi).filter(
+        papers = s.query(Paper.abstract, Paper.id, Paper.doi).filter(
             and_(
                 ~exists().where(Paper.id == DocVector.id),
                 Paper.doi.isnot(None),
-                Paper.inverted_abstract != "NaN",
+                Paper.abstract != "NaN",
             )
         )
         logging.info(f"Number of documents to be vectorised: {papers.count()}")
 
         # Reconstruct abstracts
-        inverted_abstracts, ids, doi = zip(*papers)
-        abstracts = [inverted2abstract(abstract) for abstract in inverted_abstracts]
+        abstracts, ids, doi = zip(*papers)
 
         # Get tfidf vectors
         vectorizer = TfidfVectorizer(
@@ -146,18 +143,17 @@ class Text2USEOperator(BaseOperator):
         s = Session()
 
         # Get the abstracts of bioRxiv papers.
-        papers = s.query(Paper.inverted_abstract, Paper.id, Paper.doi).filter(
+        papers = s.query(Paper.abstract, Paper.id, Paper.doi).filter(
             and_(
                 ~exists().where(Paper.id == DocVector.id),
                 Paper.doi.isnot(None),
-                Paper.inverted_abstract != "NaN",
+                Paper.abstract != "NaN",
             )
         )
         logging.info(f"Number of documents to be vectorised: {papers.count()}")
 
         # Reconstruct abstracts
-        inverted_abstracts, ids, doi = zip(*papers)
-        abstracts = [inverted2abstract(abstract) for abstract in inverted_abstracts]
+        abstracts, ids, doi = zip(*papers)
         assert len(abstracts) == len(ids)
         logging.info(f"Number of abstracts to vectorise: {len(abstracts)}")
 

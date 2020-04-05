@@ -1,5 +1,4 @@
 from itertools import chain, combinations
-import json
 from collections import OrderedDict, Counter
 import numpy as np
 
@@ -74,16 +73,15 @@ def inverted2abstract(obj):
     """Transforms an inverted abstract to abstract.
     
     Args:
-        obj (str): JSON Inverted Abstract stored as string.
+        obj (json): Inverted Abstract.
 
     Returns:
         (str): Formatted abstract.
     
     """
-    if isinstance(obj, str):
-        inverted_index = json.loads(obj)["InvertedIndex"]
+    if isinstance(obj, dict):
+        inverted_index = obj["InvertedIndex"]
         d = {}
-
         for k, v in inverted_index.items():
             if len(v) == 1:
                 d[v[0]] = k
