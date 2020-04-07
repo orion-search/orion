@@ -38,6 +38,7 @@ from orion.core.operators.country_details_task import (
     HomogeniseCountryNamesOperator,
     CountryDetailsOperator,
 )
+from orion.core.operators.postgresql2es_task import Postgreqsl2ElasticSearchOperator
 from orion.packages.mag.create_tables import create_db_and_tables
 from dotenv import load_dotenv, find_dotenv
 import os
@@ -111,6 +112,11 @@ wb_country = orion.config["data"]["wb"]["country"]
 wb_end_year = orion.config["data"]["wb"]["end_year"]
 wb_indicators = orion.config["data"]["wb"]["indicators"]
 wb_table_names = orion.config["data"]["wb"]["table_names"]
+
+# PostgreSQL to Elasticsearch
+es_index = orion.config["elasticsearch"]["index"]
+es_host = os.getenv("es_host")
+erase_es_index = orion.config["elasticsearch"]["erase_index"]
 
 with DAG(
     dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(days=365)
@@ -287,6 +293,14 @@ with DAG(
         task_id="country_details", db_config=DB_CONFIG
     )
 
+    postgres2es = Postgreqsl2ElasticSearchOperator(
+        task_id="postgres2es",
+        db_config=DB_CONFIG,
+        es_host=es_host,
+        es_index=es_index,
+        erase_es_index=erase_es_index,
+    )
+
     dummy_task >> create_tables >> query_mag >> parse_mag
     dummy_task >> dummy_task_4 >> create_buckets >> dummy_task_5 >> query_mag
     parse_mag >> geocode_places >> rca
@@ -305,5 +319,6 @@ with DAG(
     parse_mag >> text2vector >> dim_reduction
     text2vector >> faiss_index
     parse_mag >> aff_types
+    parse_mag >> postgres2es
     dummy_task >> create_tables >> dummy_task_3 >> batch_task_wb >> country_association
     geocode_places >> country_association >> country_details
