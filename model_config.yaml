@@ -1,7 +1,7 @@
 seed: 42
 
 data:
-    db_name: 'orion_prod'
+    db_name: 'test_biorxiv'
     prod: True
     mag:
         query_values: ['biorxiv']
@@ -13,6 +13,10 @@ data:
         country: "all"
         table_names: ["wb_gdp", "wb_rnd_expenditure", "wb_edu_expenditure", "wb_female_workforce"]
         indicators: ["NY.GDP.MKTP.CD", "GB.XPD.RSDV.GD.ZS", "SE.XPD.TOTL.GD.ZS", "SL.TLF.CACT.FM.ZS"]
+
+elasticsearch:
+    index: "mag_papers"
+    erase_index: True
 
 umap:
     n_neighbors: 5
