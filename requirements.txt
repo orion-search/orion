@@ -20,3 +20,5 @@ tensorflow==2.0.0b1
 pandas-datareader==0.8.1
 werkzeug==0.16.0
 python-dotenv==0.10.3
+elasticsearch==7.6.0
+elasticsearch-dsl==7.0.0

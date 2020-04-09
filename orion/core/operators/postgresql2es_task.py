@@ -5,15 +5,17 @@ Postgreqsl2ElasticSearchOperator: Creates an "mag_papers" index that contains
 the following data for every paper:
 - original_title
 - abstract
+- citations
 - publication date
 - publication year
 - field_of_study_id
 - field_of_study name
+- author name
+- author affiliation
 
 Users have the option to delete the index before uploading documents. The task also
 checks if the index exists before creating it.
 """
-import logging
 from datetime import datetime
 import pandas as pd
 from sqlalchemy import create_engine
