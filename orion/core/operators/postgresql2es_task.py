@@ -1,7 +1,7 @@
 """
 Migrates data from PostgreSQL to Elasticsearch.
 
-Postgreqsl2ElasticSearchOperator: Creates an "mag_papers" index that contains 
+Postgreqsl2ElasticSearchOperator: Creates an index that contains 
 the following data for every paper:
 - original_title
 - abstract
@@ -16,6 +16,7 @@ the following data for every paper:
 Users have the option to delete the index before uploading documents. The task also
 checks if the index exists before creating it.
 """
+import logging
 from datetime import datetime
 import pandas as pd
 from sqlalchemy import create_engine
@@ -33,17 +34,30 @@ from orion.core.orms.mag_orm import (
 from elasticsearch_dsl import Index, connections
 from orion.core.orms.es_mapping import PaperES
 from elasticsearch import helpers, Elasticsearch
+from orion.packages.utils.utils import aws_es_client
 
 
 class Postgreqsl2ElasticSearchOperator(BaseOperator):
     """Migrate data from PostgreSQL to Elastic Search."""
 
     @apply_defaults
-    def __init__(self, db_config, es_index, es_host, erase_es_index, *args, **kwargs):
+    def __init__(
+        self,
+        db_config,
+        es_index,
+        es_host,
+        es_port,
+        region,
+        erase_es_index,
+        *args,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         self.db_config = db_config
         self.es_index = es_index
         self.es_host = es_host
+        self.es_port = es_port
+        self.region = region
         self.erase_es_index = erase_es_index
 
     def execute(self, context):
@@ -104,17 +118,20 @@ class Postgreqsl2ElasticSearchOperator(BaseOperator):
         )
 
         # Setup ES connection
-        connections.create_connection(hosts=[self.es_host])
+        es = aws_es_client(self.es_host, self.es_port, self.region)
 
         # Delete index if needed (usually not)
         if self.erase_es_index:
-            Index(self.es_index).delete()
+            Index(self.es_index, using=es).delete()
+            logging.info(f"Deleted ES index: {self.es_index}")
 
         # Create the index if it does not exist
-        if not Index(self.es_index).exists():
-            PaperES.init()
+        if not Index(self.es_index, using=es).exists():
+            PaperES.init(using=es)
+            logging.info(f"Created ES index: {self.es_index}")
 
         def _docs_for_load(table):
+            """Indexes documents in bulk."""
             for (
                 (paper_id, year, date, title, abstract, citations),
                 row,
@@ -137,5 +154,5 @@ class Postgreqsl2ElasticSearchOperator(BaseOperator):
                         for name, aff in zip(row["author_name"], row["affiliation"])
                     ],
                 ).to_dict(include_meta=True)
-
-        helpers.bulk(Elasticsearch(), _docs_for_load(table))
+        # Increase timeout from 10 to 180 
+        helpers.bulk(es, _docs_for_load(table), request_timeout=180)

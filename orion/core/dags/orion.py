@@ -114,9 +114,11 @@ wb_indicators = orion.config["data"]["wb"]["indicators"]
 wb_table_names = orion.config["data"]["wb"]["table_names"]
 
 # PostgreSQL to Elasticsearch
-es_index = orion.config["elasticsearch"]["index"]
+es_index = os.getenv("es_index")
 es_host = os.getenv("es_host")
+es_port = os.getenv("es_port")
 erase_es_index = orion.config["elasticsearch"]["erase_index"]
+aws_region = os.getenv("region")
 
 with DAG(
     dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(days=365)
@@ -298,6 +300,8 @@ with DAG(
         db_config=DB_CONFIG,
         es_host=es_host,
         es_index=es_index,
+        es_port=es_port,
+        region=aws_region,
         erase_es_index=erase_es_index,
     )
 

@@ -1,6 +1,9 @@
 from itertools import chain, combinations
 from collections import OrderedDict, Counter
 import numpy as np
+from elasticsearch import Elasticsearch, RequestsHttpConnection
+from requests_aws4auth import AWS4Auth
+import boto3
 
 
 def unique_dicts(d):
@@ -164,3 +167,18 @@ def average_vectors(vectors):
 
     """
     return np.mean([v for v in vectors], axis=0)
+
+
+def aws_es_client(host, port, region):
+    credentials = boto3.Session().get_credentials()
+    awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, "es")
+
+    es = Elasticsearch(
+        hosts=[{"host": host, "port": port}],
+        http_auth=awsauth,
+        use_ssl=True,
+        verify_certs=True,
+        connection_class=RequestsHttpConnection,
+    )
+
+    return es

@@ -4,7 +4,7 @@ from elasticsearch_dsl import Document, Date, Integer, Keyword, Text, Nested, Lo
 
 class PaperES(Document):
     # ES mappings
-    original_title = Text(analyzer="standard", fields={"raw": Keyword()})
+    original_title = Text(analyzer="standard")
     abstract = Text(analyzer="standard")
     year = Keyword()
     publication_date = Date()
@@ -24,7 +24,7 @@ class PaperES(Document):
         # Index name
         name = "mag_papers"
 
-        settings = {"number_of_shards": 2, "number_of_replicas": 2}
+        settings = {"number_of_shards": 2, "number_of_replicas": 0}
 
     def save(self, **kwargs):
         return super(PaperES, self).save(**kwargs)
