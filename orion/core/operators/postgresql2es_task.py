@@ -31,9 +31,9 @@ from orion.core.orms.mag_orm import (
     Author,
     Affiliation,
 )
-from elasticsearch_dsl import Index, connections
+from elasticsearch_dsl import Index
 from orion.core.orms.es_mapping import PaperES
-from elasticsearch import helpers, Elasticsearch
+from elasticsearch import helpers
 from orion.packages.utils.utils import aws_es_client
 
 

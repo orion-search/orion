@@ -170,6 +170,18 @@ def average_vectors(vectors):
 
 
 def aws_es_client(host, port, region):
+    """Create a client with IAM based authentication on AWS.
+    Boto3 will fetch the AWS credentials.
+
+    Args:
+        host (str): AWS ES domain.
+        port (int): AWS ES port (default: 443).
+        region (str): AWS ES region.
+
+    Returns:
+        es (elasticsearch.client.Elasticsearch): Authenticated AWS client.
+
+    """
     credentials = boto3.Session().get_credentials()
     awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, "es")
 
