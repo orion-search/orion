@@ -22,3 +22,4 @@ werkzeug==0.16.0
 python-dotenv==0.10.3
 elasticsearch==7.6.0
 elasticsearch-dsl==7.0.0
+requests-aws4auth==0.9
