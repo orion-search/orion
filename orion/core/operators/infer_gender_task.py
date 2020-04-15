@@ -7,6 +7,7 @@ which is supposed to be one of the most reliable name to gender inference servic
 
 """
 import logging
+import pandas as pd
 from sqlalchemy.sql import exists
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -80,15 +81,16 @@ class GenderInferenceOperator(BaseOperator):
             queries = [tup for tup in queries if tup[0] not in ids]
             logging.info(f"Total number of queries: {len(queries)}")
 
-            for i, (id_, name) in enumerate(queries, start=1):
+            for i, (name, ids) in enumerate(queries, start=1):
                 logging.info(f"Query {name}: {i} / {len(queries)}")
                 data = query_gender_api(name, self.auth_token)
                 if data is not None:
-                    data = parse_response(id_, name, data)
+                    for id_ in ids:
+                        data = parse_response(id_, name, data)
 
-                    # Inserting to DB
-                    s.add(AuthorGender(**data))
-                    s.commit()
+                        # Inserting to DB
+                        s.add(AuthorGender(**data))
+                        s.commit()
                 else:
                     continue
             logging.info("Done! :)")

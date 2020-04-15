@@ -39,7 +39,7 @@ def parse_response(id_, name, response):
     
     Args:
         id_ (int): Author MAG ID.
-        name (str): Full name used to query the GenderAPI.
+        name (str): Full or first name used to query the GenderAPI.
         response (dict): GenderAPI response.
     
     Returns:
