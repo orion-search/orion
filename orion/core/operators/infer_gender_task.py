@@ -7,6 +7,7 @@ which is supposed to be one of the most reliable name to gender inference servic
 
 """
 import logging
+import pandas as pd
 from sqlalchemy.sql import exists
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -38,16 +39,20 @@ class NamesBatchesOperator(BaseOperator):
         s = Session()
 
         # Get author names if they haven't had their name inferred yet.
-        authors = s.query(Author.id, Author.name).filter(
+        authors = pd.read_sql(s.query(Author.id, Author.name).filter(
             ~exists().where(Author.id == AuthorGender.id)
-        )
-        logging.info(f"Total authors: {authors.count()}")
+        ).statement, s.bind)
 
-        # Remove authors without a first name
-        authors = [tup for tup in authors if clean_name(tup[1])]
-        logging.info(f"Authors passed to GenderAPI: {len(authors)}")
+        # Process their name and drop missing values
+        authors['proc_name'] = authors.name.apply(clean_name)
+        authors = authors.dropna()
 
-        for i, batch in enumerate(split_batches(authors, self.batch_size)):
+        # Group author IDs by full name
+        grouped_ids = authors.groupby('proc_name')['id'].apply(list)
+        logging.info(f"Authors passed to GenderAPI: {grouped_ids.shape[0]}")
+
+        # Store (full names, IDs[]) batches on S3
+        for i, batch in enumerate(split_batches(grouped_ids.to_dict().items(), self.batch_size)):
             put_s3_batch(batch, self.s3_bucket, "_".join([self.prefix, str(i)]))
 
 
@@ -80,15 +85,16 @@ class GenderInferenceOperator(BaseOperator):
             queries = [tup for tup in queries if tup[0] not in ids]
             logging.info(f"Total number of queries: {len(queries)}")
 
-            for i, (id_, name) in enumerate(queries, start=1):
+            for i, (name, ids) in enumerate(queries, start=1):
                 logging.info(f"Query {name}: {i} / {len(queries)}")
                 data = query_gender_api(name, self.auth_token)
                 if data is not None:
-                    data = parse_response(id_, name, data)
+                    for id_ in ids:
+                        data = parse_response(id_, name, data)
 
-                    # Inserting to DB
-                    s.add(AuthorGender(**data))
-                    s.commit()
+                        # Inserting to DB
+                        s.add(AuthorGender(**data))
+                        s.commit()
                 else:
                     continue
             logging.info("Done! :)")
