@@ -39,20 +39,25 @@ class NamesBatchesOperator(BaseOperator):
         s = Session()
 
         # Get author names if they haven't had their name inferred yet.
-        authors = pd.read_sql(s.query(Author.id, Author.name).filter(
-            ~exists().where(Author.id == AuthorGender.id)
-        ).statement, s.bind)
+        authors = pd.read_sql(
+            s.query(Author.id, Author.name)
+            .filter(~exists().where(Author.id == AuthorGender.id))
+            .statement,
+            s.bind,
+        )
 
         # Process their name and drop missing values
-        authors['proc_name'] = authors.name.apply(clean_name)
+        authors["proc_name"] = authors.name.apply(clean_name)
         authors = authors.dropna()
 
         # Group author IDs by full name
-        grouped_ids = authors.groupby('proc_name')['id'].apply(list)
+        grouped_ids = authors.groupby("proc_name")["id"].apply(list)
         logging.info(f"Authors passed to GenderAPI: {grouped_ids.shape[0]}")
 
         # Store (full names, IDs[]) batches on S3
-        for i, batch in enumerate(split_batches(grouped_ids.to_dict().items(), self.batch_size)):
+        for i, batch in enumerate(
+            split_batches(grouped_ids.to_dict().items(), self.batch_size)
+        ):
             put_s3_batch(batch, self.s3_bucket, "_".join([self.prefix, str(i)]))
 
 

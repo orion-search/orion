@@ -1,5 +1,6 @@
 import pickle
 import boto3
+import logging
 
 
 def store_on_s3(data, bucket, prefix):
@@ -57,6 +58,10 @@ def s3_bucket_obj(bucket):
 def create_s3_bucket(bucket, location="eu-west-2"):
     """Create an s3 bucket on a given location."""
     s3 = boto3.resource("s3")
-    s3.create_bucket(
-        Bucket=bucket, CreateBucketConfiguration={"LocationConstraint": location}
-    )
+    # Check if the bucket already exists
+    if not s3.Bucket(bucket).creation_date:
+        s3.create_bucket(
+            Bucket=bucket, CreateBucketConfiguration={"LocationConstraint": location}
+        )
+    else:
+        logging.info(f"Bucket {bucket} already exists. Skipped creation.")

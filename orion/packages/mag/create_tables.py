@@ -27,3 +27,7 @@ def create_db_and_tables(db):
     db_config = os.getenv(db)
     engine = create_engine(db_config)
     Base.metadata.create_all(engine)
+
+
+if __name__ == "__main__":
+    create_db_and_tables("ml")

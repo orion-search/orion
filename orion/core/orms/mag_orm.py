@@ -79,7 +79,7 @@ class Author(Base):
     __tablename__ = "mag_authors"
 
     id = Column(BIGINT, primary_key=True, autoincrement=False)
-    name = Column(VARCHAR(100))
+    name = Column(VARCHAR(250))
     papers = relationship("PaperAuthor", back_populates="author")
     affiliation = relationship("AuthorAffiliation")
 

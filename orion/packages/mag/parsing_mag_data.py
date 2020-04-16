@@ -16,7 +16,6 @@ def parse_papers(response):
     """
     d = {}
     d["id"] = response["Id"]
-    d["doi"] = response["DOI"]
     d["prob"] = response["prob"]
     d["title"] = response["Ti"]
     d["publication_type"] = response["Pt"]
@@ -24,28 +23,35 @@ def parse_papers(response):
     d["date"] = response["D"]
     d["citations"] = response["CC"]
     d["original_title"] = response["DN"]
-    # Get the first URL - MAG sorts them by relevance
-    d["source"] = response["S"][0]["U"]
+    try:
+        d["doi"] = response["DOI"]
+    except KeyError as e:
+        d["doi"] = np.nan
+    try:
+        # Get the first URL - MAG sorts them by relevance
+        d["source"] = response["S"][0]["U"]
+    except KeyError as e:
+        d["source"] = np.nan
 
     try:
         d["bibtex_doc_type"] = response["BT"]
     except KeyError as e:
-        logging.info(f"{response['Id']}: {e}")
+        # logging.info(f"{response['Id']}: {e}")
         d["bibtex_doc_type"] = np.nan
     try:
         d["abstract"] = inverted2abstract(response["IA"])
     except KeyError as e:
-        logging.info(f"{response['Id']}: {e}")
+        # logging.info(f"{response['Id']}: {e}")
         d["abstract"] = np.nan
     try:
         d["references"] = json.dumps(response["RId"])
     except KeyError as e:
-        logging.info(f"{response['Id']}: {e}")
+        # logging.info(f"{response['Id']}: {e}")
         d["references"] = np.nan
     try:
         d["publisher"] = response["PB"]
     except KeyError as e:
-        logging.info(f"{response['Id']}: {e}")
+        # logging.info(f"{response['Id']}: {e}")
         d["publisher"] = np.nan
 
     return d
