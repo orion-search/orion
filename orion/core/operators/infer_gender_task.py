@@ -79,7 +79,7 @@ class GenderInferenceOperator(BaseOperator):
         Session = sessionmaker(bind=engine)
         s = Session()
 
-        # Fetch all collected author IDs
+        # # Fetch all collected author IDs
         collected_full_names = set(
             [full_name[0] for full_name in s.query(AuthorGender.full_name)]
         )
@@ -87,32 +87,37 @@ class GenderInferenceOperator(BaseOperator):
             # Load queries from S3
             queries = load_from_s3(self.s3_bucket, self.prefix)
 
-            # Filter authors that already exist in the DB
-            # This is mainly to catch existing keys after task failures or reruns
-            queries = [tup for tup in queries if tup[0] not in collected_full_names][:1000]
             # Convert queries to dict
             queries = {tup[0]: tup[1] for tup in queries}
-            logging.info(f"Total number of queries: {len(queries)}")
+
+            # Filter authors that already exist in the DB
+            # This is mainly to catch existing keys after task failures or re-runs
+            queries = {
+                k: v for k, v in queries.items() if k not in collected_full_names
+            }
+            logging.info(f"Total number of queries: {len(queries.keys())}")
 
             i = 1
             # Bulk query GenderAPI
             for chunk in toolz.partition_all(100, queries.keys()):
-                logging.info(f"Chunk: {i}")
+                logging.info(f"Chunk: {i}, count: {len(chunk)}")
                 results = query_gender_api(chunk, self.auth_token)
 
                 # Parse response
                 parsed_responses = []
                 for result in [result for result in results if result]:
-                    parsed_response = parse_response(result)
-                    for id_ in queries[parsed_response["full_name"]]:
-                        # Add author id in the response object
-                        parsed_response_copy = parsed_response.copy()
-                        parsed_response_copy.update({"id": id_})
-                        parsed_responses.append(parsed_response_copy)
-                i += 1
+                    if result["result_found"]:
+                        parsed_response = parse_response(result)
+                        for id_ in queries[parsed_response["full_name"]]:
+                            # Add author id in the response object
+                            parsed_response_copy = parsed_response.copy()
+                            parsed_response_copy.update({"id": id_})
+                            parsed_responses.append(parsed_response_copy)
 
                 # Insert bulk
                 s.bulk_insert_mappings(AuthorGender, parsed_responses)
+                s.commit()
+                i += 1
             logging.info("Done! :)")
         except ClientError as err:
             logging.info(err)
