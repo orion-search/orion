@@ -2,7 +2,6 @@ from itertools import chain, combinations
 from collections import OrderedDict, Counter
 import numpy as np
 from datetime import datetime
-import toolz
 
 
 def unique_dicts(d):

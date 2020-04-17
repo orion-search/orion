@@ -1,5 +1,4 @@
 import json
-import logging
 import numpy as np
 from orion.packages.utils.utils import inverted2abstract
 

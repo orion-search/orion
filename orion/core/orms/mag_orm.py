@@ -232,8 +232,8 @@ class AuthorGender(Base):
     id = Column(
         BIGINT, ForeignKey("mag_authors.id"), primary_key=True, autoincrement=False
     )
-    full_name = Column(VARCHAR(100))
-    first_name = Column(VARCHAR(100))
+    full_name = Column(VARCHAR(250))
+    first_name = Column(VARCHAR(250))
     gender = Column(TEXT)
     samples = Column(Integer)
     probability = Column(Float)
