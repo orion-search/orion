@@ -102,6 +102,9 @@ class CountryDetailsOperator(BaseOperator):
         Session = sessionmaker(engine)
         s = Session()
 
+        s.query(CountryDetails).delete()
+        s.commit()
+
         # Query restcountries API with Google Places country names.
         d = {}
         for country_name in [
@@ -118,6 +121,9 @@ class CountryDetailsOperator(BaseOperator):
                     )
                 except requests.exceptions.HTTPError as h:
                     logging.info(f"Failed: {country_name}")
+                    continue
+                except KeyError as e:
+                    logging.info(f"{country_name} not in mapping.")
                     continue
         # Parse country info
         country_info = []

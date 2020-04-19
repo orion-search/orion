@@ -11,7 +11,7 @@ def query_gender_api(full_names, auth_token):
     """Infers the gender by querying a full name to the GenderAPI.
     
     Args:
-        full_names (str): Full name of a person.
+        full_names (:obj:`list` of str): Full names.
         auth_token (str): Authorization token.
     
     Returns:
@@ -30,7 +30,7 @@ def query_gender_api(full_names, auth_token):
         r.raise_for_status()
         return r.json()
     except HTTPError as h:
-        logging.info(full_name, h)
+        logging.info(full_names, h)
         return None
 
 
