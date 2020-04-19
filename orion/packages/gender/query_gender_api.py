@@ -7,11 +7,11 @@ ENDPOINT = "https://gender-api.com/v2/gender"
 
 
 @retry(stop_max_attempt_number=2)
-def query_gender_api(full_name, auth_token):
+def query_gender_api(full_names, auth_token):
     """Infers the gender by querying a full name to the GenderAPI.
     
     Args:
-        full_name (str): Full name of a person.
+        full_names (:obj:`list` of str): Full names.
         auth_token (str): Authorization token.
     
     Returns:
@@ -23,18 +23,18 @@ def query_gender_api(full_name, auth_token):
         "Content-Type": "application/json",
     }
 
-    data = {"full_name": full_name}
+    data = [{"full_name": fn} for fn in full_names]
 
     r = requests.post(ENDPOINT, json=data, headers=headers)
     try:
         r.raise_for_status()
         return r.json()
     except HTTPError as h:
-        logging.info(full_name, h)
+        logging.info(full_names, h)
         return None
 
 
-def parse_response(id_, name, response):
+def parse_response(response):
     """Parses the GenderAPI response.
     
     Args:
@@ -47,8 +47,7 @@ def parse_response(id_, name, response):
     
     """
     d = {}
-    d["id"] = id_
-    d["full_name"] = name
+    d["full_name"] = response["input"]["full_name"]
     d["samples"] = response["details"]["samples"]
     d["first_name"] = response["first_name"]
     d["probability"] = response["probability"]

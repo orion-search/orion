@@ -1,27 +1,10 @@
 import pytest
 from unittest import mock
 
-from orion.packages.mag.query_mag_api import prepare_title
 from orion.packages.mag.query_mag_api import build_expr
 from orion.packages.mag.query_mag_api import query_mag_api
 from orion.packages.mag.query_mag_api import dedupe_entities
 from orion.packages.mag.query_mag_api import build_composite_expr
-
-
-class TestPrepareTitle:
-    def test_prepare_title_removes_extra_spaces(self):
-        assert prepare_title("extra   spaces       here") == "extra spaces here"
-        assert prepare_title("trailing space ") == "trailing space"
-
-    def test_prepare_title_replaces_invalid_characters_with_single_space(self):
-        assert prepare_title("invalid%&*^˙∆¬stuff") == "invalid stuff"
-        assert prepare_title("ba!!!!d3") == "ba d3"
-
-    def test_prepare_title_lowercases(self):
-        assert prepare_title("UPPER") == "upper"
-
-    def test_prepare_title_handles_empty_titles(self):
-        assert prepare_title(None) == ""
 
 
 class TestBuildExpr:
@@ -68,6 +51,6 @@ def test_dedupe_entities_picks_highest_for_each_title():
 
 def test_build_composite_queries_correctly():
     assert (
-        build_composite_expr(["biorxiv", "foo"], "C.CN")
-        == "expr=OR(Composite(C.CN='biorxiv'), Composite(C.CN='foo'))"
+        build_composite_expr(["bar", "foo"], "F.FN", ("2019-01-01", "2019-02-22"))
+        == "expr=OR(And(Composite(F.FN='bar'), D=['2019-01-01', '2019-02-22']), And(Composite(F.FN='foo'), D=['2019-01-01', '2019-02-22']))"
     )

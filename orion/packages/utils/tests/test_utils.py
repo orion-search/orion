@@ -2,6 +2,7 @@ import pytest
 import pandas as pd
 import numpy as np
 from collections import Counter
+from datetime import datetime
 
 from orion.packages.utils.utils import flatten_lists
 from orion.packages.utils.utils import unique_dicts
@@ -10,6 +11,8 @@ from orion.packages.utils.utils import dict2psql_format
 from orion.packages.utils.utils import inverted2abstract
 from orion.packages.utils.utils import cooccurrence_graph
 from orion.packages.utils.utils import get_all_children
+from orion.packages.utils.utils import date_range
+from orion.packages.utils.utils import str2datetime
 
 example_list_dict = [
     {"DFN": "Biology", "FId": 86803240},
@@ -201,5 +204,29 @@ def test_get_all_children():
 
     expected_result = [2909274368, 190796033, 196033, 114009990, 178809742, 165864922]
     result = list(set(get_all_children(data, 165864922)))
+
+    assert result == expected_result
+
+
+def test_date_range():
+    start = datetime.strptime("2000-01-01", "%Y-%m-%d")
+    end = datetime.strptime("2000-12-31", "%Y-%m-%d")
+    result = list(date_range(start, end, 6))
+    expected_result = [
+        "2000-01-01",
+        "2000-03-01",
+        "2000-05-01",
+        "2000-07-01",
+        "2000-08-31",
+        "2000-10-31",
+        "2000-12-31",
+    ]
+
+    assert result == expected_result
+
+
+def test_str2datetime():
+    result = str2datetime("2000-12-31")
+    expected_result = datetime.strptime("2000-12-31", "%Y-%m-%d")
 
     assert result == expected_result

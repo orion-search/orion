@@ -64,7 +64,9 @@ query_values = mag_config["query_values"]
 entity_name = mag_config["entity_name"]
 metadata = mag_config["metadata"]
 with_doi = mag_config["with_doi"]
-prod = orion.config["data"]["prod"]
+mag_start_date = mag_config["mag_start_date"]
+mag_end_date = mag_config["mag_end_date"]
+intervals_in_a_year = mag_config["intervals_in_a_year"]
 
 # geocode_places
 google_key = os.getenv("google_api_key")
@@ -154,8 +156,10 @@ with DAG(
         query_values=query_values,
         entity_name=entity_name,
         metadata=metadata,
-        prod=prod,
         with_doi=with_doi,
+        mag_start_date=mag_start_date,
+        mag_end_date=mag_end_date,
+        intervals_in_a_year=intervals_in_a_year,
     )
 
     parse_mag = MagParserOperator(

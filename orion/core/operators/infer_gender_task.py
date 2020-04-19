@@ -19,6 +19,7 @@ from orion.packages.gender.query_gender_api import query_gender_api, parse_respo
 from orion.core.orms.mag_orm import Author, AuthorGender
 from orion.packages.utils.nlp_utils import clean_name
 from botocore.exceptions import ClientError
+import toolz
 
 
 class NamesBatchesOperator(BaseOperator):
@@ -39,20 +40,25 @@ class NamesBatchesOperator(BaseOperator):
         s = Session()
 
         # Get author names if they haven't had their name inferred yet.
-        authors = pd.read_sql(s.query(Author.id, Author.name).filter(
-            ~exists().where(Author.id == AuthorGender.id)
-        ).statement, s.bind)
+        authors = pd.read_sql(
+            s.query(Author.id, Author.name)
+            .filter(~exists().where(Author.id == AuthorGender.id))
+            .statement,
+            s.bind,
+        )
 
         # Process their name and drop missing values
-        authors['proc_name'] = authors.name.apply(clean_name)
+        authors["proc_name"] = authors.name.apply(clean_name)
         authors = authors.dropna()
 
         # Group author IDs by full name
-        grouped_ids = authors.groupby('proc_name')['id'].apply(list)
+        grouped_ids = authors.groupby("proc_name")["id"].apply(list)
         logging.info(f"Authors passed to GenderAPI: {grouped_ids.shape[0]}")
 
         # Store (full names, IDs[]) batches on S3
-        for i, batch in enumerate(split_batches(grouped_ids.to_dict().items(), self.batch_size)):
+        for i, batch in enumerate(
+            split_batches(grouped_ids.to_dict().items(), self.batch_size)
+        ):
             put_s3_batch(batch, self.s3_bucket, "_".join([self.prefix, str(i)]))
 
 
@@ -73,30 +79,54 @@ class GenderInferenceOperator(BaseOperator):
         Session = sessionmaker(bind=engine)
         s = Session()
 
-        # Fetch all collected author IDs
-        ids = set([id[0] for id in s.query(AuthorGender.id)])
-
+        # # Fetch all collected author names
+        collected_full_names = set(
+            [full_name[0] for full_name in s.query(AuthorGender.full_name)]
+        )
         try:
             # Load queries from S3
             queries = load_from_s3(self.s3_bucket, self.prefix)
 
+            # Convert queries to dict
+            queries = {tup[0]: tup[1] for tup in queries}
+
             # Filter authors that already exist in the DB
-            # This is mainly to catch existing keys after task failures
-            queries = [tup for tup in queries if tup[0] not in ids]
-            logging.info(f"Total number of queries: {len(queries)}")
+            # This is mainly to catch existing keys after task failures or re-runs
+            queries = {
+                k: v for k, v in queries.items() if k not in collected_full_names
+            }
+            logging.info(f"Total number of queries: {len(queries.keys())}")
 
-            for i, (name, ids) in enumerate(queries, start=1):
-                logging.info(f"Query {name}: {i} / {len(queries)}")
-                data = query_gender_api(name, self.auth_token)
-                if data is not None:
-                    for id_ in ids:
-                        data = parse_response(id_, name, data)
+            # i = 1
+            # Bulk query GenderAPI
+            for i, chunk in enumerate(
+                toolz.partition_all(100, queries.keys()), start=1
+            ):
+                logging.info(f"Chunk: {i}, count: {len(chunk)}")
+                results = query_gender_api(chunk, self.auth_token)
 
-                        # Inserting to DB
-                        s.add(AuthorGender(**data))
-                        s.commit()
+                if results:
+                    # Parse response
+                    parsed_responses = []
+                    for result in [result for result in results if result]:
+                        if result["result_found"]:
+                            parsed_response = parse_response(result)
+                            for id_ in queries[parsed_response["full_name"]]:
+                                # Add author id in the response object
+                                parsed_response_copy = parsed_response.copy()
+                                parsed_response_copy.update({"id": id_})
+                                parsed_responses.append(parsed_response_copy)
+
+                    # Insert bulk
+                    s.bulk_insert_mappings(AuthorGender, parsed_responses)
+                    s.commit()
+                    logging.info(f"Committed {len(parsed_responses)} results")
+                    # i += 1
                 else:
+                    logging.info(f"Chunk {i} failed.")
+                    # i += 1
                     continue
+
             logging.info("Done! :)")
         except ClientError as err:
             logging.info(err)

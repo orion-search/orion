@@ -79,7 +79,7 @@ class Author(Base):
     __tablename__ = "mag_authors"
 
     id = Column(BIGINT, primary_key=True, autoincrement=False)
-    name = Column(VARCHAR(100))
+    name = Column(VARCHAR(250))
     papers = relationship("PaperAuthor", back_populates="author")
     affiliation = relationship("AuthorAffiliation")
 
@@ -232,8 +232,8 @@ class AuthorGender(Base):
     id = Column(
         BIGINT, ForeignKey("mag_authors.id"), primary_key=True, autoincrement=False
     )
-    full_name = Column(VARCHAR(100))
-    first_name = Column(VARCHAR(100))
+    full_name = Column(VARCHAR(250))
+    first_name = Column(VARCHAR(250))
     gender = Column(TEXT)
     samples = Column(Integer)
     probability = Column(Float)
