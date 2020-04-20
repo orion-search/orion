@@ -25,6 +25,7 @@ from orion.core.orms.mag_orm import (
     FilteredFos,
     CountrySimilarity,
     PaperFieldsOfStudy,
+    HighDimDocVector,
 )
 from orion.packages.projection.faiss_index import faiss_index
 
@@ -87,24 +88,17 @@ class CountrySimilarityOperator(BaseOperator):
     """Find the semantic similarity between abstracts."""
 
     @apply_defaults
-    def __init__(self, db_config, year, bucket, prefix, k=5, thresh=2, *args, **kwargs):
+    def __init__(self, db_config, year, k=5, thresh=2, *args, **kwargs):
         super().__init__(**kwargs)
         self.db_config = db_config
         self.year = year
         self.k = k
         self.thresh = thresh
-        self.bucket = bucket
-        self.prefix = prefix
 
     def execute(self, context):
-        # Load document vectors from S3
-        doi, vectors, ids = zip(*load_from_s3(self.bucket, self.prefix))
-        vectors = pd.DataFrame({"id": ids, "vector": vectors})
-        logging.info(f"Vectors DF: {vectors.shape}")
-
-        # Connect to postgresql db
+        # Connect to postgresql
         engine = create_engine(self.db_config)
-        Session = sessionmaker(engine)
+        Session = sessionmaker(bind=engine)
         s = Session()
 
         # Drop and recreate the country similarity table to update the metric
@@ -117,6 +111,10 @@ class CountrySimilarityOperator(BaseOperator):
         author_aff = pd.read_sql(s.query(AuthorAffiliation).statement, s.bind)
         paper_fos = pd.read_sql(s.query(PaperFieldsOfStudy).statement, s.bind)
         filtered_fos = pd.read_sql(s.query(FilteredFos).statement, s.bind)
+        vectors = pd.read_sql(
+            s.query(HighDimDocVector.vector, HighDimDocVector.id).statement, s.bind
+        )
+        vectors["vector"] = vectors.vector.apply(np.array)
 
         # dict(topic id, all children)
         d = {}
@@ -169,7 +167,7 @@ class CountrySimilarityOperator(BaseOperator):
 
             # Find similar countries on annual basis
             for year in set([tup[0] for tup in grouped.index if tup[0] > self.year]):
-                v = np.array([v for v in grouped.loc[year]])
+                v = np.array([v for v in grouped.loc[year]]).astype("float32")
                 ids = range(len(grouped.loc[year].index))
                 logging.info(f"Vectors shape: {v.shape}")
                 # Check that we have at least more than 5 countries in that year and topic
