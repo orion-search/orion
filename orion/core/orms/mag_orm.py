@@ -157,6 +157,17 @@ class AffiliationLocation(Base):
     geocoded_affiliation = relationship("Affiliation", back_populates="aff_location")
 
 
+class HighDimDocVector(Base):
+    """High dimensional Abstract vector of a paper."""
+
+    __tablename__ = "high_dim_doc_vectors"
+
+    id = Column(
+        BIGINT, ForeignKey("mag_papers.id"), primary_key=True, autoincrement=False
+    )
+    vector = Column(ARRAY(FLOAT))
+
+
 class DocVector(Base):
     """Abstract vector of a paper."""
 
@@ -165,8 +176,6 @@ class DocVector(Base):
     id = Column(
         BIGINT, ForeignKey("mag_papers.id"), primary_key=True, autoincrement=False
     )
-    doi = Column(VARCHAR(200))
-    vector_2d = Column(ARRAY(FLOAT))
     vector_3d = Column(ARRAY(FLOAT))
 
 

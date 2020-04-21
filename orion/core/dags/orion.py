@@ -84,7 +84,6 @@ parallel_tasks = orion.config["parallel_tasks"]
 auth_token = os.getenv("gender_api")
 
 # text2vector
-text_vectors_prefix = orion.config["prefix"]["text_vectors"]
 text_vectors_bucket = orion.config["s3_buckets"]["text_vectors"]
 
 # dim_reduction
@@ -207,17 +206,12 @@ with DAG(
     )
 
     text2vector = Text2TfidfOperator(
-        task_id="text2vector",
-        db_config=DB_CONFIG,
-        bucket=text_vectors_bucket,
-        prefix=text_vectors_prefix,
+        task_id="text2vector", db_config=DB_CONFIG, bucket=text_vectors_bucket
     )
 
     dim_reduction = DimReductionOperator(
         task_id="dim_reduction",
         db_config=DB_CONFIG,
-        bucket=text_vectors_bucket,
-        prefix=text_vectors_prefix,
         n_neighbors=n_neighbors,
         min_dist=min_dist,
         n_components=n_components,
@@ -229,11 +223,7 @@ with DAG(
     )
 
     country_similarity = CountrySimilarityOperator(
-        task_id="country_similarity",
-        db_config=DB_CONFIG,
-        year=collab_year,
-        bucket=text_vectors_bucket,
-        prefix=text_vectors_prefix,
+        task_id="country_similarity", db_config=DB_CONFIG, year=collab_year
     )
 
     topic_filtering = FilterTopicsByDistributionOperator(
@@ -267,7 +257,7 @@ with DAG(
     )
 
     faiss_index = FaissIndexOperator(
-        task_id="faiss_index", bucket=text_vectors_bucket, prefix=text_vectors_prefix
+        task_id="faiss_index", bucket=text_vectors_bucket, db_config=DB_CONFIG
     )
 
     viz_tables = CreateVizTables(task_id="viz_tables", db_config=DB_CONFIG)

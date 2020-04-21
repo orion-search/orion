@@ -1,12 +1,9 @@
 import torch
 from transformers import DistilBertModel, DistilBertTokenizer
 import numpy as np
-import tensorflow as tf
 import sentencepiece as spm
-import tensorflow_hub as hub
 
 np.random.seed(42)
-USE = "https://tfhub.dev/google/universal-sentence-encoder/4"
 
 
 class Text2Vector:
@@ -72,19 +69,3 @@ class Text2Vector:
 
         """
         return np.mean([l for l in vectors.numpy()[0]], axis=0)
-
-
-def use_vectors(documents):
-    """Find the vector representation of a collection of documents using Google's
-    Universal Sentence Encoder model.
-
-    Args:
-        documents (:obj:`list` of :obj:`str`): List of raw text documents.
-
-    Returns:
-        (:obj:`numpy.array` of :obj:`numpy.array` of :obj:`float`): 
-            Vector representation of documents.
-
-    """
-    model = hub.load(USE)
-    return model(documents).numpy()
