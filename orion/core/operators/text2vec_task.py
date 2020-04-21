@@ -11,11 +11,6 @@ preprocesses the data and SVD reduces the dimensionality of the document vectors
 abstracts from PostgreSQL which decodes to text. The output vectors are 
 stored on S3.
 
-
-Text2USEOperator: Uses a pretrained model (Universal Sentence Encoder) from TensorHub to
-transform text to vectors. It fetches abstracts from PostgreSQL which decodes to 
-text. The output vectors are stored on S3.
-
 """
 import logging
 from sqlalchemy import create_engine, and_
@@ -23,8 +18,8 @@ from sqlalchemy.sql import exists
 from sqlalchemy.orm import sessionmaker
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
-from orion.packages.nlp.text2vec import Text2Vector, use_vectors
-from orion.core.orms.mag_orm import Paper, DocVector
+from orion.packages.nlp.text2vec import Text2Vector
+from orion.core.orms.mag_orm import Paper, HighDimDocVector
 from orion.packages.utils.s3_utils import store_on_s3
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
@@ -40,7 +35,7 @@ class Text2VectorOperator(BaseOperator):
 
     # template_fields = ['']
     @apply_defaults
-    def __init__(self, db_config, bucket, prefix, *args, **kwargs):
+    def __init__(self, db_config, bucket, *args, **kwargs):
         super().__init__(**kwargs)
         self.db_config = db_config
         self.bucket = bucket
@@ -53,10 +48,9 @@ class Text2VectorOperator(BaseOperator):
         s = Session()
 
         # Get the abstracts of bioRxiv papers.
-        papers = s.query(Paper.abstract, Paper.id, Paper.doi).filter(
+        papers = s.query(Paper.abstract, Paper.id).filter(
             and_(
-                ~exists().where(Paper.id == DocVector.id),
-                Paper.doi.isnot(None),
+                ~exists().where(Paper.id == HighDimDocVector.id),
                 Paper.abstract != "NaN",
             )
         )
@@ -65,14 +59,16 @@ class Text2VectorOperator(BaseOperator):
         # Convert text to vectors
         tv = Text2Vector()
         vectors = []
-        for i, (abstract, id_, doi) in enumerate(papers):
-            logging.info(f"{i}: {doi}")
+        for i, (abstract, id_) in enumerate(papers, start=1):
+            logging.info(f"{i}: {id_}")
             vec = tv.average_vectors(tv.feature_extraction(tv.encode_text(abstract)))
-            vectors.append([doi, vec, id_])
-        logging.info("Embedding documents - Done!")
+            vectors.append({"vector": vec, "id": id_})
 
-        store_on_s3(vectors, self.bucket, self.prefix)
-        logging.info("Stored to S3!")
+            if i % 100:
+                s.bulk_insert_mappings(HighDimDocVector)
+                s.commit()
+                vectors.clear()
+                logging.info("Stored {i} vectors to DB!")
 
 
 class Text2TfidfOperator(BaseOperator):
@@ -80,11 +76,11 @@ class Text2TfidfOperator(BaseOperator):
 
     # template_fields = ['']
     @apply_defaults
-    def __init__(self, db_config, bucket, prefix, *args, **kwargs):
+    def __init__(self, db_config, bucket, *args, **kwargs):
         super().__init__(**kwargs)
         self.db_config = db_config
         self.bucket = bucket
-        self.prefix = prefix
+        # self.prefix = prefix
 
     def execute(self, context):
         # Connect to postgresql
@@ -93,17 +89,16 @@ class Text2TfidfOperator(BaseOperator):
         s = Session()
 
         # Get the paper abstracts.
-        papers = s.query(Paper.abstract, Paper.id, Paper.doi).filter(
+        papers = s.query(Paper.abstract, Paper.id).filter(
             and_(
-                ~exists().where(Paper.id == DocVector.id),
-                Paper.doi.isnot(None),
+                ~exists().where(Paper.id == HighDimDocVector.id),
                 Paper.abstract != "NaN",
             )
         )
         logging.info(f"Number of documents to be vectorised: {papers.count()}")
 
-        # Reconstruct abstracts
-        abstracts, ids, doi = zip(*papers)
+        # Unroll abstracts and IDs
+        abstracts, ids = zip(*papers)
 
         # Get tfidf vectors
         vectorizer = TfidfVectorizer(
@@ -114,52 +109,18 @@ class Text2TfidfOperator(BaseOperator):
 
         # Reduce dimensionality with SVD to speed up UMAP computation
         svd = TruncatedSVD(n_components=svd_components, random_state=seed)
-        features = svd.fit_transform(X).astype("float32")
+        features = svd.fit_transform(X)
         logging.info(f"SVD dimensionality reduction shape: {features.shape}")
 
-        vectors = [[doi, vec, id_] for doi, vec, id_ in zip(doi, features, ids)]
-        logging.info(f"Embedding triplets: {len(vectors)}")
+        vectors = [{"vector": vec, "id": id_} for vec, id_ in zip(features, ids)]
+        logging.info(f"Embeddings: {len(vectors)}")
 
-        store_on_s3(vectors, self.bucket, self.prefix)
+        # Store models to S3
         store_on_s3(vectorizer, self.bucket, "tfidf_model")
         store_on_s3(svd, self.bucket, "svd_model")
-        logging.info("Stored to S3!")
+        logging.info("Stored models to S3!")
 
-
-class Text2USEOperator(BaseOperator):
-    """Transform text to vectors with the Universal Sentence Encoder model."""
-
-    @apply_defaults
-    def __init__(self, db_config, bucket, prefix, *args, **kwargs):
-        super().__init__(**kwargs)
-        self.db_config = db_config
-        self.bucket = bucket
-        self.prefix = prefix
-
-    def execute(self, context):
-        # Connect to postgresql
-        engine = create_engine(self.db_config)
-        Session = sessionmaker(bind=engine)
-        s = Session()
-
-        # Get the abstracts of bioRxiv papers.
-        papers = s.query(Paper.abstract, Paper.id, Paper.doi).filter(
-            and_(
-                ~exists().where(Paper.id == DocVector.id),
-                Paper.doi.isnot(None),
-                Paper.abstract != "NaN",
-            )
-        )
-        logging.info(f"Number of documents to be vectorised: {papers.count()}")
-
-        # Reconstruct abstracts
-        abstracts, ids, doi = zip(*papers)
-        assert len(abstracts) == len(ids)
-        logging.info(f"Number of abstracts to vectorise: {len(abstracts)}")
-
-        # Vectorisation with USE
-        vectors = use_vectors(abstracts)
-        logging.info("Finished vectorisation :)")
-        vectors = [[doi, vec, id_] for doi, vec, id_ in zip(doi, vectors, ids)]
-        store_on_s3(vectors, self.bucket, "use_vectors")
-        logging.info("Stored to S3!")
+        # Store vectors to DB
+        s.bulk_insert_mappings(HighDimDocVector, vectors)
+        s.commit()
+        logging.info("Stored vectors to DB!")

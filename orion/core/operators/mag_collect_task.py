@@ -38,6 +38,7 @@ child and parent nodes from Microsoft Academic Graph.
 
 """
 import logging
+from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.sql import exists
 from sqlalchemy.orm import sessionmaker
@@ -50,6 +51,8 @@ from orion.packages.mag.query_mag_api import (
     build_composite_expr,
 )
 from orion.packages.utils.s3_utils import store_on_s3
+from orion.packages.utils.utils import date_range, str2datetime
+import toolz
 
 
 class MagCollectionOperator(BaseOperator):
@@ -65,8 +68,10 @@ class MagCollectionOperator(BaseOperator):
         query_values,
         entity_name,
         metadata,
-        prod,
         with_doi,
+        mag_start_date,
+        mag_end_date,
+        intervals_in_a_year,
         *args,
         **kwargs,
     ):
@@ -76,51 +81,64 @@ class MagCollectionOperator(BaseOperator):
         self.entity_name = entity_name
         self.subscription_key = subscription_key
         self.output_bucket = output_bucket
-        self.prod = prod
         self.with_doi = with_doi
+        self.mag_start_date = mag_start_date
+        self.mag_end_date = mag_end_date
+        self.intervals_in_a_year = intervals_in_a_year
 
     def execute(self, context):
-        expression = build_composite_expr(self.query_values, self.entity_name)
-        logging.info(f"{expression}")
+        # Convert strings to datetime objects
+        self.mag_start_date = str2datetime(self.mag_start_date)
+        self.mag_end_date = str2datetime(self.mag_end_date)
 
-        has_content = True
-        i = 1
-        offset = 0
+        # Number of time intervals for the data collection
+        total_intervals = (
+            abs(self.mag_start_date.year - self.mag_end_date.year) + 1
+        ) * self.intervals_in_a_year
+
+        i = 0
         query_count = 1000
-        # Request the API as long as we receive non-empty responses
-        while has_content:
-            logging.info(f"Query {i} - Offset {offset}...")
+        for date in toolz.sliding_window(
+            2, list(date_range(self.mag_start_date, self.mag_end_date, total_intervals))
+        ):
+            logging.info(f"Date interval: {date}")
+            expression = build_composite_expr(self.query_values, self.entity_name, date)
+            logging.info(f"{expression}")
 
-            data = query_mag_api(
-                expression,
-                self.metadata,
-                self.subscription_key,
-                query_count=query_count,
-                offset=offset,
-            )
+            has_content = True
+            # i = 1
+            offset = 0
+            # Request the API as long as we receive non-empty responses
+            while has_content:
+                logging.info(f"Query {i} - Offset {offset}...")
 
-            if self.with_doi:
-                # Keep only papers with a DOI
-                results = [ents for ents in data["entities"] if "DOI" in ents.keys()]
-            else:
-                results = [ents for ents in data["entities"]]
+                data = query_mag_api(
+                    expression,
+                    self.metadata,
+                    self.subscription_key,
+                    query_count=query_count,
+                    offset=offset,
+                )
 
-            filename = "-".join([self.output_bucket, str(i),])
-            logging.info(f"File on s3: {filename}")
+                if self.with_doi:
+                    # Keep only papers with a DOI
+                    results = [
+                        ents for ents in data["entities"] if "DOI" in ents.keys()
+                    ]
+                else:
+                    results = [ents for ents in data["entities"]]
 
-            store_on_s3(results, self.output_bucket, filename)
-            logging.info(f"Number of stored results from query {i}: {len(results)}")
+                filename = "-".join([self.output_bucket, str(i),])
+                logging.info(f"File on s3: {filename}")
 
-            i += 1
-            offset += query_count
+                store_on_s3(results, self.output_bucket, filename)
+                logging.info(f"Number of stored results from query {i}: {len(results)}")
 
-            if len(results) == 0:
-                has_content = False
+                i += 1
+                offset += query_count
 
-            if not self.prod:
-                logging.info(f"Working in dev mode. {i}: {len(results[:10])}")
-                store_on_s3(results[:10], self.output_bucket, filename)
-                has_content = False
+                if len(results) == 0:
+                    has_content = False
 
 
 class MagFosCollectionOperator(BaseOperator):

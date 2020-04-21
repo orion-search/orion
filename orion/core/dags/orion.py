@@ -64,7 +64,9 @@ query_values = mag_config["query_values"]
 entity_name = mag_config["entity_name"]
 metadata = mag_config["metadata"]
 with_doi = mag_config["with_doi"]
-prod = orion.config["data"]["prod"]
+mag_start_date = mag_config["mag_start_date"]
+mag_end_date = mag_config["mag_end_date"]
+intervals_in_a_year = mag_config["intervals_in_a_year"]
 
 # geocode_places
 google_key = os.getenv("google_api_key")
@@ -82,7 +84,6 @@ parallel_tasks = orion.config["parallel_tasks"]
 auth_token = os.getenv("gender_api")
 
 # text2vector
-text_vectors_prefix = orion.config["prefix"]["text_vectors"]
 text_vectors_bucket = orion.config["s3_buckets"]["text_vectors"]
 
 # dim_reduction
@@ -156,8 +157,10 @@ with DAG(
         query_values=query_values,
         entity_name=entity_name,
         metadata=metadata,
-        prod=prod,
         with_doi=with_doi,
+        mag_start_date=mag_start_date,
+        mag_end_date=mag_end_date,
+        intervals_in_a_year=intervals_in_a_year,
     )
 
     parse_mag = MagParserOperator(
@@ -205,17 +208,12 @@ with DAG(
     )
 
     text2vector = Text2TfidfOperator(
-        task_id="text2vector",
-        db_config=DB_CONFIG,
-        bucket=text_vectors_bucket,
-        prefix=text_vectors_prefix,
+        task_id="text2vector", db_config=DB_CONFIG, bucket=text_vectors_bucket
     )
 
     dim_reduction = DimReductionOperator(
         task_id="dim_reduction",
         db_config=DB_CONFIG,
-        bucket=text_vectors_bucket,
-        prefix=text_vectors_prefix,
         n_neighbors=n_neighbors,
         min_dist=min_dist,
         n_components=n_components,
@@ -227,11 +225,7 @@ with DAG(
     )
 
     country_similarity = CountrySimilarityOperator(
-        task_id="country_similarity",
-        db_config=DB_CONFIG,
-        year=collab_year,
-        bucket=text_vectors_bucket,
-        prefix=text_vectors_prefix,
+        task_id="country_similarity", db_config=DB_CONFIG, year=collab_year
     )
 
     topic_filtering = FilterTopicsByDistributionOperator(
@@ -265,7 +259,7 @@ with DAG(
     )
 
     faiss_index = FaissIndexOperator(
-        task_id="faiss_index", bucket=text_vectors_bucket, prefix=text_vectors_prefix
+        task_id="faiss_index", bucket=text_vectors_bucket, db_config=DB_CONFIG
     )
 
     viz_tables = CreateVizTables(task_id="viz_tables", db_config=DB_CONFIG)

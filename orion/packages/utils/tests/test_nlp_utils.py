@@ -31,6 +31,15 @@ def test_clean_name_from_single_initial_variation():
     assert result == expected_result
 
 
+def test_clean_name_symbols():
+    name = "허준 ( Joon Hur ) 이용구 ( Yong Goo Lee )"
+    result = clean_name(name)
+
+    expected_result = "허준 Joon Hur 이용구 Yong Goo Lee"
+
+    assert result == expected_result
+
+
 def test_clean_name():
     name = "Foo FooBar"
     result = clean_name(name)

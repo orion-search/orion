@@ -4,6 +4,7 @@ import numpy as np
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 import boto3
+from datetime import datetime
 
 
 def unique_dicts(d):
@@ -92,7 +93,9 @@ def inverted2abstract(obj):
                 for idx in v:
                     d[idx] = k
 
-        return " ".join([v for _, v in OrderedDict(sorted(d.items())).items()])
+        return " ".join([v for _, v in OrderedDict(sorted(d.items())).items()]).replace(
+            "\x00", ""
+        )
     else:
         return np.nan
 
@@ -194,3 +197,39 @@ def aws_es_client(host, port, region):
     )
 
     return es
+
+
+def str2datetime(input_date):
+    """Transform a string to datetime object.
+
+    Args:
+        input_date (str): String date of the format Y-m-d. It can
+            also be 'today' which will return today's date.
+
+    Returns:
+        (`datetime.datetime`)
+
+    """
+    if input_date == "today":
+        return datetime.today()
+    else:
+        return datetime.strptime(input_date, "%Y-%m-%d")
+
+
+def date_range(start, end, intv):
+    """Splits a date range into intervals.
+
+    Args:
+        start (str): Start date of the format (Y-m-d).
+        intv (int): Number of intervals.
+        end (str): End date of the format (Y-m-d).
+
+    Returns:
+        (:obj:`generator` of `str`) Dates with the (Y-m-d) format.
+
+    """
+    diff = (end - start) / intv
+    for i in range(intv):
+        yield (start + diff * i).strftime("%Y-%m-%d")
+    yield end.strftime("%Y-%m-%d")
+

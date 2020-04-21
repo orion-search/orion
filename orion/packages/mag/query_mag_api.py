@@ -5,38 +5,8 @@ import logging
 import requests
 from collections import defaultdict
 from retrying import retry
-from alphabet_detector import AlphabetDetector
 
 ENDPOINT = "https://api.labs.cognitive.microsoft.com/academic/v1.0/evaluate"
-
-
-def prepare_title(title):
-    """Replaces non-alphanums from a paper title, allowing foreign characters and cleans
-    up multiple spaces and trailing spaces.
-
-    Args:
-        title (:obj:`str`): The title of the paper.
-
-    Returns:
-        (:obj:`str`): Cleaned title.
-
-    """
-    detector = AlphabetDetector()
-    if title is None:
-        return ""
-    result = "".join(
-        [
-            x if len(detector.detect_alphabet(x)) > 0 or x.isnumeric() else " "
-            for x in title.lower()
-        ]
-    )
-    # Recursively remove spaces
-    while "  " in result:
-        result = result.replace("  ", " ")
-    # Remove trailing spaces
-    if result[-1] == " ":
-        result = result[0:-1]
-    return result
 
 
 def build_expr(query_items, entity_name, max_length=16000):
@@ -214,12 +184,13 @@ def query_fields_of_study(
                 break
 
 
-def build_composite_expr(query_values, entity_name):
+def build_composite_expr(query_values, entity_name, date):
     """Builds a composite expression with ANDs in OR to be used as MAG query.
 
     Args:
         query_values (:obj:`list` of str): Phrases to query MAG with. 
         entity_name (str): MAG attribute that will be used in query.
+        date (:obj:`tuple` of `str`): Time period of the data collection.
 
     Returns:
         (str) MAG expression.
@@ -227,7 +198,11 @@ def build_composite_expr(query_values, entity_name):
     """
     query_prefix_format = "expr=OR({})"
     and_queries = [
-        "".join([f"Composite({entity_name}='{query_value}')"])
+        "".join(
+            [
+                f"And(Composite({entity_name}='{query_value}'), D=['{date[0]}', '{date[1]}'])"
+            ]
+        )
         for query_value in query_values
     ]
     return query_prefix_format.format(", ".join(and_queries))

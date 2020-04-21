@@ -10,13 +10,18 @@ def clean_name(name):
             (:obj:`str`) or (:obj:`np.nan`), depending on the string. 
     
     """
+    name = re.sub('[)(#"!:]|-{2,}', "", name)
     first_name = " ".join(name.split(" ")[:-1])
     last_name = name.split(" ")[-1]
 
     # Remove initials
     first_name = re.sub("(.?)\.", "", first_name).strip()
+    first_name = re.sub("[A-Z]*-[A-Z]\\b", "", first_name)
+    first_name = " ".join(
+        [string for string in first_name.split(" ") if len(string) > 1]
+    )
     if len(first_name) > 1:
-        return " ".join([first_name, last_name])
+        return " ".join([first_name, last_name]).strip()
     else:
         return None
 

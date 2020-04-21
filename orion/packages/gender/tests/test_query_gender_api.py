@@ -8,7 +8,7 @@ from orion.packages.gender.query_gender_api import parse_response
 @mock.patch("orion.packages.gender.query_gender_api.requests.post", autospec=True)
 def test_query_gender_api_sends_correct_request(mocked_requests):
     auth_token = 123
-    full_name = "foo bar"
+    full_name = ["foo bar"]
     query_gender_api(full_name, auth_token)
 
     expected_call_args = mock.call(
@@ -17,16 +17,14 @@ def test_query_gender_api_sends_correct_request(mocked_requests):
             "Authorization": f"Bearer {auth_token}",
             "Content-Type": "application/json",
         },
-        json={"full_name": "foo bar"},
+        json=[{"full_name": "foo bar"}],
     )
     assert mocked_requests.call_args == expected_call_args
 
 
 def test_parse_response_from_gender_api():
-    id_ = 123
-    full_name = "Foo Bar"
     response = {
-        "input": {"first_name": "Foo"},
+        "input": {"full_name": "Foo Bar"},
         "details": {
             "credits_used": 1,
             "duration": "71ms",
@@ -40,10 +38,9 @@ def test_parse_response_from_gender_api():
         "gender": "female",
     }
 
-    result = parse_response(id_, full_name, response)
+    result = parse_response(response)
 
     expected_result = {
-        "id": 123,
         "full_name": "Foo Bar",
         "samples": 106011,
         "first_name": "Foo",
