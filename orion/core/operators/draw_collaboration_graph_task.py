@@ -16,7 +16,6 @@ from sqlalchemy.orm import sessionmaker
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 from orion.packages.utils.utils import cooccurrence_graph
-from orion.packages.utils.s3_utils import load_from_s3
 from orion.core.orms.mag_orm import (
     AuthorAffiliation,
     AffiliationLocation,

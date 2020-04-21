@@ -11,7 +11,6 @@ from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 from orion.core.orms.mag_orm import DocVector, HighDimDocVector
 from orion.packages.projection.dim_reduction import umap_embeddings
-from orion.packages.utils.s3_utils import load_from_s3
 
 
 class DimReductionOperator(BaseOperator):
