@@ -17,7 +17,6 @@ data:
         indicators: ["NY.GDP.MKTP.CD", "GB.XPD.RSDV.GD.ZS", "SE.XPD.TOTL.GD.ZS", "SL.TLF.CACT.FM.ZS"]
 
 elasticsearch:
-    index: "mag_papers"
     erase_index: True
 
 umap:

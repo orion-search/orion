@@ -30,7 +30,7 @@ WORKDIR /install
 COPY requirements.txt /requirements.txt
 
 RUN pip install --upgrade pip \
-  && pip install --install-option="--prefix=/install" -r /requirements.txt
+  && pip install --install-option=“--prefix=/install” -r /requirements.txt
 
 FROM base
 
@@ -42,8 +42,7 @@ COPY entrypoint /entrypoint
 COPY boto.cfg /etc/boto.cfg
 
 
-RUN echo ${orion_prod} \
-  && pip install -e .
+RUN pip install -e .
 
 EXPOSE 8080
 

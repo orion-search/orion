@@ -1,6 +1,9 @@
 from itertools import chain, combinations
 from collections import OrderedDict, Counter
 import numpy as np
+from elasticsearch import Elasticsearch, RequestsHttpConnection
+from requests_aws4auth import AWS4Auth
+import boto3
 from datetime import datetime
 
 
@@ -169,6 +172,33 @@ def average_vectors(vectors):
     return np.mean([v for v in vectors], axis=0)
 
 
+def aws_es_client(host, port, region):
+    """Create a client with IAM based authentication on AWS.
+    Boto3 will fetch the AWS credentials.
+
+    Args:
+        host (str): AWS ES domain.
+        port (int): AWS ES port (default: 443).
+        region (str): AWS ES region.
+
+    Returns:
+        es (elasticsearch.client.Elasticsearch): Authenticated AWS client.
+
+    """
+    credentials = boto3.Session().get_credentials()
+    awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, "es")
+
+    es = Elasticsearch(
+        hosts=[{"host": host, "port": port}],
+        http_auth=awsauth,
+        use_ssl=True,
+        verify_certs=True,
+        connection_class=RequestsHttpConnection,
+    )
+
+    return es
+
+
 def str2datetime(input_date):
     """Transform a string to datetime object.
 
@@ -202,3 +232,4 @@ def date_range(start, end, intv):
     for i in range(intv):
         yield (start + diff * i).strftime("%Y-%m-%d")
     yield end.strftime("%Y-%m-%d")
+
