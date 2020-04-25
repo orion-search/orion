@@ -35,11 +35,9 @@ class Text2VectorOperator(BaseOperator):
 
     # template_fields = ['']
     @apply_defaults
-    def __init__(self, db_config, bucket, *args, **kwargs):
+    def __init__(self, db_config, *args, **kwargs):
         super().__init__(**kwargs)
         self.db_config = db_config
-        self.bucket = bucket
-        self.prefix = prefix
 
     def execute(self, context):
         # Connect to postgresql
@@ -58,17 +56,13 @@ class Text2VectorOperator(BaseOperator):
 
         # Convert text to vectors
         tv = Text2Vector()
-        vectors = []
         for i, (abstract, id_) in enumerate(papers, start=1):
-            logging.info(f"{i}: {id_}")
             vec = tv.average_vectors(tv.feature_extraction(tv.encode_text(abstract)))
-            vectors.append({"vector": vec, "id": id_})
 
-            if i % 100:
-                s.bulk_insert_mappings(HighDimDocVector)
-                s.commit()
-                vectors.clear()
-                logging.info("Stored {i} vectors to DB!")
+            # Commit to db
+            s.add(HighDimDocVector(**{"vector": vec.astype(float), "id": id_}))
+            s.commit()
+        logging.info("Committed to DB!")
 
 
 class Text2TfidfOperator(BaseOperator):

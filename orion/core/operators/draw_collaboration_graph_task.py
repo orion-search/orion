@@ -188,6 +188,6 @@ class CountrySimilarityOperator(BaseOperator):
                                 )
                             )
                             s.commit()
-                        logging.info(f"Stored in DB for {country} - {year}")
+                        # logging.info(f"Stored in DB for {country} - {year}")
                 else:
                     continue

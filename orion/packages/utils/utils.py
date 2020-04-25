@@ -232,4 +232,3 @@ def date_range(start, end, intv):
     for i in range(intv):
         yield (start + diff * i).strftime("%Y-%m-%d")
     yield end.strftime("%Y-%m-%d")
-
