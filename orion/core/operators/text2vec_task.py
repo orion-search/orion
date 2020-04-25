@@ -1,15 +1,22 @@
 """
 Transforms a variable length text to a fixed-length vector.
 
-Text2VectorOperator: Uses a pretrained model (ALBERT) from the transformers library 
+Text2VectorOperator: Uses a pretrained model (DistilBERT) from the transformers library 
 to create word vectors which are then averaged to produce a document vector. It fetches 
 abstracts from PostgreSQL which decodes to text. The output vectors are 
-stored on S3.
+stored on PostgreSQL.
 
 Text2TfidfOperator: Transforms text to vectors using TF-IDF and SVD. TF-IDF from scikit-learn 
 preprocesses the data and SVD reduces the dimensionality of the document vectors. It fetches
 abstracts from PostgreSQL which decodes to text. The output vectors are 
-stored on S3.
+stored on PostgreSQL.
+
+Text2SentenceBertOperator: Uses a pretrained model (DistilBERT) to create sentence-level embeddings
+which are max-pooled to produce a document vector. It fetches abstracts from PostgreSQL and
+decodes to text. The output vectors are stored on PostgreSQL.
+
+Note: Running Text2VectorOperator and Text2SentenceBertOperator on a GPU will massively speed up
+the computation.
 
 """
 import logging
@@ -22,8 +29,10 @@ from orion.packages.nlp.text2vec import Text2Vector
 from orion.core.orms.mag_orm import Paper, HighDimDocVector
 from orion.packages.utils.s3_utils import store_on_s3
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sentence_transformers import SentenceTransformer
 from sklearn.decomposition import TruncatedSVD
 import orion
+import toolz
 
 svd_components = orion.config["svd"]["n_components"]
 seed = orion.config["seed"]
@@ -118,3 +127,57 @@ class Text2TfidfOperator(BaseOperator):
         s.bulk_insert_mappings(HighDimDocVector, vectors)
         s.commit()
         logging.info("Stored vectors to DB!")
+
+
+class Text2SentenceBertOperator(BaseOperator):
+    """Transforms text to document embeddings."""
+
+    # template_fields = ['']
+    @apply_defaults
+    def __init__(self, db_config, batch_size, bert_model, *args, **kwargs):
+        super().__init__(**kwargs)
+        self.db_config = db_config
+        self.batch_size = batch_size
+        self.bert_model = bert_model
+
+    def execute(self, context):
+        # Instantiate SentenceTransformer
+        model = SentenceTransformer(self.bert_model)
+
+        # Connect to postgresql
+        engine = create_engine(self.db_config)
+        Session = sessionmaker(bind=engine)
+        s = Session()
+
+        # Get the abstracts of bioRxiv papers.
+        papers = s.query(Paper.abstract, Paper.id).filter(
+            and_(
+                ~exists().where(Paper.id == HighDimDocVector.id),
+                Paper.abstract != "NaN",
+            )
+        )
+        logging.info(f"Number of documents to be vectorised: {papers.count()}")
+
+        # Unroll abstracts and paper IDs
+        abstracts, ids = zip(*papers)
+        for i, (id_chunk, abstracts_chunk) in enumerate(
+            zip(
+                list(toolz.partition_all(self.batch_size, ids)),
+                list(toolz.partition_all(self.batch_size, abstracts)),
+            ),
+            start=1,
+        ):
+
+            # Convert text to vectors
+            embeddings = model.encode(abstracts_chunk)
+
+            # Group IDs with embeddings
+            batch = [
+                {"id": id_, "vector": vector.astype(float)}
+                for id_, vector in zip(id_chunk, embeddings)
+            ]
+
+            # Commit to db
+            s.bulk_insert_mappings(HighDimDocVector, batch)
+            s.commit()
+            logging.info("Committed batch {i}")

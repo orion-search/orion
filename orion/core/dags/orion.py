@@ -24,7 +24,7 @@ from orion.core.operators.calculate_metrics_task import (
     ResearchDiversityOperator,
     GenderDiversityOperator,
 )
-from orion.core.operators.text2vec_task import Text2VectorOperator
+from orion.core.operators.text2vec_task import Text2SentenceBertOperator
 from orion.core.operators.dim_reduction_task import DimReductionOperator
 from orion.core.operators.topic_filtering_task import (
     FilterTopicsByDistributionOperator,
@@ -85,6 +85,8 @@ auth_token = os.getenv("gender_api")
 
 # text2vector
 text_vectors_bucket = orion.config["s3_buckets"]["text_vectors"]
+bert_model = orion.config["sentence_bert"]["bert_model"]
+bert_batch_size = orion.config["sentence_bert"]["batch_size"]
 
 # dim_reduction
 umap_config = orion.config["umap"]
@@ -207,7 +209,12 @@ with DAG(
         paper_thresh=paper_thresh_high,
     )
 
-    text2vector = Text2VectorOperator(task_id="text2vector", db_config=DB_CONFIG)
+    text2vector = Text2SentenceBertOperator(
+        task_id="text2vector",
+        db_config=DB_CONFIG,
+        batch_size=bert_batch_size,
+        bert_model=bert_model,
+    )
 
     dim_reduction = DimReductionOperator(
         task_id="dim_reduction",
