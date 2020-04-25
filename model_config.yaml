@@ -19,6 +19,10 @@ data:
 elasticsearch:
     erase_index: True
 
+sentence_bert:
+    bert_model: 'distilbert-base-nli-stsb-mean-tokens'
+    batch_size: 1000
+
 umap:
     n_neighbors: 5
     n_components: 2
