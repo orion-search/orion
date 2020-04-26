@@ -1,5 +1,5 @@
 """
-FaissIndexOperator: Creates a FAISS index. It fetches vectors, DOIs and paper IDs from S3.
+FaissIndexOperator: Creates a FAISS index. It fetches vectors and paper IDs from PostgreSQL.
 It serialises and stores the index as a pickle in S3.
 
 """

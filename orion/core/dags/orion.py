@@ -95,6 +95,7 @@ n_neighbors = umap_config["n_neighbors"]
 n_components = umap_config["n_components"]
 metric = umap_config["metric"]
 min_dist = umap_config["min_dist"]
+exclude_docs = umap_config["exclude"]
 
 # topic_filtering
 topic_prefix = orion.config["prefix"]["topic"]
@@ -223,6 +224,7 @@ with DAG(
         min_dist=min_dist,
         n_components=n_components,
         metric=metric,
+        exclude_docs=exclude_docs,
     )
 
     country_collaboration_graph = CountryCollaborationOperator(

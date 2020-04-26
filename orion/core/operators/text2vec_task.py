@@ -158,26 +158,30 @@ class Text2SentenceBertOperator(BaseOperator):
         )
         logging.info(f"Number of documents to be vectorised: {papers.count()}")
 
-        # Unroll abstracts and paper IDs
-        abstracts, ids = zip(*papers)
-        for i, (id_chunk, abstracts_chunk) in enumerate(
-            zip(
-                list(toolz.partition_all(self.batch_size, ids)),
-                list(toolz.partition_all(self.batch_size, abstracts)),
-            ),
-            start=1,
-        ):
+        if papers.count() > 0:
 
-            # Convert text to vectors
-            embeddings = model.encode(abstracts_chunk)
+            # Unroll abstracts and paper IDs
+            abstracts, ids = zip(*papers)
+            for i, (id_chunk, abstracts_chunk) in enumerate(
+                zip(
+                    list(toolz.partition_all(self.batch_size, ids)),
+                    list(toolz.partition_all(self.batch_size, abstracts)),
+                ),
+                start=1,
+            ):
 
-            # Group IDs with embeddings
-            batch = [
-                {"id": id_, "vector": vector.astype(float)}
-                for id_, vector in zip(id_chunk, embeddings)
-            ]
+                # Convert text to vectors
+                embeddings = model.encode(abstracts_chunk)
 
-            # Commit to db
-            s.bulk_insert_mappings(HighDimDocVector, batch)
-            s.commit()
-            logging.info("Committed batch {i}")
+                # Group IDs with embeddings
+                batch = [
+                    {"id": id_, "vector": vector.astype(float)}
+                    for id_, vector in zip(id_chunk, embeddings)
+                ]
+
+                # Commit to db
+                s.bulk_insert_mappings(HighDimDocVector, batch)
+                s.commit()
+                logging.info("Committed batch {i}")
+        else:
+            logging.info("No documents need vectorisation")
