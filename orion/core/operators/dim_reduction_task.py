@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
-from orion.core.orms.mag_orm import DocVector, HighDimDocVector
+from orion.core.orms.mag_orm import DocVector, HighDimDocVector, Paper
 from orion.packages.projection.dim_reduction import umap_embeddings
 
 
@@ -18,7 +18,17 @@ class DimReductionOperator(BaseOperator):
 
     @apply_defaults
     def __init__(
-        self, db_config, n_neighbors, min_dist, n_components, metric, *args, **kwargs,
+        self,
+        db_config,
+        n_neighbors,
+        min_dist,
+        n_components,
+        metric,
+        short_doc_len=250,
+        remove_short_docs=True,
+        exclude_docs=[],
+        *args,
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.db_config = db_config
@@ -26,6 +36,9 @@ class DimReductionOperator(BaseOperator):
         self.min_dist = min_dist
         self.n_components = n_components
         self.metric = metric
+        self.exclude_docs = exclude_docs
+        self.remove_short_docs = remove_short_docs
+        self.short_doc_len = short_doc_len
 
     def execute(self, context):
 
@@ -34,10 +47,32 @@ class DimReductionOperator(BaseOperator):
         Session = sessionmaker(bind=engine)
         s = Session()
 
-        vectors = s.query(HighDimDocVector.vector, HighDimDocVector.id)
+        # Delete existing UMAP projection
+        s.query(DocVector).delete()
+        s.commit()
 
-        # Load vectors
-        vectors, ids = zip(*vectors)
+        # Load high dimensional vectors and paper IDs
+        vectors_and_ids = s.query(HighDimDocVector.vector, HighDimDocVector.id).filter(
+            HighDimDocVector.id.notin_(self.exclude_docs)
+        )
+        logging.info(f"Excluding: {self.exclude_docs}")
+
+        if self.remove_short_docs:
+            # Find documents with very short abstracts
+            short_docs_ids = [
+                id_
+                for id_, abstract in s.query(Paper.id, Paper.abstract)
+                if len(abstract) < self.short_doc_len
+            ]
+            # Filter documents with very short abstracts
+            vectors, ids = [], []
+            for vector, id_ in vectors_and_ids:
+                if id_ not in short_docs_ids:
+                    vectors.append(vector)
+                    ids.append(id_)
+        else:
+            # Load vectors
+            vectors, ids = zip(*vectors_and_ids)
 
         logging.info(
             f"UMAP hyperparameters: n_neighbors:{self.n_neighbors}, min_dist:{self.min_dist}, metric:{self.metric}"

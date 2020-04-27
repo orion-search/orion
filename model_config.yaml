@@ -1,15 +1,15 @@
 seed: 42
 
 data:
-    db_name: 'ml'
+    db_name: 'orion_prod'
     mag:
-        query_values: ['machine learning', 'reinforcement learning', 'deep learning']
-        entity_name: 'F.FN'
+        query_values: ['biorxiv']
+        entity_name: 'J.JN'
         metadata: ["Id", "Ti", "AA.AfId", "AA.AfN", "AA.AuId", "AA.DAuN", "AA.S", "CC", "D", "F.DFN", "F.FId", "J.JId", "J.JN", "Pt", "RId", "Y", "DOI", "PB", "BT", "IA", "C.CN", "C.CId", "DN", "S"]
         with_doi: False
         mag_start_date: '2000-01-01'
         mag_end_date: 'today'
-        intervals_in_a_year: 6
+        intervals_in_a_year: 1
     wb:
         end_year: "2019"
         country: "all"
@@ -19,11 +19,16 @@ data:
 elasticsearch:
     erase_index: True
 
+sentence_bert:
+    bert_model: 'distilbert-base-nli-stsb-mean-tokens'
+    batch_size: 1000
+
 umap:
-    n_neighbors: 5
+    n_neighbors: 10
     n_components: 2
     metric: 'cosine'
     min_dist: .01
+    exclude: [2767711857, 2783409909, 2767629641, 2764099951, 2794665118, 2796093101,2805293427, 2916833086,2884816995, 2910741825, 2999910879, 2981038760, 3011431910, 3008504946, 2272289125, 2345584675, 2338353564, 2198148450, 2954320905, 3012031958]
 
 tfidf:
     max_features: 120000
@@ -48,17 +53,17 @@ metrics:
     fos_count: 10
 
 s3_buckets:
-    mag: "ml-mag-data-dump"
-    gender: "ml-names-batches"
-    text_vectors: "ml-document-vectors"
-    topic: "ml-mag-topics"
+    mag: "mag-data-dump"
+    gender: "names-batches"
+    text_vectors: "document-vectors"
+    topic: "mag-topics"
     
 prefix:
     gender: "batched_names"
     text_vectors: "doc_vectors"
     topic: "filtered_topics"
 
-batch_size: 187000
+batch_size: 10000
 parallel_tasks: 4
 
 country_name_mapping:

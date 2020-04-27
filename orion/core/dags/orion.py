@@ -24,7 +24,7 @@ from orion.core.operators.calculate_metrics_task import (
     ResearchDiversityOperator,
     GenderDiversityOperator,
 )
-from orion.core.operators.text2vec_task import Text2TfidfOperator
+from orion.core.operators.text2vec_task import Text2SentenceBertOperator
 from orion.core.operators.dim_reduction_task import DimReductionOperator
 from orion.core.operators.topic_filtering_task import (
     FilterTopicsByDistributionOperator,
@@ -85,6 +85,8 @@ auth_token = os.getenv("gender_api")
 
 # text2vector
 text_vectors_bucket = orion.config["s3_buckets"]["text_vectors"]
+bert_model = orion.config["sentence_bert"]["bert_model"]
+bert_batch_size = orion.config["sentence_bert"]["batch_size"]
 
 # dim_reduction
 umap_config = orion.config["umap"]
@@ -93,6 +95,7 @@ n_neighbors = umap_config["n_neighbors"]
 n_components = umap_config["n_components"]
 metric = umap_config["metric"]
 min_dist = umap_config["min_dist"]
+exclude_docs = umap_config["exclude"]
 
 # topic_filtering
 topic_prefix = orion.config["prefix"]["topic"]
@@ -207,8 +210,11 @@ with DAG(
         paper_thresh=paper_thresh_high,
     )
 
-    text2vector = Text2TfidfOperator(
-        task_id="text2vector", db_config=DB_CONFIG, bucket=text_vectors_bucket
+    text2vector = Text2SentenceBertOperator(
+        task_id="text2vector",
+        db_config=DB_CONFIG,
+        batch_size=bert_batch_size,
+        bert_model=bert_model,
     )
 
     dim_reduction = DimReductionOperator(
@@ -218,6 +224,7 @@ with DAG(
         min_dist=min_dist,
         n_components=n_components,
         metric=metric,
+        exclude_docs=exclude_docs,
     )
 
     country_collaboration_graph = CountryCollaborationOperator(

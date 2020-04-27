@@ -154,5 +154,6 @@ class Postgreqsl2ElasticSearchOperator(BaseOperator):
                         for name, aff in zip(row["author_name"], row["affiliation"])
                     ],
                 ).to_dict(include_meta=True)
-        # Increase timeout from 10 to 180 
+
+        # Increase timeout from 10 to 180
         helpers.bulk(es, _docs_for_load(table), request_timeout=180)
