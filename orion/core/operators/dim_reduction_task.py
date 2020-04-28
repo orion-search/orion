@@ -47,6 +47,12 @@ class DimReductionOperator(BaseOperator):
         Session = sessionmaker(bind=engine)
         s = Session()
 
+        # Fetch paper citations
+        paper_citations = {
+            id_: citation_count
+            for id_, citation_count in s.query(Paper.id, Paper.citations)
+        }
+
         # Delete existing UMAP projection
         s.query(DocVector).delete()
         s.commit()
@@ -87,7 +93,11 @@ class DimReductionOperator(BaseOperator):
 
         # Construct DB insertions
         doc_vectors = [
-            {"id": id_, "vector_3d": embed_3d.tolist(),}
+            {
+                "id": id_,
+                "vector_3d": embed_3d.tolist(),
+                "citations": paper_citations[id_],
+            }
             for embed_3d, id_ in zip(embeddings_3d, ids)
         ]
         logging.info(f"Constructed DocVector input")

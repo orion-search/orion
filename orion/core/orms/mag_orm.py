@@ -177,6 +177,7 @@ class DocVector(Base):
         BIGINT, ForeignKey("mag_papers.id"), primary_key=True, autoincrement=False
     )
     vector_3d = Column(ARRAY(FLOAT))
+    citations = Column(Integer)
 
 
 class FosHierarchy(Base):
