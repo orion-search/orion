@@ -166,6 +166,7 @@ class HighDimDocVector(Base):
         BIGINT, ForeignKey("mag_papers.id"), primary_key=True, autoincrement=False
     )
     vector = Column(ARRAY(FLOAT))
+    
 
 
 class DocVector(Base):
@@ -313,10 +314,10 @@ class CountrySimilarity(Base):
     field_of_study_id = Column(BIGINT, ForeignKey("mag_fields_of_study.id"))
 
 
-class CountryTopicOutput(Base):
-    """Output for each country, topic and year. Used in front-end."""
+class CountryTopicOutputsMetrics(Base):
+    """Outputs and metrics for each country, topic and year. Used in front-end."""
 
-    __tablename__ = "viz_output_by_research_area_country"
+    __tablename__ = "viz_metrics_and_outputs"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     country = Column(TEXT)
@@ -325,6 +326,9 @@ class CountryTopicOutput(Base):
     paper_count = Column(Integer)
     total_citations = Column(Integer)
     name = Column(TEXT)
+    shannon_diversity = Column(Float)
+    rca_sum = Column(Float)
+    female_share = Column(Float)
 
 
 class AllMetrics(Base):
@@ -376,6 +380,17 @@ class PaperYear(Base):
     year = Column(TEXT, primary_key=True, autoincrement=False)
     count = Column(Integer)
     paper_ids = Column(ARRAY(BIGINT))
+
+
+class PaperTopicsGrouped(Base):
+    """Topic names for each paper. Used in front-end."""
+
+    __tablename__ = "viz_topics_agg"
+
+    id = Column(
+        BIGINT, ForeignKey("mag_papers.id"), primary_key=True, autoincrement=False
+    )
+    field_of_study = Column(ARRAY(TEXT))
 
 
 class AffiliationType(Base):
