@@ -166,7 +166,6 @@ class HighDimDocVector(Base):
         BIGINT, ForeignKey("mag_papers.id"), primary_key=True, autoincrement=False
     )
     vector = Column(ARRAY(FLOAT))
-    
 
 
 class DocVector(Base):

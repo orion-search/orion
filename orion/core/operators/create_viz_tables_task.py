@@ -103,7 +103,7 @@ class CreateVizTables(BaseOperator):
                 & (MetricCountryRCA.entity == GenderDiversityCountry.entity),
             )
             .join(FieldOfStudy, (MetricCountryRCA.field_of_study_id == FieldOfStudy.id))
-            .filter(ResearchDiversityCountry.entity!='NaN')
+            .filter(ResearchDiversityCountry.entity != "NaN")
         )
 
         # Store results in a new table
@@ -141,7 +141,9 @@ class CreateVizTables(BaseOperator):
                 right_on="paper_id",
             )
             .merge(
-                aff_location[aff_location.country!=''].dropna(subset=['country'])[["country", "affiliation_id"]],
+                aff_location[aff_location.country != ""].dropna(subset=["country"])[
+                    ["country", "affiliation_id"]
+                ],
                 left_on="affiliation_id",
                 right_on="affiliation_id",
             )
@@ -256,20 +258,22 @@ class CreateVizTables(BaseOperator):
             if r.year > self.thresh_year:
                 s.add(PaperYear(year=r.year, count=r.count, paper_ids=r.paper_ids))
                 s.commit()
-        
+
         logging.info("Stored PaperYear table!")
 
         # PaperTopicsGrouped table
-        g = paper_fos.groupby('paper_id')['field_of_study_id'].apply(list)
+        g = paper_fos.groupby("paper_id")["field_of_study_id"].apply(list)
         d = defaultdict(list)
-        filtered_fos = filtered_fos.merge(fos, left_on="field_of_study_id", right_on="id").drop_duplicates("field_of_study_id")
+        filtered_fos = filtered_fos.merge(
+            fos, left_on="field_of_study_id", right_on="id"
+        ).drop_duplicates("field_of_study_id")
 
         for paper_id, fos_lst in g.iteritems():
             for _, row in filtered_fos.iterrows():
-                if len(set(fos_lst).intersection(set(row['all_children']))) > 0:
-                    d[paper_id].append(row['name'])
+                if len(set(fos_lst).intersection(set(row["all_children"]))) > 0:
+                    d[paper_id].append(row["name"])
 
-        store_on_s3(d, 'document-vectors', 'paper_topics')
+        store_on_s3(d, "document-vectors", "paper_topics")
 
         for k, v in d.items():
             s.add(PaperTopicsGrouped(id=k, field_of_study=v))
