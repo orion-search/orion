@@ -31,7 +31,7 @@ from orion.core.operators.topic_filtering_task import (
     FilteredTopicsMetadataOperator,
 )
 from orion.core.operators.faiss_index_task import FaissIndexOperator
-from orion.core.operators.create_viz_tables_task import CreateVizTables
+from orion.core.operators.create_viz_tables_task import CreateVizTables, Pandas2Arrow
 from orion.core.operators.affiliation_type_task import AffiliationTypeOperator
 from orion.core.operators.collect_wb_indicators_task import WBIndicatorOperator
 from orion.core.operators.country_details_task import (
@@ -306,6 +306,8 @@ with DAG(
         erase_es_index=erase_es_index,
     )
 
+    pandas2arrow = Pandas2Arrow(task_id="pandas2arrow", db_config=DB_CONFIG)
+
     dummy_task >> create_tables >> query_mag >> parse_mag
     dummy_task >> dummy_task_4 >> create_buckets >> dummy_task_5 >> query_mag
     parse_mag >> geocode_places >> rca
@@ -317,8 +319,9 @@ with DAG(
     geocode_places >> research_diversity >> viz_tables
     geocode_places >> gender_diversity >> viz_tables
     geocode_places >> country_similarity
-    geocode_places >> viz_tables
+    geocode_places >> viz_tables >> pandas2arrow
     text2vector >> country_similarity
+    text2vector >> pandas2arrow
     filtered_topic_metadata >> country_similarity
     parse_mag >> batch_names >> batch_task_gender >> dummy_task_2 >> gender_diversity
     parse_mag >> text2vector >> dim_reduction

@@ -15,6 +15,7 @@ from sqlalchemy.orm import sessionmaker
 from orion.packages.utils.s3_utils import store_on_s3
 from sqlalchemy.orm.exc import NoResultFound
 from collections import defaultdict
+import pyarrow as pa
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 from orion.core.orms.mag_orm import (
@@ -33,6 +34,8 @@ from orion.core.orms.mag_orm import (
     PaperYear,
     PaperTopicsGrouped,
     CountryTopicOutputsMetrics,
+    BlobArrow,
+    DocVector,
 )
 
 
@@ -280,3 +283,65 @@ class CreateVizTables(BaseOperator):
             s.commit()
 
         logging.info("Stored PaperTopicsGrouped table!")
+
+
+class Pandas2Arrow(BaseOperator):
+    @apply_defaults
+    def __init__(self, db_config, *args, **kwargs):
+        super().__init__(**kwargs)
+        self.db_config = db_config
+
+    def unroll_df(self, df, fields):
+        """Transform a pandas dataframe to long format."""
+        lst = []
+        for _, row in df.iterrows():
+            for elem in row[fields[1]]:
+                lst.append(tuple((row[fields[0]], elem)))
+        return pd.DataFrame(lst, columns=[fields[0], fields[1]])
+
+    def execute(self, context):
+        # Connect to postgresql
+        engine = create_engine(self.db_config, pool_pre_ping=True)
+        Session = sessionmaker(engine)
+        s = Session()
+
+        # Delete rows in table
+        s.query(BlobArrow).delete()
+        s.commit()
+
+        # Read tables from db
+        paper_topics_grouped = pd.read_sql(
+            s.query(PaperTopicsGrouped).statement, s.bind
+        )
+        paper_country = pd.read_sql(s.query(PaperCountry).statement, s.bind)
+        vecs = pd.read_sql(s.query(DocVector).statement, s.bind)
+        papers = pd.read_sql(s.query(Paper).statement, s.bind)
+
+        # Unroll tables to long format
+        unrolled_paper_topics_grouped = self.unroll_df(
+            paper_topics_grouped, ["id", "field_of_study"]
+        )
+        unrolled_paper_country = self.unroll_df(paper_country, ["country", "paper_ids"])
+
+        # Merge all tables and keep relevant columns
+        data = (
+            vecs.merge(papers[["id", "year"]], left_on="id", right_on="id")
+            .merge(unrolled_paper_topics_grouped, left_on="id", right_on="id")
+            .merge(unrolled_paper_country, left_on="id", right_on="paper_ids")[
+                ["id", "vector_3d", "citations", "year", "field_of_study", "country"]
+            ]
+        )
+
+        # Pandas to arrow
+        table = pa.Table.from_pandas(data, preserve_index=False)
+        logging.info(f"Table schema:{table.schema}")
+
+        # Serialise and compress the arrow table
+        serialised_table = pa.serialize(table).to_buffer()
+        compressed_table = pa.compress(serialised_table, codec="gzip", asbytes=True)
+        size = serialised_table.size
+        logging.info(f"Compressed table size: {len(compressed_table)}")
+
+        # Commit to DB
+        s.add(BlobArrow(blob=compressed_table, size=size))
+        s.commit()
