@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, ARRAY, FLOAT
+from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, ARRAY, FLOAT, BYTEA
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Integer, Float, BIGINT
@@ -466,12 +466,20 @@ class CountryDetails(Base):
     name = Column(TEXT)
     google_name = Column(TEXT, primary_key=True)
     wb_name = Column(TEXT, primary_key=True)
-    # google_name = Column(TEXT, ForeignKey('country_association.country'))
-    # wb_name = Column(TEXT, ForeignKey('country_association.country'))
     region = Column(TEXT)
     subregion = Column(TEXT)
     population = Column(BIGINT)
     capital = Column(TEXT)
+
+
+class BlobArrow(Base):
+    """Stores a serialised arrow file."""
+
+    __tablename__ = "blob_arrow"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    blob = Column(BYTEA)
+    size = Column(BIGINT)
 
 
 if __name__ == "__main__":
