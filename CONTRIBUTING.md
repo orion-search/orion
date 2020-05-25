@@ -1,13 +1,13 @@
 # How to contribute to Orion? #
 
-Everyone is welcome to contribute to Orion! You can support our work by contributing code, improving documentation and testing as well as sharing with us how you are using Orion. Moreover, spreading the word about it as well as connecting us with potential users would be immensly valuable.
+Everyone is welcome to contribute to Orion! You can support our work by contributing code, improving documentation and testing as well as sharing with us how you are using Orion. Moreover, spreading the word and connecting us with potential users would be immensly valuable.
 
 ## Ways to contribute ##
 We have listed four ways to contribute to Orion but get in touch if you have other ideas:
 - Work on outstanding [issues](https://github.com/orion-search/orion/issues).
 - Implement new components. For example, add a new metric or data source.
 - Submit issues related to bugs or desired new features.
-- Connecting us with potential users.
+- Connect us with potential users.
 
 ### Working on an outstanding issue ###
 Would you like to work on an existing issue? That's great! Before writing any code, we strongly advise you to reply to the issue you plan to work on and provide the following details:
@@ -34,5 +34,8 @@ Orion is in beta so we except users to come across some bugs. If you found one, 
 - Your Python version.
 - Let us know which task failed or didn't work as expected. Giving us a data sample to rerun the task would be very helpful.
 - Full error message.
+
+### Connecting us with users ###
+We think Orion can help policymakers and researchers parse academic knowledge. Do you know an individual or organisation who might benefit by using Orion? Send me an email at kostas@mozillafoundation.org!
 
 This guide was inspired by the [transformers](https://github.com/huggingface/transformers).
