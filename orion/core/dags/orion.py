@@ -42,7 +42,6 @@ from orion.core.operators.postgresql2es_task import Postgreqsl2ElasticSearchOper
 from orion.packages.mag.create_tables import create_db_and_tables
 from dotenv import load_dotenv, find_dotenv
 import os
-import logging
 
 load_dotenv(find_dotenv())
 
@@ -57,8 +56,6 @@ DAG_ID = "orion"
 db_name = orion.config["data"]["db_name"]
 DB_CONFIG = os.getenv(db_name)
 MAG_API_KEY = os.getenv("mag_api_key")
-
-# query_mag
 MAG_OUTPUT_BUCKET = orion.config["s3_buckets"]["mag"]
 mag_config = orion.config["data"]["mag"]
 query_values = mag_config["query_values"]
