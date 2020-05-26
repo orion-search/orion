@@ -42,6 +42,7 @@ from orion.core.operators.postgresql2es_task import Postgreqsl2ElasticSearchOper
 from orion.packages.mag.create_tables import create_db_and_tables
 from dotenv import load_dotenv, find_dotenv
 import os
+import logging
 
 load_dotenv(find_dotenv())
 

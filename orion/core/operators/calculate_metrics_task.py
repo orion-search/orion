@@ -283,6 +283,7 @@ class GenderDiversityOperator(BaseOperator):
         author_aff = pd.read_sql(s.query(AuthorAffiliation).statement, s.bind)
         paper_fos = pd.read_sql(s.query(PaperFieldsOfStudy).statement, s.bind)
         gender = pd.read_sql(s.query(AuthorGender).statement, s.bind)
+        filtered_fos = pd.read_sql(s.query(FilteredFos).statement, s.bind)
         # Keep only inferred gender with a probability higher than .75
         gender = gender[gender.probability >= self.thresh]
 
@@ -314,22 +315,14 @@ class GenderDiversityOperator(BaseOperator):
         )
         logging.info("Prepared table with female share")
 
-        # Filtered topics table
-        filtered_fos = pd.read_sql(s.query(FilteredFos).statement, s.bind)
-        d = {}
-        for _, row in filtered_fos.drop_duplicates("field_of_study_id").iterrows():
-            d[row["field_of_study_id"]] = row["all_children"]
-        logging.info("Read all tables")
-
-        for parent, children in d.items():
-            logging.info(f"Parent ID: {parent} - Number of children: {len(children)}")
+        for field_of_study_id in filtered_fos.field_of_study_id.unique():
             df = (
                 aff_location[aff_location.country != ""][["affiliation_id", "country"]]
                 .merge(author_aff, left_on="affiliation_id", right_on="affiliation_id")
                 .merge(
                     papers[
                         papers.id.isin(
-                            paper_fos[paper_fos.field_of_study_id.isin(children)][
+                            paper_fos[paper_fos.field_of_study_id == field_of_study_id][
                                 "paper_id"
                             ]
                         )
@@ -370,7 +363,7 @@ class GenderDiversityOperator(BaseOperator):
                         female_share=val,
                         year=idx[0],
                         entity=idx[1],
-                        field_of_study_id=int(parent),
+                        field_of_study_id=int(field_of_study_id),
                     )
                 )
                 s.commit()

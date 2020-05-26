@@ -160,7 +160,7 @@ class CreateVizTables(BaseOperator):
         ):
             # logging.info(f"fos id: {row['field_of_study_id']}")
             g = (
-                df[df.field_of_study_id.isin(row["all_children"])]
+                df[df.field_of_study_id == row["field_of_study_id"]]
                 .drop_duplicates("paper_id")
                 .groupby(["country", "year"])
             )
@@ -236,13 +236,13 @@ class CreateVizTables(BaseOperator):
                     count=len(
                         set(
                             paper_fos[
-                                paper_fos.field_of_study_id.isin(row["all_children"])
+                                paper_fos.field_of_study_id == row["field_of_study_id"]
                             ]["paper_id"]
                         )
                     ),
                     paper_ids=set(
                         paper_fos[
-                            paper_fos.field_of_study_id.isin(row["all_children"])
+                            paper_fos.field_of_study_id == row["field_of_study_id"]
                         ]["paper_id"]
                     ),
                 )
@@ -273,7 +273,7 @@ class CreateVizTables(BaseOperator):
 
         for paper_id, fos_lst in g.iteritems():
             for _, row in filtered_fos.iterrows():
-                if len(set(fos_lst).intersection(set(row["all_children"]))) > 0:
+                if row["field_of_study_id"] in set(fos_lst):
                     d[paper_id].append(row["name"])
 
         store_on_s3(d, "document-vectors", "paper_topics")
