@@ -124,7 +124,7 @@ es_port = os.getenv("es_port")
 erase_es_index = orion.config["elasticsearch"]["erase_index"]
 aws_region = os.getenv("region")
 
-with DAG(dag_id=DAG_ID, default_args=default_args, schedule_interval="@monthly") as dag:
+with DAG(dag_id=DAG_ID, default_args=default_args, catchup=False, schedule_interval="@monthly") as dag:
 
     dummy_task = DummyOperator(task_id="start")
 
