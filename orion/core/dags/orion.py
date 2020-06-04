@@ -40,6 +40,7 @@ from orion.core.operators.country_details_task import (
 )
 from orion.core.operators.postgresql2es_task import Postgreqsl2ElasticSearchOperator
 from orion.packages.mag.create_tables import create_db_and_tables
+from orion.core.operators.open_access_journals_task import OpenAccessJournalOperator
 from dotenv import load_dotenv, find_dotenv
 import os
 
@@ -306,6 +307,8 @@ with DAG(
 
     pandas2arrow = Pandas2Arrow(task_id="pandas2arrow", db_config=DB_CONFIG)
 
+    open_access = OpenAccessJournalOperator(task_id="open_access", db_config=DB_CONFIG)
+
     dummy_task >> create_tables >> query_mag >> parse_mag
     dummy_task >> dummy_task_4 >> create_buckets >> dummy_task_5 >> query_mag
     parse_mag >> geocode_places >> rca
@@ -326,5 +329,6 @@ with DAG(
     text2vector >> faiss_index
     parse_mag >> aff_types
     parse_mag >> postgres2es
+    parse_mag >> open_access
     dummy_task >> create_tables >> dummy_task_3 >> batch_task_wb >> country_association
     geocode_places >> country_association >> country_details
