@@ -42,6 +42,7 @@ class Journal(Base):
         BIGINT, ForeignKey("mag_papers.id"), primary_key=True, autoincrement=False
     )
     paper = relationship("Paper")
+    # journal_id = relationship("OpenAccess")
 
 
 class Conference(Base):
@@ -480,6 +481,16 @@ class BlobArrow(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     blob = Column(BYTEA)
     size = Column(BIGINT)
+
+
+class OpenAccess(Base):
+    """Flags open access journals."""
+
+    __tablename__ = "open_access_journals"
+
+    id = Column(BIGINT, primary_key=True)
+    open_access = Column(Integer)
+    # journals = relationship("Journal", back_populates="journal_id")
 
 
 if __name__ == "__main__":
