@@ -232,3 +232,23 @@ def date_range(start, end, intv):
     for i in range(intv):
         yield (start + diff * i).strftime("%Y-%m-%d")
     yield end.strftime("%Y-%m-%d")
+
+
+def allocate_in_group(lst, group1, group2):
+    """Find Fields of Study in a list.
+
+    Args:
+        lst (:obj:`list` of str): Fields of Study of a paper.
+        group1 (:obj:`list` of str): CI fields of study.
+        group2 (:obj:`list` of str): AI fields of study.
+
+    Returns:
+        (str)
+
+    """
+    if any(fos in lst for fos in group1) and any(fos in lst for fos in group2):
+        return "ai_ci"
+    elif any(fos in lst for fos in group1):
+        return "ci"
+    else:
+        return "ai"

@@ -482,6 +482,16 @@ class BlobArrow(Base):
     size = Column(BIGINT)
 
 
+class PaperFlag(Base):
+    """Shows the subset (AI, AI/CI, CI) of a paper."""
+
+    __tablename__ = "paper_flag"
+    id = Column(
+        BIGINT, ForeignKey("mag_papers.id"), primary_key=True, autoincrement=False
+    )
+    type = Column(TEXT)
+
+
 if __name__ == "__main__":
     import logging
     import psycopg2

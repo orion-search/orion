@@ -30,4 +30,4 @@ def create_db_and_tables(db):
 
 
 if __name__ == "__main__":
-    create_db_and_tables("test_db")
+    create_db_and_tables("ci_deployment")

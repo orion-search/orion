@@ -13,6 +13,7 @@ from orion.packages.utils.utils import cooccurrence_graph
 from orion.packages.utils.utils import get_all_children
 from orion.packages.utils.utils import date_range
 from orion.packages.utils.utils import str2datetime
+from orion.packages.utils.utils import allocate_in_group
 
 example_list_dict = [
     {"DFN": "Biology", "FId": 86803240},
@@ -229,4 +230,43 @@ def test_str2datetime():
     result = str2datetime("2000-12-31")
     expected_result = datetime.strptime("2000-12-31", "%Y-%m-%d")
 
+    assert result == expected_result
+
+
+def test_allocate_in_groups_ai():
+    lst = ["ai", "foo", "bar"]
+    ai_lst = [
+        "ai",
+    ]
+    ci_lst = ["ci"]
+
+    expected_result = "ai"
+    result = allocate_in_group(lst, ci_lst, ai_lst)
+
+    assert result == expected_result
+
+
+def test_allocate_in_groups_ci():
+    lst = ["ci", "foo", "bar"]
+    ai_lst = [
+        "ai",
+    ]
+    ci_lst = ["ci"]
+
+    expected_result = "ci"
+    result = allocate_in_group(lst, ci_lst, ai_lst)
+
+    assert result == expected_result
+
+
+def test_allocate_in_groups_ai_ci():
+    lst = ["ai", "ci", "foo", "bar"]
+    ai_lst = [
+        "ai",
+    ]
+    ci_lst = ["ci"]
+
+    expected_result = "ai_ci"
+    result = allocate_in_group(lst, ci_lst, ai_lst)
+    
     assert result == expected_result
