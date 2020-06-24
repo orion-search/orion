@@ -4,6 +4,7 @@ FosFrequencyOperator: Fetches all the Fields of Study from one table, calculates
 
 """
 import logging
+import pickle
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
@@ -52,40 +53,55 @@ class MagParserOperator(BaseOperator):
         Session = sessionmaker(bind=engine)
         s = Session()
 
+        # s.query(Paper).delete()
+        # s.commit()
+
         # Collect IDs from tables to ensure we're not inserting duplicates
         paper_ids = {id_[0] for id_ in s.query(Paper.id)}
         author_ids = {id_[0] for id_ in s.query(Author.id)}
         fos_ids = {id_[0] for id_ in s.query(FieldOfStudy.id)}
         aff_ids = {id_[0] for id_ in s.query(Affiliation.id)}
 
-        # Read data from S3
-        data = []
-        for obj in s3_bucket_obj(self.s3_bucket):
-            data.extend(load_from_s3(self.s3_bucket, obj.key.split(".")[0]))
-        logging.info(f"Number of collected papers: {len(data)}")
+        logging.info(f'number of paper ids in db: {len(paper_ids)}')
 
-        # Remove duplicates and keep only papers that are not already in the mag_papers table.
+        with open('rp_paper_data.pickle', 'rb') as h:
+            data = pickle.load(h)
+
+        
+
+        # # Read data from S3
+        # data = []
+        # for obj in s3_bucket_obj(self.s3_bucket):
+        #     data.extend(load_from_s3(self.s3_bucket, obj.key.split(".")[0]))
+        # logging.info(f"Number of collected papers: {len(data)}")
+
+        # with open('rp_paper_data.pickle', 'wb') as h:
+        #     pickle.dump(data, h)
+        # # Remove duplicates and keep only papers that are not already in the mag_papers table.
+        # data = [
+        #     d for d in unique_dicts_by_value(data, "Id") if d["Id"] not in paper_ids
+        # ]
+        # logging.info(f"Number of unique  papers not existing in DB: {len(data)}")
+
+        # papers = [parse_papers(response) for response in data]
+        # logging.info(f"Completed parsing papers: {len(papers)}")
         data = [
-            d for d in unique_dicts_by_value(data, "Id") if d["Id"] not in paper_ids
+            d for d in unique_dicts_by_value(data, "Id") if d["Id"]
         ]
         logging.info(f"Number of unique  papers not existing in DB: {len(data)}")
+        # journals = [
+        #     parse_journal(response, response["Id"])
+        #     for response in data
+        #     if "J" in response.keys()
+        # ]
+        # logging.info(f"Completed parsing journals: {len(journals)}")
 
-        papers = [parse_papers(response) for response in data]
-        logging.info(f"Completed parsing papers: {len(papers)}")
-
-        journals = [
-            parse_journal(response, response["Id"])
-            for response in data
-            if "J" in response.keys()
-        ]
-        logging.info(f"Completed parsing journals: {len(journals)}")
-
-        conferences = [
-            parse_conference(response, response["Id"])
-            for response in data
-            if "C" in response.keys()
-        ]
-        logging.info(f"Completed parsing conferences: {len(conferences)}")
+        # conferences = [
+        #     parse_conference(response, response["Id"])
+        #     for response in data
+        #     if "C" in response.keys()
+        # ]
+        # logging.info(f"Completed parsing conferences: {len(conferences)}")
 
         # Parse author information
         items = [parse_authors(response, response["Id"]) for response in data]
@@ -103,46 +119,46 @@ class MagParserOperator(BaseOperator):
             f"Completed parsing papers_with_authors: {len(paper_with_authors)}"
         )
 
-        # Parse Fields of Study
-        items = [
-            parse_fos(response, response["Id"])
-            for response in data
-            if "F" in response.keys()
-        ]
-        paper_with_fos = unique_dicts(flatten_lists([item[0] for item in items]))
-        fields_of_study = [
-            d
-            for d in unique_dicts(flatten_lists([item[1] for item in items]))
-            if d["id"] not in fos_ids
-        ]
-        logging.info(f"Completed parsing fields_of_study: {len(fields_of_study)}")
-        logging.info(f"Completed parsing paper_with_fos: {len(paper_with_fos)}")
+        # # Parse Fields of Study
+        # items = [
+        #     parse_fos(response, response["Id"])
+        #     for response in data
+        #     if "F" in response.keys()
+        # ]
+        # paper_with_fos = unique_dicts(flatten_lists([item[0] for item in items]))
+        # fields_of_study = [
+        #     d
+        #     for d in unique_dicts(flatten_lists([item[1] for item in items]))
+        #     if d["id"] not in fos_ids
+        # ]
+        # logging.info(f"Completed parsing fields_of_study: {len(fields_of_study)}")
+        # logging.info(f"Completed parsing paper_with_fos: {len(paper_with_fos)}")
 
-        # Parse affiliations
-        items = [parse_affiliations(response, response["Id"]) for response in data]
-        affiliations = [
-            d
-            for d in unique_dicts(flatten_lists([item[0] for item in items]))
-            if d["id"] not in aff_ids
-        ]
-        paper_author_aff = unique_dicts(flatten_lists([item[1] for item in items]))
-        logging.info(f"Completed parsing affiliations: {len(affiliations)}")
-        logging.info(f"Completed parsing author_with_aff: {len(paper_author_aff)}")
+        # # Parse affiliations
+        # items = [parse_affiliations(response, response["Id"]) for response in data]
+        # affiliations = [
+        #     d
+        #     for d in unique_dicts(flatten_lists([item[0] for item in items]))
+        #     if d["id"] not in aff_ids
+        # ]
+        # paper_author_aff = unique_dicts(flatten_lists([item[1] for item in items]))
+        # logging.info(f"Completed parsing affiliations: {len(affiliations)}")
+        # logging.info(f"Completed parsing author_with_aff: {len(paper_author_aff)}")
 
-        logging.info(f"Parsing completed!")
+        # logging.info(f"Parsing completed!")
 
-        # Insert dicts into postgresql
-        s.bulk_insert_mappings(Paper, papers)
-        s.bulk_insert_mappings(Journal, journals)
-        s.bulk_insert_mappings(Conference, conferences)
+        # # Insert dicts into postgresql
+        # s.bulk_insert_mappings(Paper, papers)
+        # s.bulk_insert_mappings(Journal, journals)
+        # s.bulk_insert_mappings(Conference, conferences)
         s.bulk_insert_mappings(Author, authors)
         s.bulk_insert_mappings(PaperAuthor, paper_with_authors)
-        s.bulk_insert_mappings(FieldOfStudy, fields_of_study)
-        s.bulk_insert_mappings(PaperFieldsOfStudy, paper_with_fos)
-        s.bulk_insert_mappings(Affiliation, affiliations)
-        s.bulk_insert_mappings(AuthorAffiliation, paper_author_aff)
+        # s.bulk_insert_mappings(FieldOfStudy, fields_of_study)
+        # s.bulk_insert_mappings(PaperFieldsOfStudy, paper_with_fos)
+        # s.bulk_insert_mappings(Affiliation, affiliations)
+        # s.bulk_insert_mappings(AuthorAffiliation, paper_author_aff)
         s.commit()
-        logging.info("Committed to DB!")
+        # logging.info("Committed to DB!")
 
 
 class FosFrequencyOperator(BaseOperator):

@@ -1,15 +1,15 @@
 seed: 42
 
 data:
-    db_name: 'orion_prod'
+    db_name: 'patentdb'
     mag:
-        query_values: ['biorxiv']
-        entity_name: 'J.JN'
+        query_values: ['machine learning', 'reinforcement learning', 'deep learning']
+        entity_name: 'F.FN'
         metadata: ["Id", "Ti", "AA.AfId", "AA.AfN", "AA.AuId", "AA.DAuN", "AA.S", "CC", "D", "F.DFN", "F.FId", "J.JId", "J.JN", "Pt", "RId", "Y", "DOI", "PB", "BT", "IA", "C.CN", "C.CId", "DN", "S"]
         with_doi: False
         mag_start_date: '2000-01-01'
         mag_end_date: 'today'
-        intervals_in_a_year: 1
+        intervals_in_a_year: 6
     wb:
         end_year: "2019"
         country: "all"
@@ -53,10 +53,10 @@ metrics:
     fos_count: 10
 
 s3_buckets:
-    mag: "mag-data-dump"
-    gender: "names-batches"
-    text_vectors: "document-vectors"
-    topic: "mag-topics"
+    mag: "rp-paper-mag-data-dump"
+    gender: "rp-paper-names-batches"
+    text_vectors: "rp-paper-document-vectors"
+    topic: "rp-paper-mag-topics"
     
 prefix:
     gender: "batched_names"
