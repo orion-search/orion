@@ -206,7 +206,7 @@ with DAG(
         task_id="rca_measurement",
         db_config=DB_CONFIG,
         year_thresh=year_thresh,
-        paper_thresh=paper_thresh_high,
+        paper_thresh=paper_thresh_low,
     )
 
     text2vector = Text2SentenceBertOperator(
