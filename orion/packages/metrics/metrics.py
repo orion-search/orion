@@ -15,7 +15,7 @@ def calculate_rca_by_sum(
        usually citations and it's done on an annual basis.
 
     Args:
-        data (:code:`pandas.DataFrame`): DF with the re
+        data (:code:`pandas.DataFrame`): DF
         entity_column (str): Label of the column containing countries or institutions.
         commodity (str): The Field of Study to measure RCA for.
         value (str): Label of the column containing the values to use for measurement.
@@ -27,10 +27,19 @@ def calculate_rca_by_sum(
 
     """
     data = data[data.year > year_thresh]
+    # Filter out countries with less than N papers on a topic
+    entity_count_topic = (
+        data[(data.field_of_study_id == commodity)]
+        .groupby([entity_column, "year"])["paper_id"]
+        .count()
+    )
+    idx = entity_count_topic.where(entity_count_topic >= paper_thresh).dropna().index
+
     entity_sum_topic = (
         data[(data.field_of_study_id == commodity)]
         .groupby([entity_column, "year"])[value]
         .sum()
+        .loc[idx]
     )
     entity_sum_all = data.groupby([entity_column, "year"])[value].sum()
     entity_sum_all = entity_sum_all.where(entity_sum_all > paper_thresh)
@@ -44,7 +53,7 @@ def calculate_rca_by_sum(
         entity_sum_topic, entity_sum_all, world_sum_topic, world_sum_all
     )
 
-    return rca.dropna()
+    return rca.dropna().clip(upper=6)
 
 
 def calculate_rca_by_count(data, entity_column, commodity, paper_thresh, year_thresh):
