@@ -401,7 +401,7 @@ class AffiliationType(Base):
     id = Column(
         BIGINT, ForeignKey("mag_affiliation.id"), primary_key=True, autoincrement=False
     )
-    type = Column(Integer)
+    non_industry = Column(Integer)
 
 
 class WorldBankGDP(Base):
