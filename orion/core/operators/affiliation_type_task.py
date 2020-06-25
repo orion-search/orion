@@ -4,8 +4,9 @@ using a seed list of tokens. The seed list can be found in `model_config.yaml`.
 
 """
 import logging
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql import exists
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 from orion.core.orms.mag_orm import Affiliation, AffiliationType
@@ -37,8 +38,13 @@ class AffiliationTypeOperator(BaseOperator):
 
         # Get affiliation names and IDs
         aff_types = [
-            {"id": aff.id, "type": self._find_academic_affiliations(aff.affiliation)}
-            for aff in s.query(Affiliation).all()
+            {
+                "id": aff.id,
+                "non_industry": self._find_academic_affiliations(aff.affiliation),
+            }
+            for aff in s.query(Affiliation)
+            .filter(and_(~exists().where(Affiliation.id == AffiliationType.id)))
+            .all()
         ]
         logging.info(f"Mapped {len(aff_types)} affiliations.")
 
