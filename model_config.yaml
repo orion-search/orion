@@ -1,14 +1,14 @@
 seed: 42
 
 data:
-    db_name: 'orion_prod'
+    db_name: 'acl_deployment'
     mag:
-        query_values: ['biorxiv']
-        entity_name: 'J.JN'
+        query_values: ['acl']
+        entity_name: 'C.CN'
         metadata: ["Id", "Ti", "AA.AfId", "AA.AfN", "AA.AuId", "AA.DAuN", "AA.S", "CC", "D", "F.DFN", "F.FId", "J.JId", "J.JN", "Pt", "RId", "Y", "DOI", "PB", "BT", "IA", "C.CN", "C.CId", "DN", "S"]
         with_doi: False
         mag_start_date: '2000-01-01'
-        mag_end_date: 'today'
+        mag_end_date: '2020-12-31'
         intervals_in_a_year: 1
     wb:
         end_year: "2019"
@@ -53,10 +53,10 @@ metrics:
     fos_count: 10
 
 s3_buckets:
-    mag: "mag-data-dump"
-    gender: "names-batches"
-    text_vectors: "document-vectors"
-    topic: "mag-topics"
+    mag: "acl-mag-data-dump"
+    gender: "acl-names-batches"
+    text_vectors: "acl-document-vectors"
+    topic: "acl-mag-topics"
     
 prefix:
     gender: "batched_names"
