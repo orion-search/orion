@@ -19,6 +19,7 @@ data:
 elasticsearch:
     erase_index: True
 
+
 sentence_bert:
     bert_model: 'distilbert-base-nli-stsb-mean-tokens'
     batch_size: 1000
@@ -49,7 +50,6 @@ gender_diversity:
 metrics:
     year: '2013'
     paper_count_low: 10
-    paper_count_high: 40 
     fos_count: 10
 
 s3_buckets:
