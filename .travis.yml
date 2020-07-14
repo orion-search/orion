@@ -10,7 +10,7 @@ install:
 services:
   - postgresql
 env:
-  - orion_test=postgres+psycopg2://postgres@localhost/postgres
+  - postgres=postgres+psycopg2://postgres@localhost/postgres
 # command to run tests
 script:
   - pytest
