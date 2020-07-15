@@ -90,7 +90,8 @@ class Text2TfidfOperator(BaseOperator):
         engine = create_engine(self.db_config)
         Session = sessionmaker(bind=engine)
         s = Session()
-
+        s.query(HighDimDocVector).delete()
+        s.commit()
         # Get the paper abstracts.
         papers = s.query(Paper.abstract, Paper.id).filter(
             and_(
@@ -182,6 +183,6 @@ class Text2SentenceBertOperator(BaseOperator):
                 # Commit to db
                 s.bulk_insert_mappings(HighDimDocVector, batch)
                 s.commit()
-                logging.info("Committed batch {i}")
+                logging.info(f"Committed batch {i}")
         else:
             logging.info("No documents need vectorisation")
