@@ -40,10 +40,10 @@ We will query MAG with `arxiv computation and language` and specify that is a jo
 
 ```yaml
 s3_buckets:
-    mag: "arxiv-mag-data-dump"
-    gender: "arxiv-names-batches"
-    text_vectors: "arxiv-document-vectors"
-    topic: "arxiv-mag-topics"
+    mag: "cl-mag-data-dump"
+    gender: "cl-names-batches"
+    text_vectors: "cl-document-vectors"
+    topic: "cl-mag-topics"
 ```
 
 Set the S3 buckets that Orion will create and store intermediate data.
