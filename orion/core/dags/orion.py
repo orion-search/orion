@@ -106,7 +106,6 @@ percentiles = topic_config["percentiles"]
 # metrics
 thresh = orion.config["gender_diversity"]["threshold"]
 paper_thresh_low = orion.config["metrics"]["paper_count_low"]
-paper_thresh_high = orion.config["metrics"]["paper_count_high"]
 year_thresh = orion.config["metrics"]["year"]
 fos_thresh = orion.config["metrics"]["fos_count"]
 
