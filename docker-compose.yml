@@ -8,10 +8,8 @@ services:
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_DB: ${DB_NAME}
-    expose:
-      - "5432"
-    restart: always
-  
+    ports:
+      - "5432:5432"
   airflow:
     container_name: airflow
     depends_on:
