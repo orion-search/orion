@@ -5,7 +5,7 @@ This tutorial walks you through Orion's ETL. It shows you how to modify Orion's 
 Clone the repository:
 
 ```bash
-git clone [https://github.com/orion-search/orion](https://github.com/orion-search/orion)
+git clone https://github.com/orion-search/orion
 ```
 
 ## Modify `model_config.yaml` ##
