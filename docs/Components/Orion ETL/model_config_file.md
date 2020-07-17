@@ -58,7 +58,7 @@ The journal, conference and field of study must match the Microsoft Academic Gra
 
 ```yaml
 data:	
-		wb:
+    wb:
         end_year: "2019"
         country: "all"
         table_names: ["wb_gdp"]
@@ -73,7 +73,7 @@ By default, Orion fetches the following indicators and creates their correspondi
 
 ```yaml
 data:
-		wb:
+	wb:
         end_year: "2019"
         country: "all"
         table_names: ["wb_gdp", "wb_rnd_expenditure", "wb_edu_expenditure", "wb_female_workforce"]

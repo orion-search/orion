@@ -1,6 +1,6 @@
 This tutorial walks you through Orion's ETL. It shows you how to modify Orion's DAG, collect, enrich and analyse data from Microsoft Academic Graph.
 
-## Get Orion
+## Get Orion ##
 
 Clone the repository:
 
@@ -8,7 +8,7 @@ Clone the repository:
 git clone [https://github.com/orion-search/orion](https://github.com/orion-search/orion)
 ```
 
-## Modify `model_config.yaml`
+## Modify `model_config.yaml` ##
 
 `model_config.yaml` contains Orion's configuration parameters. Change the following: 
 
@@ -48,7 +48,7 @@ s3_buckets:
 
 Set the S3 buckets that Orion will create and store intermediate data.
 
-## Modify **the environmental variables in `.env`**
+## Modify **the environmental variables in `.env`** ##
 
 ```
 # postgresdb
@@ -87,7 +87,7 @@ Create a `.env` file in the root directory and add the above. Alternatively, you
 
 To run the tutorial, you need to create an **AWS account** and get an **API key for the Microsoft Academic Graph**. See External Dependencies for details.
 
-## Build the docker container
+## Build the docker container ##
 
 Orion's ETL runs in a docker container. The `docker-compose.yml` has the instructions to create two containers; one for the PostgreSQL database and another one for Orion's data pipeline. Use the following command to **build** and **run** the containers:
 
@@ -97,7 +97,7 @@ docker-compose up
 
 This should take some time to run. After the setup, you will receive a stream of messages about the PostgreSQL database and Airflow like the one below. 
 
-![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/06d19b2b-5b14-40ac-ab8e-3d572fee97f7/airflow-log.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/06d19b2b-5b14-40ac-ab8e-3d572fee97f7/airflow-log.png)
+![docker-compose](/docs/images/airflow-log.png)
 
 If you need to make changes in a file after running `docker-compose up`, you should do the following to update the docker container:
 
@@ -105,7 +105,7 @@ If you need to make changes in a file after running `docker-compose up`, you sho
 docker-compose up --build
 ```
 
-## Run the DAG with Airflow's UI
+## Run the DAG with Airflow's UI ##
 
 Airflow is running locally and you can access it at:
 
@@ -115,7 +115,7 @@ http://localhost:8080/admin/
 
 Here, you can see all the DAGs in the `orion/core/dags` directory. Turn on the `tutorial` DAG and click on it.
 
-![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/2b8a97b8-195b-46e6-b460-9471545fcc20/airflow-ui-on.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/2b8a97b8-195b-46e6-b460-9471545fcc20/airflow-ui-on.png)
+![airflow-ui](/docs/images/airflow-ui-on.png)
 
 You can inspect the DAG in different ways, let's choose the **Graph View.** You can see all the tasks and their dependencies in the DAG. Let's list the tasks in the `tutorial` DAG:
 
@@ -129,19 +129,19 @@ You can inspect the DAG in different ways, let's choose the **Graph View.** You 
 - Collect metadata and calculate statistics on the Fields of Study used in the publications we retrieved.
 - Assign a set of thematic topics to the academic publications based on their Fields of Study.
 
-![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/9b401f32-3d12-4501-a618-42f357f88ba1/airflow-dag.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/9b401f32-3d12-4501-a618-42f357f88ba1/airflow-dag.png)
+![airflow-dag](/docs/images/airflow-dag.png)
 
 Click on **Trigger DAG.** It will run all tasks in the pipeline. The status of the DAG will change to **running** and the border of the tasks will turn **green** as they are completed successfully.
 
-![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/3ccfd1d7-021f-4de6-b599-e52493799104/airflow-successful-tasks.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/3ccfd1d7-021f-4de6-b599-e52493799104/airflow-successful-tasks.png)
+![airflow-successful-tasks](/docs/images/airflow-successful-tasks.png)
 
 The run will be completed once the status of the DAG changes to **success.**
 
-## Access the database
+## Access the database ##
 
 There are three ways to access the database.
 
-### Using `psql`
+### Using `psql` ###
 
 If you have `psql` installed, type in your terminal:
 
@@ -151,7 +151,7 @@ psql arxiv_cl -h localhost postgres
 
 You will be prompted to type your password which is `admin` (we set it in the `.env` file). 
 
-### Using the docker container
+### Using the docker container ###
 
 If you do not have `psql`, do the following to open the the `postgres` container in interactive mode:
 
@@ -159,7 +159,7 @@ If you do not have `psql`, do the following to open the the `postgres` container
 docker exec -it postgres psql -U postgres arxiv_cl
 ```
 
-### Using SQLAlchemy
+### Using SQLAlchemy ###
 
 This is the most useful way if you plan to use the data in your analysis. You can either access the data from the docker container or export the database to your local PostgreSQL distribution. Let's do the latter.
 
