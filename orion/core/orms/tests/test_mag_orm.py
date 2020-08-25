@@ -12,7 +12,7 @@ load_dotenv(find_dotenv())
 class TestMag(unittest.TestCase):
     """Check that the MAG ORM works as expected"""
 
-    db_config = os.getenv("orion_test")
+    db_config = os.getenv("postgres")
     engine = create_engine(db_config)
     Session = sessionmaker(engine)
 

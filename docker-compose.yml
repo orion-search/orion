@@ -1,0 +1,35 @@
+# This is for running the Orion ETL locally
+version: "3"
+services:
+  postgres:
+    image: postgres:12.2-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+  airflow:
+    container_name: airflow
+    depends_on:
+      - postgres
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        DB_HOST: ${DB_HOST}
+        DB_PORT: ${DB_PORT}
+        DB_NAME: ${DB_NAME}
+        DB_USER: ${DB_USER}
+        DB_PASS: ${DB_PASS}
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      # AIRFLOW__CORE__DAGS_FOLDER: "/airflow/orion/core/dags"
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    restart: always

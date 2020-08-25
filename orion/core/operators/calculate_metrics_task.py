@@ -343,8 +343,12 @@ class GenderDiversityOperator(BaseOperator):
             )
 
             # Countries with more than N papers in a year
-            # paper_count = df.drop_duplicates(subset=["country", "paper_id", "year"]).groupby(["year", "country"])["paper_id"].count()
-            # paper_count = paper_count.where(paper_count > self.paper_thresh).dropna()
+            paper_count = (
+                df.drop_duplicates(subset=["country", "paper_id", "year"])
+                .groupby(["year", "country"])["paper_id"]
+                .count()
+            )
+            paper_count = paper_count.where(paper_count > self.paper_thresh).dropna()
 
             # Country level share of female co-authors
             country_level = (
@@ -353,7 +357,9 @@ class GenderDiversityOperator(BaseOperator):
                 .mean()
             )
             # Keep only countries with more than N papers
-            # country_level = country_level.where(country_level.index.isin(paper_count.index)).dropna()
+            country_level = country_level.where(
+                country_level.index.isin(paper_count.index)
+            ).dropna()
 
             logging.info(f"Country level frame: {country_level.shape}")
 

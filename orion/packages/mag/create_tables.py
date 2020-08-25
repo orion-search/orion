@@ -11,7 +11,7 @@ load_dotenv(find_dotenv())
 def create_db_and_tables(db):
     # Try to create the database if it doesn't already exist.
     try:
-        db_config = os.getenv("orion_test")
+        db_config = os.getenv("postgres")
         engine = create_engine(db_config)
         conn = engine.connect()
         conn.execute("commit")
