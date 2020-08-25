@@ -51,6 +51,8 @@ default_args = {
     "start_date": datetime(2020, 2, 2),
     "depends_on_past": False,
     "retries": 0,
+    "email": ["k.stathoylopoylos@gmail.com"],
+    "email_on_failure": True,
 }
 
 DAG_ID = "orion"
@@ -122,9 +124,7 @@ es_port = os.getenv("es_port")
 erase_es_index = orion.config["elasticsearch"]["erase_index"]
 aws_region = os.getenv("region")
 
-with DAG(
-    dag_id=DAG_ID, default_args=default_args, schedule_interval=timedelta(days=365)
-) as dag:
+with DAG(dag_id=DAG_ID, default_args=default_args, catchup=False, schedule_interval="@monthly") as dag:
 
     dummy_task = DummyOperator(task_id="start")
 
