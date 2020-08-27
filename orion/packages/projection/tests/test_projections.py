@@ -8,7 +8,7 @@ from orion.packages.projection.faiss_index import faiss_index
 def test_umap_embeddings():
     arr = np.random.uniform(0.1, 10, [10, 4])
 
-    result = umap_embeddings(arr)
+    _, result = umap_embeddings(arr)
     expected_shape = (10, 2)
 
     assert result.shape == expected_shape
