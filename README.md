@@ -1,7 +1,9 @@
 # orion
 [![Build Status](https://travis-ci.org/orion-search/orion.svg?branch=dev)](https://travis-ci.org/kstathou/orion)
 
-Orion is a research measurement and knowledge discovery tool that enables you to monitor progress in science, visually explore the scientific landscape and search for relevant publications. This repository contains Orion's data collection, enrichment and analysis pipeline for scientific documents from Microsoft Academic Graph. 
+Orion is a research measurement and knowledge discovery tool that enables you to monitor progress in science, visually explore the scientific landscape and search for relevant publications. This repository contains Orion's data collection, enrichment and analysis pipeline for scientific documents from Microsoft Academic Graph.  
+
+[Documentation website](https://docs.orion-search.org/)  
 
 Learn more about Orion:
 * [Orion: An open-source tool for the science of science](https://medium.com/@kstathou/orion-an-open-source-tool-for-the-science-of-science-4259935f91d4)
@@ -31,4 +33,3 @@ http://localhost:8080/admin/
 
 ## TODO ##
 - Update data schema.
-- Create `docs/` website.
