@@ -1,6 +1,6 @@
 """
 DimReductionOperator: Transforms high dimensional arrays to 2D and 3D using UMAP.
-Fetches vectors and paper IDs from PostgreSQL and stores the low dimensional 
+Fetches vectors and paper IDs from PostgreSQL and stores the low dimensional
 representation in PostgreSQL.
 
 """
@@ -47,6 +47,11 @@ class DimReductionFittedUmapOperator(BaseOperator):
     def execute(self, context):
         # Load fitted UMAP
         reducer = load_from_s3(self.s3_bucket, "umap_model")
+
+        # Connect to postgresql
+        engine = create_engine(self.db_config)
+        Session = sessionmaker(bind=engine)
+        s = Session()
 
         # Fetch paper citations
         paper_citations = {
