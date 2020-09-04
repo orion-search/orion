@@ -47,6 +47,9 @@ class HomogeniseCountryNamesOperator(BaseOperator):
         Session = sessionmaker(engine)
         s = Session()
 
+        s.query(CountryAssociation).delete()
+        s.commit()
+
         # Country names from Google Places API
         country_names = [
             country_name[0]

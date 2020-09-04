@@ -1,41 +1,127 @@
 seed: 42
 
 data:
-    db_name: 'orion_prod'
+    db_name: "orion_prod"
     mag:
-        query_values: ['biorxiv']
-        entity_name: 'J.JN'
-        metadata: ["Id", "Ti", "AA.AfId", "AA.AfN", "AA.AuId", "AA.DAuN", "AA.S", "CC", "D", "F.DFN", "F.FId", "J.JId", "J.JN", "Pt", "RId", "Y", "DOI", "PB", "BT", "IA", "C.CN", "C.CId", "DN", "S"]
+        query_values: ["biorxiv"]
+        entity_name: "J.JN"
+        metadata:
+            [
+                "Id",
+                "Ti",
+                "AA.AfId",
+                "AA.AfN",
+                "AA.AuId",
+                "AA.DAuN",
+                "AA.S",
+                "CC",
+                "D",
+                "F.DFN",
+                "F.FId",
+                "J.JId",
+                "J.JN",
+                "Pt",
+                "RId",
+                "Y",
+                "DOI",
+                "PB",
+                "BT",
+                "IA",
+                "C.CN",
+                "C.CId",
+                "DN",
+                "S",
+            ]
         with_doi: False
-        mag_start_date: '2000-01-01'
-        mag_end_date: 'today'
+        mag_start_date: "2000-01-01"
+        mag_end_date: "today"
         intervals_in_a_year: 1
     wb:
         end_year: "2019"
         country: "all"
-        table_names: ["wb_gdp", "wb_rnd_expenditure", "wb_edu_expenditure", "wb_female_workforce"]
-        indicators: ["NY.GDP.MKTP.CD", "GB.XPD.RSDV.GD.ZS", "SE.XPD.TOTL.GD.ZS", "SL.TLF.CACT.FM.ZS"]
+        table_names:
+            [
+                "wb_gdp",
+                "wb_rnd_expenditure",
+                "wb_edu_expenditure",
+                "wb_female_workforce",
+            ]
+        indicators:
+            [
+                "NY.GDP.MKTP.CD",
+                "GB.XPD.RSDV.GD.ZS",
+                "SE.XPD.TOTL.GD.ZS",
+                "SL.TLF.CACT.FM.ZS",
+            ]
 
 elasticsearch:
     erase_index: True
 
-
 sentence_bert:
-    bert_model: 'distilbert-base-nli-stsb-mean-tokens'
+    bert_model: "distilbert-base-nli-stsb-mean-tokens"
     batch_size: 1000
 
 umap:
     n_neighbors: 10
     n_components: 2
-    metric: 'cosine'
+    metric: "cosine"
     min_dist: .01
-    exclude: [2767711857, 2783409909, 2767629641, 2764099951, 2794665118, 2796093101,2805293427, 2916833086,2884816995, 2910741825, 2999910879, 2981038760, 3011431910, 3008504946, 2272289125, 2345584675, 2338353564, 2198148450, 2954320905, 3012031958]
+    exclude:
+        [
+            2767711857,
+            2783409909,
+            2767629641,
+            2764099951,
+            2794665118,
+            2796093101,
+            2805293427,
+            2916833086,
+            2884816995,
+            2910741825,
+            2999910879,
+            2981038760,
+            3011431910,
+            3008504946,
+            2272289125,
+            2345584675,
+            2338353564,
+            2198148450,
+            2954320905,
+            3012031958,
+            3020283634,
+            3028008061,
+            3022700083,
+            2569783331,
+            3035187741,
+            2583559738,
+            3033214450,
+            3017809499,
+            2965916495,
+            2910961680,
+            2936427776,
+            2948641539,
+            3007280064,
+            3041505635,
+            3032991620,
+            2999890132,
+            3017745154,
+            2953707136,
+            2995449167,
+            3034556162,
+            3019063508,
+            2754088747,
+            3036115986,
+            2999460384,
+            2962956069,
+            3010487730,
+            3022354718,
+        ]
 
 tfidf:
     max_features: 120000
 
 country_collaboration:
-    year: '2013'
+    year: "2013"
 
 svd:
     n_components: 500
@@ -48,7 +134,7 @@ gender_diversity:
     threshold: .7
 
 metrics:
-    year: '2013'
+    year: "2013"
     paper_count_low: 10
     fos_count: 10
 
@@ -57,7 +143,7 @@ s3_buckets:
     gender: "names-batches"
     text_vectors: "document-vectors"
     topic: "mag-topics"
-    
+
 prefix:
     gender: "batched_names"
     text_vectors: "doc_vectors"
@@ -67,10 +153,308 @@ batch_size: 10000
 parallel_tasks: 4
 
 country_name_mapping:
-        google2wb : {'Brunei': 'Brunei Darussalam', 'Cape Verde':'Cabo Verde', 'Czechia':'Czech Republic', "Côte d'Ivoire":"Cote d'Ivoire", 'Democratic Republic of the Congo':'Congo, Dem. Rep.','Egypt':'Egypt, Arab Rep.', 'Hong Kong':'Hong Kong SAR, China', 'Iran':'Iran, Islamic Rep.', 'Laos': 'Lao PDR', 'Macao':'Macao SAR, China', 'PS':None, 'Russia':'Russian Federation', 'Réunion':None, 'Saint Kitts and Nevis':'St. Kitts and Nevis', 'Slovakia':'Slovak Republic', 'South Korea':'Korea, Rep.', 'Taiwan':None, 'Venezuela':'Venezuela, RB', 'North Korea':"Korea, Dem. People’s Rep.", 'Myanmar (Burma)':'Myanmar'}
-        google2restcountries : {'United States':'United States of America', 'North Macedonia':'Macedonia', 'South Korea':'Korea (Republic of)', 'Democratic Republic of the Congo':'Congo (Democratic Republic of the)', 'Cape Verde':'Cabo Verde', 'Czechia':'Czech Republic', 'North Korea':"Korea (Democratic People's Republic of)", 'Myanmar (Burma)':'Myanmar'}
+    google2wb:
+        {
+            "Brunei": "Brunei Darussalam",
+            "Cape Verde": "Cabo Verde",
+            "Czechia": "Czech Republic",
+            "Côte d'Ivoire": "Cote d'Ivoire",
+            "Democratic Republic of the Congo": "Congo, Dem. Rep.",
+            "Egypt": "Egypt, Arab Rep.",
+            "Hong Kong": "Hong Kong SAR, China",
+            "Iran": "Iran, Islamic Rep.",
+            "Laos": "Lao PDR",
+            "Macao": "Macao SAR, China",
+            "PS": None,
+            "Russia": "Russian Federation",
+            "Réunion": None,
+            "Saint Kitts and Nevis": "St. Kitts and Nevis",
+            "Slovakia": "Slovak Republic",
+            "South Korea": "Korea, Rep.",
+            "Taiwan": None,
+            "Venezuela": "Venezuela, RB",
+            "North Korea": "Korea, Dem. People’s Rep.",
+            "Myanmar (Burma)": "Myanmar",
+        }
+    google2restcountries:
+        {
+            "United States": "United States of America",
+            "North Macedonia": "Macedonia",
+            "South Korea": "Korea (Republic of)",
+            "Democratic Republic of the Congo": "Congo (Democratic Republic of the)",
+            "Cape Verde": "Cabo Verde",
+            "Czechia": "Czech Republic",
+            "North Korea": "Korea (Democratic People's Republic of)",
+            "Myanmar (Burma)": "Myanmar",
+        }
 
 affiliations:
-    non_profit: ['park centre for mental health', 'university', 'foundation', 'institution', 'universidade', 'institute', 'commission', 'agency', 'department', 'council', 'college', 'ministry', 'universidad', 'school', 'international centre', 'universiti', 'hospital', 'medical center', 'united states fish and wildlife service', 'centre', 'center', 'laboratory', 'universiteti', 'kantonsspital st gallen', 'infirmary', 'centro', 'museum', 'academy', 'istituto', 'national association', 'conservation trust', 'instituto', 'ezemvelo kzn wildlife', 'nhs trust', 'universite', 'society', 'united states office of research integrity', 'missouri botanical garden', 'nhs lothian', 'zurcher fachhochschule', 'administration', 'ecole', 'congressional research service', 'universitat', 'bureau', 'clinical trial service unit', 'fachhochschule lubeck', 'umass memorial health care', 'penn state abington', 'federation', 'office of', 'nhs greater glasgow and clyde', 'intelligence and national security alliance', 'rambam health care campus', 'cancer research uk', 'carolinas healthcare system', 'arthritis research uk', 'vancouver coastal health', 'red cross', 'commonwealth scientific and industrial', 'institut', 'academia', 'association', 'fondazione', 'faculty', 'escuela', 'facultad de filosofia y letras', 'coral reef alliance', 'fundacion', 'queensland health', 'jamia millia islamia', 'polytechnic', 'united states forest service', 'national ecological observatory network', 'national guard health affairs', 'geoscience australia', 'statistics canada', 'health service executive', 'district', 'national marrow donor program', 'junta of andalusia', 'american board of legal medicine', 'geological survey of denmark and greenland', 'australia bioinformatics resource', 'south african weather service', 'scottish national blood transfusion service', 'pancreatic cancer action network', 'va palo alto healthcare system', 'swiss federal laboratories for materials', 'defence research and development organisation', 'conservation international', 'european union','clalit health services', 'comision nacional', 'departamento', 'office national', 'rajiv gandhi proudyogiki vishwavidyalaya', 'nhs blood and transplant', 'european molecular biology organization', 'facultad', 'united nations environment programme', 'national health service', 'rochester general health system', 'bundesanstalt fur materialforschung und prufung','drugs for neglected diseases initiative', 'gundersen health system', 'fisheries and oceans canada', 'food safety and inspection service', 'civil aviation authority of singapore', 'union of concerned scientists', 'california state water resources control board', 'wright patterson air force base', 'bioversity international', 'marine scotland', 'qatar national library', 'american geophysical union', 'cherokee nation', 'national radio astronomy observatory', 'asia pacific economic cooperation', 'the leprosy mission international', 'kenya wildlife service', 'australian taxation office', 'breast cancer now', 'pan american health organization', 'united states public health service', 'butterfly conservation', 'king abdulaziz medical city']
+    non_profit:
+        [
+            "park centre for mental health",
+            "university",
+            "foundation",
+            "institution",
+            "universidade",
+            "institute",
+            "commission",
+            "agency",
+            "department",
+            "council",
+            "college",
+            "ministry",
+            "universidad",
+            "school",
+            "international centre",
+            "universiti",
+            "hospital",
+            "medical center",
+            "united states fish and wildlife service",
+            "centre",
+            "center",
+            "laboratory",
+            "universiteti",
+            "kantonsspital st gallen",
+            "infirmary",
+            "centro",
+            "museum",
+            "academy",
+            "istituto",
+            "national association",
+            "conservation trust",
+            "instituto",
+            "ezemvelo kzn wildlife",
+            "nhs trust",
+            "universite",
+            "society",
+            "united states office of research integrity",
+            "missouri botanical garden",
+            "nhs lothian",
+            "zurcher fachhochschule",
+            "administration",
+            "ecole",
+            "congressional research service",
+            "universitat",
+            "bureau",
+            "clinical trial service unit",
+            "fachhochschule lubeck",
+            "umass memorial health care",
+            "penn state abington",
+            "federation",
+            "office of",
+            "nhs greater glasgow and clyde",
+            "intelligence and national security alliance",
+            "rambam health care campus",
+            "cancer research uk",
+            "carolinas healthcare system",
+            "arthritis research uk",
+            "vancouver coastal health",
+            "red cross",
+            "commonwealth scientific and industrial",
+            "institut",
+            "academia",
+            "association",
+            "fondazione",
+            "faculty",
+            "escuela",
+            "facultad de filosofia y letras",
+            "coral reef alliance",
+            "fundacion",
+            "queensland health",
+            "jamia millia islamia",
+            "polytechnic",
+            "united states forest service",
+            "national ecological observatory network",
+            "national guard health affairs",
+            "geoscience australia",
+            "statistics canada",
+            "health service executive",
+            "district",
+            "national marrow donor program",
+            "junta of andalusia",
+            "american board of legal medicine",
+            "geological survey of denmark and greenland",
+            "australia bioinformatics resource",
+            "south african weather service",
+            "scottish national blood transfusion service",
+            "pancreatic cancer action network",
+            "va palo alto healthcare system",
+            "swiss federal laboratories for materials",
+            "defence research and development organisation",
+            "conservation international",
+            "european union",
+            "clalit health services",
+            "comision nacional",
+            "departamento",
+            "office national",
+            "rajiv gandhi proudyogiki vishwavidyalaya",
+            "nhs blood and transplant",
+            "european molecular biology organization",
+            "facultad",
+            "united nations environment programme",
+            "national health service",
+            "rochester general health system",
+            "bundesanstalt fur materialforschung und prufung",
+            "drugs for neglected diseases initiative",
+            "gundersen health system",
+            "fisheries and oceans canada",
+            "food safety and inspection service",
+            "civil aviation authority of singapore",
+            "union of concerned scientists",
+            "california state water resources control board",
+            "wright patterson air force base",
+            "bioversity international",
+            "marine scotland",
+            "qatar national library",
+            "american geophysical union",
+            "cherokee nation",
+            "national radio astronomy observatory",
+            "asia pacific economic cooperation",
+            "the leprosy mission international",
+            "kenya wildlife service",
+            "australian taxation office",
+            "breast cancer now",
+            "pan american health organization",
+            "united states public health service",
+            "butterfly conservation",
+            "king abdulaziz medical city",
+        ]
 
-open_access: ['arxiv computation and language', 'arxiv adaptation and self organizing systems', 'arxiv artificial intelligence', 'arxiv multiagent systems', 'arxiv computational engineering finance and science', 'arxiv neurons and cognition', 'arxiv learning', 'arxiv data analysis statistics and probability', 'arxiv quantitative methods', 'biorxiv', 'arxiv computer vision and pattern recognition', 'arxiv information theory', 'arxiv signal processing', 'arxiv sound', 'arxiv image and video processing', 'arxiv social and information networks', 'arxiv materials science', 'arxiv neural and evolutionary computing', 'arxiv statistical mechanics', 'arxiv networking and internet architecture', 'arxiv machine learning', 'arxiv high energy physics phenomenology', 'arxiv software engineering', 'arxiv molecular networks', 'arxiv physics and society', 'arxiv quantum physics', 'arxiv applications', 'arxiv cryptography and security', 'arxiv robotics', 'arxiv instrumentation and methods for astrophysics', 'arxiv distributed parallel and cluster computing', 'arxiv computational geometry', 'arxiv statistical finance', 'arxiv computers and society', 'arxiv human computer interaction', 'chemrxiv', 'arxiv high energy astrophysical phenomena', 'arxiv econometrics', 'arxiv optimization and control', 'arxiv computational physics', 'arxiv atmospheric and oceanic physics', 'arxiv genomics', 'arxiv trading and market microstructure', 'medrxiv', 'arxiv disordered systems and neural networks', 'arxiv computer science and game theory', 'arxiv biomolecules', 'arxiv strongly correlated electrons', 'arxiv audio and speech processing', 'arxiv cosmology and nongalactic astrophysics', 'arxiv methodology', 'arxiv multimedia', 'arxiv data structures and algorithms', 'arxiv databases', 'arxiv digital libraries', 'arxiv optics', 'arxiv programming languages', 'arxiv numerical analysis', 'arxiv chemical physics', 'arxiv fluid dynamics', 'arxiv other computer science', 'arxiv emerging technologies', 'arxiv statistics theory', 'arxiv medical physics', 'arxiv other statistics', 'arxiv logic in computer science', 'arxiv information retrieval', 'arxiv probability', 'arxiv applied physics', 'socarxiv', 'arxiv mesoscale and nanoscale physics', 'arxiv computational finance', 'arxiv geophysics', 'arxiv dynamical systems', 'arxiv high energy physics lattice', 'arxiv physics education', 'arxiv astrophysics of galaxies', 'arxiv risk management', 'arxiv biological physics', 'arxiv soft condensed matter', 'arxiv solar and stellar astrophysics', 'arxiv portfolio management', 'arxiv instrumentation and detectors', 'arxiv theoretical economics', 'arxiv general economics', 'arxiv high energy physics theory', 'arxiv graphics', 'arxiv populations and evolution', 'arxiv general relativity and quantum cosmology', 'arxiv mathematical finance', 'arxiv earth and planetary astrophysics', 'arxiv atomic and molecular clusters', 'arxiv algebraic topology', 'arxiv pattern formation and solitons', 'arxiv general literature', 'arxiv performance', 'arxiv tissues and organs', 'arxiv analysis of pdes', 'arxiv general finance', 'arxiv quantum gases', 'arxiv superconductivity', 'arxiv hardware architecture', 'arxiv space physics', 'arxiv pricing of securities', 'arxiv mathematical software', 'arxiv computation', 'arxiv nuclear theory', 'arxiv plasma physics', 'arxiv combinatorics', 'arxiv astrophysics', 'arxiv cell behavior', 'arxiv formal languages and automata theory', 'arxiv computational complexity', 'arxiv systems and control', 'arxiv chaotic dynamics', 'arxiv algebraic geometry', 'arxiv category theory', 'arxiv popular physics', 'arxiv symbolic computation', 'arxiv discrete mathematics', 'arxiv accelerator physics', 'arxiv other quantitative biology', 'arxiv general physics', 'arxiv classical analysis and odes', 'arxiv high energy physics experiment', 'arxiv economics', 'arxiv group theory', 'arxiv history and overview', 'arxiv logic', 'arxiv general topology', 'arxiv functional analysis', 'psyarxiv', 'arxiv operating systems', 'arxiv nuclear experiment', 'arxiv number theory']
+open_access:
+    [
+        "arxiv computation and language",
+        "arxiv adaptation and self organizing systems",
+        "arxiv artificial intelligence",
+        "arxiv multiagent systems",
+        "arxiv computational engineering finance and science",
+        "arxiv neurons and cognition",
+        "arxiv learning",
+        "arxiv data analysis statistics and probability",
+        "arxiv quantitative methods",
+        "biorxiv",
+        "arxiv computer vision and pattern recognition",
+        "arxiv information theory",
+        "arxiv signal processing",
+        "arxiv sound",
+        "arxiv image and video processing",
+        "arxiv social and information networks",
+        "arxiv materials science",
+        "arxiv neural and evolutionary computing",
+        "arxiv statistical mechanics",
+        "arxiv networking and internet architecture",
+        "arxiv machine learning",
+        "arxiv high energy physics phenomenology",
+        "arxiv software engineering",
+        "arxiv molecular networks",
+        "arxiv physics and society",
+        "arxiv quantum physics",
+        "arxiv applications",
+        "arxiv cryptography and security",
+        "arxiv robotics",
+        "arxiv instrumentation and methods for astrophysics",
+        "arxiv distributed parallel and cluster computing",
+        "arxiv computational geometry",
+        "arxiv statistical finance",
+        "arxiv computers and society",
+        "arxiv human computer interaction",
+        "chemrxiv",
+        "arxiv high energy astrophysical phenomena",
+        "arxiv econometrics",
+        "arxiv optimization and control",
+        "arxiv computational physics",
+        "arxiv atmospheric and oceanic physics",
+        "arxiv genomics",
+        "arxiv trading and market microstructure",
+        "medrxiv",
+        "arxiv disordered systems and neural networks",
+        "arxiv computer science and game theory",
+        "arxiv biomolecules",
+        "arxiv strongly correlated electrons",
+        "arxiv audio and speech processing",
+        "arxiv cosmology and nongalactic astrophysics",
+        "arxiv methodology",
+        "arxiv multimedia",
+        "arxiv data structures and algorithms",
+        "arxiv databases",
+        "arxiv digital libraries",
+        "arxiv optics",
+        "arxiv programming languages",
+        "arxiv numerical analysis",
+        "arxiv chemical physics",
+        "arxiv fluid dynamics",
+        "arxiv other computer science",
+        "arxiv emerging technologies",
+        "arxiv statistics theory",
+        "arxiv medical physics",
+        "arxiv other statistics",
+        "arxiv logic in computer science",
+        "arxiv information retrieval",
+        "arxiv probability",
+        "arxiv applied physics",
+        "socarxiv",
+        "arxiv mesoscale and nanoscale physics",
+        "arxiv computational finance",
+        "arxiv geophysics",
+        "arxiv dynamical systems",
+        "arxiv high energy physics lattice",
+        "arxiv physics education",
+        "arxiv astrophysics of galaxies",
+        "arxiv risk management",
+        "arxiv biological physics",
+        "arxiv soft condensed matter",
+        "arxiv solar and stellar astrophysics",
+        "arxiv portfolio management",
+        "arxiv instrumentation and detectors",
+        "arxiv theoretical economics",
+        "arxiv general economics",
+        "arxiv high energy physics theory",
+        "arxiv graphics",
+        "arxiv populations and evolution",
+        "arxiv general relativity and quantum cosmology",
+        "arxiv mathematical finance",
+        "arxiv earth and planetary astrophysics",
+        "arxiv atomic and molecular clusters",
+        "arxiv algebraic topology",
+        "arxiv pattern formation and solitons",
+        "arxiv general literature",
+        "arxiv performance",
+        "arxiv tissues and organs",
+        "arxiv analysis of pdes",
+        "arxiv general finance",
+        "arxiv quantum gases",
+        "arxiv superconductivity",
+        "arxiv hardware architecture",
+        "arxiv space physics",
+        "arxiv pricing of securities",
+        "arxiv mathematical software",
+        "arxiv computation",
+        "arxiv nuclear theory",
+        "arxiv plasma physics",
+        "arxiv combinatorics",
+        "arxiv astrophysics",
+        "arxiv cell behavior",
+        "arxiv formal languages and automata theory",
+        "arxiv computational complexity",
+        "arxiv systems and control",
+        "arxiv chaotic dynamics",
+        "arxiv algebraic geometry",
+        "arxiv category theory",
+        "arxiv popular physics",
+        "arxiv symbolic computation",
+        "arxiv discrete mathematics",
+        "arxiv accelerator physics",
+        "arxiv other quantitative biology",
+        "arxiv general physics",
+        "arxiv classical analysis and odes",
+        "arxiv high energy physics experiment",
+        "arxiv economics",
+        "arxiv group theory",
+        "arxiv history and overview",
+        "arxiv logic",
+        "arxiv general topology",
+        "arxiv functional analysis",
+        "psyarxiv",
+        "arxiv operating systems",
+        "arxiv nuclear experiment",
+        "arxiv number theory",
+    ]

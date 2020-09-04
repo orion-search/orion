@@ -2,7 +2,7 @@ import torch
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from orion.packages.utils.s3_utils import create_s3_bucket
 from orion.core.operators.mag_parse_task import MagParserOperator, FosFrequencyOperator
 from orion.core.operators.draw_collaboration_graph_task import (
@@ -25,7 +25,11 @@ from orion.core.operators.calculate_metrics_task import (
     GenderDiversityOperator,
 )
 from orion.core.operators.text2vec_task import Text2SentenceBertOperator
-from orion.core.operators.dim_reduction_task import DimReductionOperator
+from orion.core.operators.dim_reduction_task import (
+    DimReductionOperator,
+    DimReductionFittedUmapOperator,
+    umap_exists,
+)
 from orion.core.operators.topic_filtering_task import (
     FilterTopicsByDistributionOperator,
     FilteredTopicsMetadataOperator,
@@ -124,7 +128,12 @@ es_port = os.getenv("es_port")
 erase_es_index = orion.config["elasticsearch"]["erase_index"]
 aws_region = os.getenv("region")
 
-with DAG(dag_id=DAG_ID, default_args=default_args, catchup=False, schedule_interval="@monthly") as dag:
+with DAG(
+    dag_id=DAG_ID,
+    default_args=default_args,
+    catchup=False,
+    schedule_interval="@monthly",
+) as dag:
 
     dummy_task = DummyOperator(task_id="start")
 
@@ -215,13 +224,28 @@ with DAG(dag_id=DAG_ID, default_args=default_args, catchup=False, schedule_inter
         bert_model=bert_model,
     )
 
-    dim_reduction = DimReductionOperator(
+    dim_reduction = BranchPythonOperator(
         task_id="dim_reduction",
+        python_callable=umap_exists,
+        op_kwargs={"bucket": text_vectors_bucket},
+        trigger_rule="all_done",
+    )
+
+    fit_umap = DimReductionOperator(
+        task_id="fit_umap",
         db_config=DB_CONFIG,
+        s3_bucket=text_vectors_bucket,
         n_neighbors=n_neighbors,
         min_dist=min_dist,
         n_components=n_components,
         metric=metric,
+        exclude_docs=exclude_docs,
+    )
+
+    call_umap = DimReductionFittedUmapOperator(
+        task_id="call_umap",
+        db_config=DB_CONFIG,
+        s3_bucket=text_vectors_bucket,
         exclude_docs=exclude_docs,
     )
 
@@ -325,6 +349,8 @@ with DAG(dag_id=DAG_ID, default_args=default_args, catchup=False, schedule_inter
     filtered_topic_metadata >> country_similarity
     parse_mag >> batch_names >> batch_task_gender >> dummy_task_2 >> gender_diversity
     parse_mag >> text2vector >> dim_reduction
+    dim_reduction >> fit_umap
+    dim_reduction >> call_umap
     text2vector >> faiss_index
     parse_mag >> aff_types
     parse_mag >> postgres2es

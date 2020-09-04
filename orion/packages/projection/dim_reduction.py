@@ -26,4 +26,6 @@ def umap_embeddings(
         metric=metric,
         random_state=42,
     )
-    return reducer.fit_transform(data)
+
+    fitted_reducer = reducer.fit(data)
+    return fitted_reducer, fitted_reducer.transform(data)
