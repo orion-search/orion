@@ -1,16 +1,17 @@
-# orion
+# Orion
 [![Build Status](https://travis-ci.org/orion-search/orion.svg?branch=dev)](https://travis-ci.org/kstathou/orion)
 
-Orion is a research measurement and knowledge discovery tool that enables you to monitor progress in science, visually explore the scientific landscape and search for relevant publications. This repository contains Orion's data collection, enrichment and analysis pipeline for scientific documents from Microsoft Academic Graph.  
+Orion is a research measurement and knowledge discovery tool that enables you to monitor progress in science, visually explore the scientific landscape and search for relevant publications.
 
-[Documentation website](https://docs.orion-search.org/)  
+This repo contains Orion's data collection, enrichment and analysis pipeline for scientific documents from Microsoft Academic Graph. You can find the rest of our work in the following repositories:
+- [Search engine](https://github.com/orion-search/search-engine)
+- [Web-interface](https://github.com/orion-search/orion-search.org)
+- [Talks, demos, papers and tutorials on Orion](https://github.com/orion-search/tutorials). Most of the content was made for presentations at venues such as the SciNLP, NetSci, IC2S2 and WOOC.
+- [End-to-end service deployment [WIP]](https://github.com/orion-search/universe)
 
-Learn more about Orion:
-* [Orion: An open-source tool for the science of science](https://medium.com/@kstathou/orion-an-open-source-tool-for-the-science-of-science-4259935f91d4)
-* [A walkthrough of Orion's backend, data and design decisions](https://medium.com/@kstathou/a-walkthrough-of-orions-backend-data-and-design-decisions-f60c01b507aa)
-* [SciNLP | Orion: An interactive information retrieval system for scientific knowledge discovery](https://youtu.be/m0s5sjlpfAY)
+To learn more about Orion, check out the **[documentation website](https://docs.orion-search.org/)**.  
 
-Orion is an open-source tool. If you want to use our work or parts of it, be a good citizen of the Internet and drop us an acknowledgement. We would also love to know what you are developing so get in touch! 
+Orion is open-source. If you want to use our work or parts of it, be a good citizen of the Internet and drop us an acknowledgement. We would also love to know what you are developing so get in touch! 
 
 ## Installation ##
 1. Clone Orion's ETL 
@@ -19,7 +20,7 @@ Orion is an open-source tool. If you want to use our work or parts of it, be a g
 git clone https://github.com/orion-search/orion
 ```
 
-2. Orion using the `model_config.yaml` and the `.env` files as shown in this tutorial. 
+2. Orion using the `model_config.yaml` and the `.env` files as shown in [this tutorial](https://docs.orion-search.org/docs/running_etl). 
 3. Run Orion's ETL in docker
 
 ``` bash
@@ -33,3 +34,4 @@ http://localhost:8080/admin/
 
 ## TODO ##
 - Update data schema.
+- Change Airflow operators to kubernetes.
