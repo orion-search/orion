@@ -7,7 +7,7 @@ This repo contains Orion's data collection, enrichment and analysis pipeline for
 - [Search engine](https://github.com/orion-search/search-engine)
 - [Web-interface](https://github.com/orion-search/orion-search.org)
 - [Talks, demos, papers and tutorials on Orion](https://github.com/orion-search/tutorials). Most of the content was made for presentations at venues such as the SciNLP, NetSci, IC2S2 and WOOC.
-- [End-to-end service deployment [WIP]](https://github.com/orion-search/universe)
+- [Micro-service deployment [WIP]](https://github.com/orion-search/universe)
 
 To learn more about Orion, check out the **[documentation website](https://docs.orion-search.org/)**.  
 
@@ -20,7 +20,7 @@ Orion is open-source. If you want to use our work or parts of it, be a good citi
 git clone https://github.com/orion-search/orion
 ```
 
-2. Orion using the `model_config.yaml` and the `.env` files as shown in [this tutorial](https://docs.orion-search.org/docs/running_etl). 
+2. Modify Orion using the `model_config.yaml` and the `.env` files as shown in [this tutorial](https://docs.orion-search.org/docs/running_etl). 
 3. Run Orion's ETL in docker
 
 ``` bash
