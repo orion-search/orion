@@ -31,7 +31,7 @@ class DimReductionFittedUmapOperator(BaseOperator):
         self,
         db_config,
         s3_bucket,
-        short_doc_len=250,
+        short_doc_len=300,
         remove_short_docs=True,
         exclude_docs=[],
         *args,
